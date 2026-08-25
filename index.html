@@ -96,6 +96,23 @@ body{background:#f4f5f3;color:#001034}
 #athletePage .daySlot.booked{background:#fff0e7;color:#8b3d20}
 #athletePage .weekNav{display:flex;align-items:center;gap:10px}.weekRange{font-weight:900;letter-spacing:.1px}
 @media(max-width:768px){#athletePage{max-width:none}#athletePage .tableScroller{overflow-x:auto}#athletePage .schedule{min-width:690px!important}#athletePage .timeHead,#athletePage .timeCell{width:70px;min-width:70px;max-width:70px}#athletePage .schedule th:not(.timeHead),#athletePage .schedule td:not(.timeCell){width:124px;min-width:124px}.scheduleTop{top:60px!important}.weekRange{font-size:14px!important}.dayHead .dom{font-size:19px!important}}
+
+/* Sprint 2.6 Athlete UI correction */
+#athletePage .sportDiscovery{padding:22px!important}
+#athletePage .sportCats{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:12px 0 18px}
+#athletePage .sportCat{min-height:86px;font-size:14px}
+#athletePage .coachCards:not(:empty){margin-top:12px}
+#athletePage .scheduleShell{padding:0!important;border-radius:20px!important}
+#athletePage .scheduleTop{position:relative!important;top:auto!important;border-radius:20px 20px 0 0;padding:16px 18px!important}
+#athletePage .tableScroller{max-height:66vh;overflow-y:auto!important}
+#athletePage .schedule thead th{position:sticky!important;top:0!important;z-index:26!important}
+#athletePage .schedule thead .timeHead{z-index:32!important}
+#athletePage .dayHead{height:78px!important;background:#f7f4ea!important;border-top:4px solid #B08A00!important}
+#athletePage .dayHead .dow{font-size:14px!important;color:#001034!important}
+#athletePage .dayHead .dom{font-size:24px!important;color:#001034!important}
+#athletePage .dayHead .monthLabel{font-size:12px;font-weight:800;color:#5e665f}
+#athletePage .timeHead{height:78px!important}
+@media(max-width:768px){#athletePage .sportCats{display:flex!important;overflow-x:auto;gap:8px}#athletePage .sportCat{min-width:96px}.scheduleTop{position:relative!important;top:auto!important}#athletePage .dayHead{height:72px!important}}
 </style></head>
 <body><div class="app">
 <header class="topbar"><div class="brand">Coach Di<small>Smart Coach Booking</small></div><div><button id="roleBadge" class="pill">UAT</button> <button id="logoutBtn" class="pill hidden" onclick="logout()">ออกจากระบบ</button></div></header>
@@ -180,7 +197,7 @@ async function loadFirebaseData(){let uid=state.user.uid;if(state.role==="coach"
  if(state.role==="coach")db.ref(`auditLogs/${uid}`).limitToLast(100).on("value",x=>{state.auditLogs=Object.values(x.val()||{})});
 }
 async function ensureCoachDiId(uid){let snap=await db.ref(`coachProfiles/${uid}`).once("value"),p=snap.val()||{};if(p.coachDiId)return p.coachDiId;let all=await db.ref("coachProfiles").once("value"),max=0;Object.values(all.val()||{}).forEach(x=>{let m=String(x.coachDiId||"").match(/ID_(\d+)/);if(m)max=Math.max(max,Number(m[1]))});let id=`ID_${String(max+1).padStart(3,"0")}`;await db.ref(`coachProfiles/${uid}`).update({coachDiId:id,displayName:p.displayName||state.user?.displayName||state.user?.email?.split("@")[0]||"Coach",updatedAt:firebase.database.ServerValue.TIMESTAMP});return id}
-async function refreshCoachList(render=true){let s=await db.ref("coachProfiles").once("value"),all=s.val()||{};state.coaches=Object.entries(all).map(([uid,p])=>({uid,...p})).filter(x=>x.status!=="suspended");if(render&&typeof athleteCoachSelect!=="undefined")renderCoachPicker()}
+async function refreshCoachList(render=true){let s=await db.ref("coachProfiles").once("value"),all=s.val()||{};state.coaches=Object.entries(all).map(([uid,p])=>({uid,...p})).filter(x=>x.status!=="suspended");if(render)renderCoachPicker()}
 const SPORTS=[{id:"tennis",label:"Tennis",icon:"🎾"},{id:"pickleball",label:"Pickle Ball",icon:"🏓"},{id:"badminton",label:"Badminton",icon:"🏸"},{id:"football",label:"Football",icon:"⚽"},{id:"swimming",label:"Swimming",icon:"🏊"}];
 function coachSport(c){return String(c.sport||c.category||c.sportCategory||"tennis").toLowerCase().replace(/[^a-z]/g,"")}
 function selectSport(id){state.selectedSport=id;state.selectedCell=null;renderCoachDiscovery();let list=filteredCoaches();if(list.length&&!list.some(c=>c.uid===state.coachId))changeAthleteCoach(list[0].uid)}
@@ -215,7 +232,7 @@ function renderSchedule(){
  let days=Array.from({length:5},(_,i)=>isoAdd(state.selectedDate,i)).filter(d=>d<=MAX_DATE),hours=Array.from({length:Math.max(0,state.availability.end-state.availability.start)},(_,i)=>i+state.availability.start);
  if(!days.length)return;
  weekRange.textContent=`${shortThaiDate(days[0])} – ${shortThaiDate(days[days.length-1])}`;
- let head=`<thead><tr><th class="timeHead">เวลา</th>${days.map(d=>{let dt=new Date(d+"T12:00:00"),parts=new Intl.DateTimeFormat("th-TH",{weekday:"short",day:"numeric",month:"short"}).formatToParts(dt),dow=parts.find(x=>x.type==="weekday")?.value||"",day=parts.find(x=>x.type==="day")?.value||"",mon=parts.find(x=>x.type==="month")?.value||"";return `<th class="dayHead ${d===TODAY?"today":""}" title="${shortThaiDate(d)}"><div class=dow>${dow}</div><div class=dom>${day}</div><div class=dow>${mon}</div></th>`}).join("")}</tr></thead>`;
+ let head=`<thead><tr><th class="timeHead">เวลา</th>${days.map(d=>{let dt=new Date(d+"T12:00:00"),parts=new Intl.DateTimeFormat("th-TH",{weekday:"short",day:"numeric",month:"short"}).formatToParts(dt),dow=parts.find(x=>x.type==="weekday")?.value||"",day=parts.find(x=>x.type==="day")?.value||"",mon=parts.find(x=>x.type==="month")?.value||"";return `<th class="dayHead ${d===TODAY?"today":""}" title="${shortThaiDate(d)}"><div class=dow>${dow}</div><div class=dom>${day}</div><div class="monthLabel">${mon}</div></th>`}).join("")}</tr></thead>`;
  let rows=hours.map(h=>`<tr><td class="timeCell">${fmt(h)}</td>${days.map(d=>{let s=dayCellStatus(d,h),disabled=["booked","timeoff","unavailable","coach_location"].includes(s.type),selected=state.selectedCell&&state.selectedCell.date===d&&state.selectedCell.h===h;return `<td><button class="daySlot ${s.type} ${selected?"selected":""}" ${disabled?"disabled":""} onclick="selectDateSlot('${d}',${h})" aria-label="${shortThaiDate(d)} ${fmt(h)} ${s.label}"><div class=venue><span class=dot>${s.type==="coach_location"?"📍":s.type==="booked"?"■":s.type==="available"?"●":"—"}</span>${s.label}</div><div class=meta>${selected?"เลือกเวลานี้":(s.meta||"")}</div></button></td>`}).join("")}</tr>`).join("");
  scheduleTable.innerHTML=head+`<tbody>${rows}</tbody>`;
 }
