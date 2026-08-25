@@ -113,6 +113,22 @@ body{background:#f4f5f3;color:#001034}
 #athletePage .dayHead .monthLabel{font-size:12px;font-weight:800;color:#5e665f}
 #athletePage .timeHead{height:78px!important}
 @media(max-width:768px){#athletePage .sportCats{display:flex!important;overflow-x:auto;gap:8px}#athletePage .sportCat{min-width:96px}.scheduleTop{position:relative!important;top:auto!important}#athletePage .dayHead{height:72px!important}}
+
+/* Sprint 2.8 Athlete navigation + supplied Coach Di background */
+body{background-image:linear-gradient(rgba(246,247,245,.91),rgba(246,247,245,.91)),url("coach-di-background.png");background-size:cover;background-position:center;background-attachment:fixed}
+#portal .layout{background:transparent}
+#portal .main{background:transparent}
+.athleteSidebar{background:rgba(0,16,52,.96)!important;color:#fff;border-right:0!important;padding:22px 14px!important;box-shadow:8px 0 30px rgba(0,16,52,.12)}
+.athleteSidebar .sideBrand{display:flex;align-items:center;gap:10px;padding:8px 10px 22px;font-size:20px;font-weight:900;color:#fff}
+.athleteSidebar .sideMark{width:34px;height:34px;border-radius:10px;background:#B08A00;color:#001034;display:grid;place-items:center;font-weight:950}
+.athleteSidebar .navbtn{color:#dfe8e4;font-size:15px;font-weight:750;padding:13px 14px;margin:5px 0;border-radius:12px}
+.athleteSidebar .navbtn:hover,.athleteSidebar .navbtn.active{background:#B08A00;color:#001034}
+.athleteSidebar .navIcon{width:24px;text-align:center;font-size:17px}
+.athleteSidebar .sideDivider{height:1px;background:#ffffff20;margin:16px 8px}
+.athleteSidebar .sideLogout{color:#ffc9bd}
+#athletePage .card,#athletePage .scheduleShell{background:rgba(255,255,255,.96);backdrop-filter:blur(8px)}
+.athleteSectionTitle{display:flex;justify-content:space-between;align-items:center;gap:10px}
+@media(max-width:768px){body{background-attachment:scroll;background-position:center top}.athleteSidebar{display:none!important}.mobileNav.athleteMobile{display:flex;background:#001034;border-top:0}.mobileNav.athleteMobile button{color:#fff}.mobileNav.athleteMobile button.active{color:#d7aa2a}}
 </style></head>
 <body><div class="app">
 <header class="topbar"><div class="brand">Coach Di<small>Smart Coach Booking</small></div><div><button id="roleBadge" class="pill">UAT</button> <button id="logoutBtn" class="pill hidden" onclick="logout()">ออกจากระบบ</button></div></header>
@@ -209,8 +225,28 @@ function loadCoachScopedData(cid){db.ref(`coachVenues/${cid}`).once("value").the
 function showAthleteTab(tab){coachBookingTab.classList.toggle("hidden",tab!=="coach");courtBookingTab.classList.toggle("hidden",tab!=="court");coachTabBtn.classList.toggle("active",tab==="coach");courtTabBtn.classList.toggle("active",tab==="court")}
 function openVisdaBooking(){window.open(VISDA_LINK,"_blank","noopener");showAthleteTab("coach")}
 auth.onAuthStateChanged(async user=>{try{if(!user){state.user=null;state.role=null;portal.classList.add("hidden");loginView.classList.remove("hidden");logoutBtn.classList.add("hidden");return}state.user=user;authMessage.textContent="ตรวจสอบสิทธิ์ผู้ใช้งาน...";let snap=await db.ref(`users/${user.uid}`).once("value");let profile=snap.val();if(!profile?.role){await auth.signOut();authMessage.textContent="บัญชีนี้ยังไม่มี Role กรุณาติดต่อ Admin";return}state.role=String(profile.role).toLowerCase();if(!["athlete","coach","admin"].includes(state.role)){await auth.signOut();authMessage.textContent="Role ของบัญชีนี้ไม่ถูกต้อง กรุณาติดต่อ Admin";return}authMessage.textContent="กำลังโหลดข้อมูล...";await loadFirebaseData();enterPortal();authMessage.textContent="เข้าสู่ระบบสำเร็จ"}catch(e){console.error("Coach Di login bootstrap error",e);authMessage.textContent="เข้าสู่ระบบสำเร็จ แต่โหลดข้อมูลไม่ได้: "+(e?.message||"กรุณาตรวจสอบ Database Rules");try{await auth.signOut()}catch(_){}}});
-function renderNav(){if(state.role!=="coach"){sidebar.innerHTML="";mobileNav.innerHTML="";return}let items=[["dashboard","Dashboard","⌂"],["schedule","ตารางสอน","▦"],["bookings","รายการจอง","☑"],["availability","จัดการเวลาว่าง","◷"],["timeoff","วันหยุด","☀"],["income","รายได้","฿"],["payments","การชำระเงิน","▣"],["profile","ประวัติโค้ช","●"],["settings","ตั้งค่า","⚙"]];sidebar.innerHTML=items.map(x=>`<button class="navbtn" data-page="${x[0]}" onclick="showCoach('${x[0]}')"><span>${x[2]}</span>${x[1]}</button>`).join("")+`<button class="navbtn" onclick=logout()>↪ ออกจากระบบ</button>`;mobileNav.innerHTML=items.slice(0,5).map(x=>`<button onclick="showCoach('${x[0]}')">${x[2]}<br>${x[1]}</button>`).join("")}
-function showAthlete(){setTimeout(()=>{refreshCoachList().catch(()=>{})},0);athletePage.classList.remove("hidden");coachPage.classList.add("hidden");if(state.selectedDate<TODAY)state.selectedDate=TODAY;renderSchedule();renderAthleteBookings()}
+function renderNav(){
+ if(state.role!=="coach"){
+  const items=[["home","หน้าหลัก","⌂"],["coach","จองโค้ช","♟"],["court","จองสนาม","▦"],["mybookings","การจองของฉัน","☑"],["history","ประวัติการจอง","◷"]];
+  sidebar.className="sidebar athleteSidebar";
+  sidebar.innerHTML=`<div class="sideBrand"><span class="sideMark">Di</span><span>Coach Di</span></div>`+items.map(x=>`<button class="navbtn" data-athlete-page="${x[0]}" onclick="showAthleteMenu('${x[0]}')"><span class="navIcon">${x[2]}</span>${x[1]}</button>`).join("")+`<div class="sideDivider"></div><button class="navbtn sideLogout" onclick="logout()"><span class="navIcon">↪</span>ออกจากระบบ</button>`;
+  mobileNav.className="mobileNav athleteMobile";mobileNav.innerHTML=items.map(x=>`<button data-athlete-mobile="${x[0]}" onclick="showAthleteMenu('${x[0]}')">${x[2]}<br>${x[1]}</button>`).join("");
+  return;
+ }
+ sidebar.className="sidebar";mobileNav.className="mobileNav";let items=[["dashboard","Dashboard","⌂"],["schedule","ตารางสอน","▦"],["bookings","รายการจอง","☑"],["availability","จัดการเวลาว่าง","◷"],["timeoff","วันหยุด","☀"],["income","รายได้","฿"],["payments","การชำระเงิน","▣"],["profile","ประวัติโค้ช","●"],["settings","ตั้งค่า","⚙"]];sidebar.innerHTML=items.map(x=>`<button class="navbtn" data-page="${x[0]}" onclick="showCoach('${x[0]}')"><span>${x[2]}</span>${x[1]}</button>`).join("")+`<button class="navbtn" onclick=logout()>↪ ออกจากระบบ</button>`;mobileNav.innerHTML=items.slice(0,5).map(x=>`<button onclick="showCoach('${x[0]}')">${x[2]}<br>${x[1]}</button>`).join("")
+}
+function setAthleteNavActive(page){document.querySelectorAll('[data-athlete-page]').forEach(b=>b.classList.toggle('active',b.dataset.athletePage===page));document.querySelectorAll('[data-athlete-mobile]').forEach(b=>b.classList.toggle('active',b.dataset.athleteMobile===page))}
+function showAthleteMenu(page){
+ setAthleteNavActive(page);athletePage.classList.remove("hidden");coachPage.classList.add("hidden");
+ const discovery=document.querySelector('.sportDiscovery'),schedule=document.querySelector('.scheduleShell'),historyCard=document.getElementById('athleteBookings')?.closest('.card'),hero=document.querySelector('.athleteHero'),tabs=document.querySelector('.athleteTabs');
+ [discovery,schedule,historyCard,hero,tabs].forEach(el=>el&&el.classList.remove('hidden'));
+ if(page==='court'){showAthleteTab('court');discovery?.classList.add('hidden');schedule?.classList.add('hidden');historyCard?.classList.add('hidden');return}
+ showAthleteTab('coach');
+ if(page==='home'){historyCard?.classList.add('hidden');return}
+ if(page==='coach'){historyCard?.classList.add('hidden');hero?.classList.add('hidden');return}
+ if(page==='mybookings'||page==='history'){discovery?.classList.add('hidden');schedule?.classList.add('hidden');tabs?.classList.add('hidden');hero?.classList.add('hidden');renderAthleteBookings();historyCard?.scrollIntoView({behavior:'smooth',block:'start'});return}
+}
+function showAthlete(){setTimeout(()=>{refreshCoachList().catch(()=>{})},0);athletePage.classList.remove("hidden");coachPage.classList.add("hidden");if(state.selectedDate<TODAY)state.selectedDate=TODAY;renderSchedule();renderAthleteBookings();setTimeout(()=>showAthleteMenu('home'),0)}
 function changeWeek(n){let v=isoAdd(state.selectedDate,n);if(v<TODAY)v=TODAY;if(v>MAX_DATE)return;state.selectedDate=v;state.selectedCell=null;renderSchedule()}
 function getBooking(date,h){return state.bookings.find(b=>b.date===date&&b.start===h&&["confirmed","payment_submitted","payment_verified","pending_payment"].includes(b.status))}
 function getCoachLoc(date,h){return state.coachLocations.find(x=>x.date===date&&x.start<=h&&x.end>h)}
