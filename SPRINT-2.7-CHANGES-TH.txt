@@ -1,0 +1,5 @@
+Coach Di UAT Sprint 2.7
+- Fix Firebase Booking error: coachId undefined
+- Validate coach selection before booking
+- Booking always writes a defined coachId
+- Safe fallback for other venue name
