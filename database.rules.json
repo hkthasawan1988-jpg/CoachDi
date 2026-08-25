@@ -1,0 +1,99 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "appConfig": {
+      ".read": "auth != null",
+      ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin'"
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && ((auth.uid === $uid && ((!data.exists() && newData.child('role').val() === 'athlete') || (data.exists() && newData.child('role').val() === data.child('role').val()))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "coachProfiles": {
+      "$coachId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      },
+      ".read": "auth != null"
+    },
+    "coachAvailability": {
+      "$coachId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "coachLocations": {
+      "$coachId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "coachVenues": {
+      "$coachId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "coachPricing": {
+      "$coachId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "coachTimeOff": {
+      "$coachId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "coachPaymentAccounts": {
+      "$coachId": {
+        ".read": "auth != null && (auth.uid === $coachId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "bookings": {
+      ".read": "auth != null",
+      "$bookingId": {
+        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'athlete' && ((!data.exists() && newData.child('athleteId').val() === auth.uid) || (data.exists() && data.child('athleteId').val() === auth.uid && newData.child('athleteId').val() === auth.uid && newData.child('coachId').val() === data.child('coachId').val()))) || (root.child('users').child(auth.uid).child('role').val() === 'coach' && (data.child('coachId').val() === auth.uid || newData.child('coachId').val() === auth.uid)) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "auditLogs": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "$id": {
+          ".write": "auth != null && auth.uid === $uid && !data.exists()"
+        }
+      }
+    },
+    "notifications": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$id": {
+          ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        }
+      }
+    },
+    "paymentTransactions": {
+      "$id": {
+        ".read": "auth != null && (data.child('coachId').val() === auth.uid || data.child('athleteId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'coach' && newData.child('coachId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "refunds": {
+      "$id": {
+        ".read": "auth != null && (data.child('coachId').val() === auth.uid || data.child('athleteId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && newData.child('coachId').val() === auth.uid))"
+      }
+    },
+    "reviews": {
+      "$id": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'athlete' && newData.child('athleteId').val() === auth.uid"
+      }
+    }
+  }
+}

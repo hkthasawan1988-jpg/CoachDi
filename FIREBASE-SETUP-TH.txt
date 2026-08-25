@@ -1,0 +1,48 @@
+Coach Di Sprint 2.2 — Firebase Setup
+
+สถานะ: Code เชื่อม Firebase Authentication + Realtime Database จริงแล้ว
+Storage ยังไม่เปิด เพราะ Firebase Project ปัจจุบันเป็น Spark plan และหน้า Console ขอ Upgrade
+
+1) Firebase Realtime Database > Rules
+   - Copy เนื้อหา database.rules.json ไปวาง แล้ว Publish
+
+2) สร้าง Coach Account ครั้งแรก
+   Authentication > Users > Add user
+   - ใส่ Email ของ Coach และ Password ชั่วคราว
+   - Copy UID ของ Coach
+
+3) Realtime Database > Data
+   เพิ่มข้อมูล users/{COACH_UID}
+   {
+     "role": "coach",
+     "email": "EMAIL_COACH"
+   }
+
+4) ตั้ง Pilot Coach สำหรับหน้า Athlete
+   appConfig/pilotCoachId = "COACH_UID"
+
+5) เพิ่มข้อมูลเริ่มต้นของ Coach (ใช้ UID เดียวกัน)
+   coachAvailability/{COACH_UID}
+   {"start":6,"end":24,"travelBufferMin":45,"maxClassesPerDay":8,"advanceDays":30}
+
+   coachPricing/{COACH_UID}
+   {"p60":90000,"p90":130000,"p120":170000}
+
+   หมายเหตุ: จำนวนเงินเป็นหน่วยสตางค์ เช่น 90000 = 900 บาท
+
+6) Athlete
+   - Athlete สร้างบัญชีได้จากหน้า Coach Di
+   - ระบบสร้าง users/{uid} role=athlete เอง
+   - Athlete ไม่สามารถกำหนดตัวเองเป็น coach/admin ผ่าน Rules นี้
+
+7) Coach Login
+   - Login ด้วย Email/Password ที่สร้างใน Firebase Authentication
+   - ระบบอ่าน users/{uid}/role และเปิด Coach Portal เฉพาะ role=coach
+
+8) Storage / Slip
+   - Sprint นี้ไม่ upload ไฟล์ Slip จริง เพราะ Storage ยังไม่เปิดบน Spark
+   - ห้ามเก็บรูป Base64 ใน Realtime Database
+
+Security note:
+- database.rules.json เป็น baseline สำหรับ UAT และแยก owner paths ของ Coach
+- ก่อน Production ควรย้าย mutation ทางการเงิน/role/admin actions ไป trusted backend และทำ App Check

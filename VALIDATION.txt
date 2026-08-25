@@ -1,0 +1,15 @@
+Coach Di Sprint 2.2 Validation
+PASS: index.html JavaScript syntax checked with Node
+PASS: database.rules.json valid JSON
+PASS: Firebase project coach-di config embedded
+PASS: Realtime Database URL = asia-southeast1
+PASS: Email/Password login, reset password, auth session listener
+PASS: athlete self-registration writes role athlete only
+PASS: Coach Portal role resolved from users/{uid}
+PASS: booking persistence uses Firebase push key + UID
+PASS: coach payment verification persists to Firebase
+PASS: availability, pricing, time-off persist to Firebase
+PASS: audit logs persist to Firebase and redact sensitive field names
+PASS: existing responsive CSS breakpoints retained (1024 / 768 / mobile)
+NOTE: Browser end-to-end auth test requires published Rules + seeded Coach UID in the user's Firebase console.
+NOTE: Firebase Storage unavailable on current Spark project, so binary slip upload is intentionally not faked.

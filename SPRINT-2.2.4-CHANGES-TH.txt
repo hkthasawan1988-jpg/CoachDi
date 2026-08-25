@@ -1,0 +1,11 @@
+Coach Di UAT Sprint 2.2.4
+- Athlete: แถบวันที่และหัวตาราง font 16px
+- Theme: Navy + Green + Brick Orange
+- Athlete: เลือกเวลาแล้วแสดง “เลือกเวลานี้”
+- Athlete: ต้องเลือกสนามจาก Drop Down ก่อนดำเนินการจอง
+- Athlete: เพิ่ม Tab จองสนาม พร้อม VISDA Tennis Club logo และลิงก์จองสนาม
+- Athlete: กลับ Tab จองโค้ชได้ทันที
+- Athlete: เพิ่ม Drop Down เลือก Coach จาก coachProfiles ใน Firebase
+- Coach: สร้าง Coach Di ID อัตโนมัติเมื่อ Login ครั้งแรก เช่น ID_001
+- Coach Profile: แสดง/บันทึก Display Name, Thai/English name และ Coach Di ID
+- Booking: บันทึก coachId ตาม Coach ที่ Athlete เลือก

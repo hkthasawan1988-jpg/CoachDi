@@ -1,0 +1,9 @@
+Coach Di UAT Sprint 2.4 - Athlete Discovery & 5-Day Coach Location Schedule
+- Athlete เลือก Category: Tennis, Pickle Ball, Badminton, Football, Swimming
+- กรอง Coach ตาม sport/category ใน coachProfiles
+- Search Coach ด้วยชื่อหรือ Coach Di ID
+- Coach แสดงเป็น Card พร้อมรูป (ถ้ามี photoURL/photo/image)
+- ตาราง 5 วัน: เวลาเป็นคอลัมน์ซ้าย, วันเป็นคอลัมน์ด้านบน
+- แสดงสนามที่ Coach อยู่ในแต่ละช่วงเวลาจาก coachLocations
+- ปุ่มก่อนหน้า/ถัดไปเลื่อนครั้งละ 5 วัน
+หมายเหตุ: Coach profile ที่ยังไม่มี sport/category จะถูกมองเป็น tennis เพื่อ compatibility กับข้อมูล UAT เดิม

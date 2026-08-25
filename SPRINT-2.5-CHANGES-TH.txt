@@ -1,0 +1,15 @@
+Coach Di UAT Sprint 2.5 — Athlete UI Master
+
+- หน้า Athlete ใช้ Category: Tennis, Pickle Ball, Badminton, Football, Swimming
+- เลือก Category แล้วกรอง Coach ตามกีฬา
+- Search Coach ด้วยชื่อหรือ Coach Di ID
+- ตาราง Booking แสดง 5 วันต่อหน้า
+- เวลาอยู่คอลัมน์ซ้ายแบบ Sticky
+- แต่ละคอลัมน์แสดง วัน / วันที่ / เดือน ชัดเจน
+- Desktop ตาราง Fit เต็มความกว้าง ไม่ให้วันที่ตกขอบ
+- Mobile เลื่อนตารางแนวนอนได้โดยคอลัมน์เวลายังคงอยู่ด้านซ้าย
+- Slot แสดง ว่าง / Coach อยู่สนาม / จองแล้ว / ไม่รับสอน
+- Slot ว่างเมื่อเลือกจะ Highlight สีส้มอิฐและขึ้น “เลือกเวลานี้”
+- เลือกสนามก่อน Confirm Booking
+- คง Firebase Authentication, Realtime Database และ Database Rules เดิม
+- Tab จองสนาม VISDA ยังคงอยู่

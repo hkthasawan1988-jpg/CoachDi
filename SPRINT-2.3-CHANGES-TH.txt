@@ -1,0 +1,10 @@
+Coach Di UAT Sprint 2.3 — Mobile UI Redesign
+
+- เปลี่ยนชื่อและ Branding เป็น Coach Di
+- Palette: Navy #001034 / Forest Green #004521 / Gold #B08A00 / White
+- Athlete booking table: เวลาอยู่ด้านซ้ายแบบ Sticky, วัน 7 วันอยู่ด้านบน
+- ปุ่มก่อนหน้า/ถัดไป เลื่อนครั้งละ 7 วัน
+- Slot ว่าง = เขียวอ่อน, Coach อยู่สนาม = เขียวเข้ม, จองแล้ว = Gold, ไม่รับสอน = Grey
+- เมื่อเลือก Slot ใช้ Gold highlight และเปิด Drop-down เลือกสนามก่อนจอง
+- คง Firebase Authentication, Realtime Database, Coach ID, Coach/Athlete role และ Rules จาก Sprint 2.2.5
+- Mobile-first layout และ bottom navigation เดิม
