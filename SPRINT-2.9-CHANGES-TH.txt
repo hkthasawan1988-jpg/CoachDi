@@ -1,0 +1,8 @@
+Coach Di UAT Sprint 2.9
+- เปลี่ยน Background เป็นภาพล่าสุดจากผู้ใช้
+- ตาราง Athlete ล็อกช่วง 5 วันด้วย weekStart แยกจากวันที่ที่เลือกจอง
+- การกด Slot ไม่ทำให้ช่วง 5 วันเลื่อน
+- Ticket การจองแสดงทันทีเหนือ Schedule ณ จุดทำรายการ
+- Dialog เลือกสนามเปลี่ยนจาก Bottom Sheet เป็น Modal กลางหน้าจอ
+- หลังสร้าง Booking สำเร็จ Ticket แสดง Booking ID/วัน/เวลา/สนามทันที
+- คง Firebase config, Auth, Realtime Database และ Booking coachId fix จาก Sprint 2.7/2.8
