@@ -9,7 +9,7 @@
     "users": {
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".write": "auth != null && ((auth.uid === $uid && ((!data.exists() && newData.child('role').val() === 'athlete') || (data.exists() && newData.child('role').val() === data.child('role').val() && newData.child('subscription').val() === data.child('subscription').val()))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        ".write": "auth != null && ((auth.uid === $uid && ((!data.exists() && newData.child('role').val() === 'athlete') || (data.exists() && newData.child('role').val() === data.child('role').val() && newData.child('status').val() === data.child('status').val() && newData.child('subscription').val() === data.child('subscription').val()))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
     "coachProfiles": {
@@ -73,7 +73,7 @@
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         "$id": {
-          ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && newData.child('senderId').val() === auth.uid) || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && newData.child('senderId').val() === auth.uid && newData.child('bookingId').isString() && root.child('bookings').child(newData.child('bookingId').val()).child('athleteId').val() === auth.uid && root.child('bookings').child(newData.child('bookingId').val()).child('coachId').val() === $uid))"
+          ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && newData.child('senderId').val() === auth.uid) || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && newData.child('senderId').val() === auth.uid && newData.child('bookingId').isString() && root.child('users').child($uid).child('role').val() === 'coach'))"
         }
       }
     },
