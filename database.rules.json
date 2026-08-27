@@ -58,7 +58,7 @@
     "bookings": {
       ".read": "auth != null",
       "$bookingId": {
-        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'athlete' && ((!data.exists() && newData.child('athleteId').val() === auth.uid) || (data.exists() && data.child('athleteId').val() === auth.uid && newData.child('athleteId').val() === auth.uid && newData.child('coachId').val() === data.child('coachId').val()))) || (root.child('users').child(auth.uid).child('role').val() === 'coach' && (data.child('coachId').val() === auth.uid || newData.child('coachId').val() === auth.uid)) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'athlete' && ((!data.exists() && newData.child('athleteId').val() === auth.uid) || (data.exists() && data.child('athleteId').val() === auth.uid && ((!newData.exists() && data.child('historyDeleteAfter').isNumber() && data.child('historyDeleteAfter').val() <= now) || (newData.exists() && newData.child('athleteId').val() === auth.uid && newData.child('coachId').val() === data.child('coachId').val()))))) || (root.child('users').child(auth.uid).child('role').val() === 'coach' && (data.child('coachId').val() === auth.uid || newData.child('coachId').val() === auth.uid)) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
     "auditLogs": {
