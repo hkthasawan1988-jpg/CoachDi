@@ -14,27 +14,39 @@
     },
     "coachProfiles": {
       ".read": "auth != null",
-      "$coachId": { ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')" }
+      "$coachId": {
+        ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
     },
     "coachAvailability": {
       ".read": "auth != null",
-      "$coachId": { ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')" }
+      "$coachId": {
+        ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
     },
     "coachLocations": {
       ".read": "auth != null",
-      "$coachId": { ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')" }
+      "$coachId": {
+        ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
     },
     "coachVenues": {
       ".read": "auth != null",
-      "$coachId": { ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')" }
+      "$coachId": {
+        ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
     },
     "coachPricing": {
       ".read": "auth != null",
-      "$coachId": { ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')" }
+      "$coachId": {
+        ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
     },
     "coachTimeOff": {
       ".read": "auth != null",
-      "$coachId": { ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')" }
+      "$coachId": {
+        ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
     },
     "coachPaymentAccounts": {
       ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
@@ -52,17 +64,24 @@
     "auditLogs": {
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        "$id": { ".write": "auth != null && auth.uid === $uid && !data.exists()" }
+        "$id": {
+          ".write": "auth != null && auth.uid === $uid && !data.exists()"
+        }
       }
     },
     "notifications": {
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        "$id": { ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'coach')" }
+        "$id": {
+          ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'coach')"
+        }
       }
     },
     "paymentTransactions": {
-      ".indexOn": ["coachId", "athleteId"],
+      ".indexOn": [
+        "coachId",
+        "athleteId"
+      ],
       ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && query.orderByChild === 'coachId' && query.equalTo === auth.uid) || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && query.orderByChild === 'athleteId' && query.equalTo === auth.uid))",
       "$id": {
         ".read": "auth != null && (data.child('coachId').val() === auth.uid || data.child('athleteId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
@@ -70,7 +89,10 @@
       }
     },
     "refunds": {
-      ".indexOn": ["coachId", "athleteId"],
+      ".indexOn": [
+        "coachId",
+        "athleteId"
+      ],
       ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && query.orderByChild === 'coachId' && query.equalTo === auth.uid) || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && query.orderByChild === 'athleteId' && query.equalTo === auth.uid))",
       "$id": {
         ".read": "auth != null && (data.child('coachId').val() === auth.uid || data.child('athleteId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
@@ -78,7 +100,9 @@
       }
     },
     "subscriptionTransactions": {
-      ".indexOn": ["coachId"],
+      ".indexOn": [
+        "coachId"
+      ],
       "$id": {
         ".read": "auth != null && (data.child('coachId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
@@ -88,6 +112,29 @@
       "$id": {
         ".read": "auth != null",
         ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'athlete' && newData.child('athleteId').val() === auth.uid"
+      }
+    },
+    "coachPaymentPublic": {
+      ".read": "auth != null",
+      "$coachId": {
+        ".write": "auth != null && (auth.uid === $coachId || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "bookingChats": {
+      "$bookingId": {
+        ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('bookings').child($bookingId).child('coachId').val() === auth.uid || root.child('bookings').child($bookingId).child('athleteId').val() === auth.uid)",
+        "messages": {
+          "$messageId": {
+            ".write": "auth != null && !data.exists() && (root.child('bookings').child($bookingId).child('coachId').val() === auth.uid || root.child('bookings').child($bookingId).child('athleteId').val() === auth.uid) && newData.child('senderId').val() === auth.uid"
+          }
+        }
+      }
+    },
+    "subscriptionPaymentRequests": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$id": {
+        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'coach' && (!data.exists() && newData.child('coachId').val() === auth.uid)) || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".read": "auth != null && (data.child('coachId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     }
   }
