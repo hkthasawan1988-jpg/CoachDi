@@ -543,7 +543,7 @@ state.venueBookingLinks=state.venueBookingLinks||{};state.paymentTransactions=st
 function s38CoachName(cid){let c=(state.coachDirectory||[]).find(x=>x.uid===cid);return c?.displayName||c?.nameTh||c?.nameEn||state.coachProfile?.displayName||'Coach Di'}
 function s38VenueLink(name,id){let x=state.venueBookingLinks?.[id]||state.venueBookingLinks?.[name];return typeof x==='string'?x:(x?.url||'')}
 function s38ReadFile(input,max=S38_MAX_IMAGE){return new Promise((resolve,reject)=>{let f=input?.files?.[0];if(!f)return reject(new Error('กรุณาแนบรูป'));if(f.size>max)return reject(new Error('ไฟล์ต้องไม่เกิน 300 KB สำหรับ UAT'));let r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('อ่านไฟล์ไม่สำเร็จ'));r.readAsDataURL(f)})}
-const _loadFirebaseData38=loadFirebaseData;loadFirebaseData=async function(){await _loadFirebaseData38();try{let cfg=await db.ref('appConfig/venueBookingLinks').once('value');state.venueBookingLinks=cfg.val()||{};}catch(_){}if(state.role==='coach'){try{let tx=await db.ref('paymentTransactions').once('value');state.paymentTransactions=Object.entries(tx.val()||{}).map(([id,v])=>({id,...v})).filter(x=>x.coachId===state.user.uid)}catch(_){}}}
+const _loadFirebaseData38=loadFirebaseData;loadFirebaseData=async function(){await _loadFirebaseData38();try{let cfg=await db.ref('appConfig/venueBookingLinks').once('value');state.venueBookingLinks=cfg.val()||{};}catch(_){}if(state.role==='coach'){try{let tx=await db.ref('paymentTransactions').orderByChild('coachId').equalTo(state.user.uid).once('value');state.paymentTransactions=Object.entries(tx.val()||{}).map(([id,v])=>({id,...v}))}catch(_){}}}
 function s38ApplyCoachDeepLink(){let cid=new URLSearchParams(location.search).get('coach');if(state.role==='athlete'&&cid){let c=(state.coachDirectory||[]).find(x=>x.uid===cid);if(c){selectCoach(cid);setTimeout(()=>showAthleteMenu('coach'),0)}}}
 const _enterPortal38=enterPortal;enterPortal=function(){_enterPortal38();setTimeout(s38ApplyCoachDeepLink,250)}
 
@@ -574,6 +574,61 @@ const _coachProfile38=coachProfile;coachProfile=function(){return _coachProfile3
 function s38AdminVenueManager(){let links=state.venueBookingLinks||{};return `<div class="card"><h2>ลิงก์จองสนาม</h2><p class="muted">Admin กำหนดลิงก์ที่จะแสดงใน Dropdown การจองสนามของนักกีฬา</p><div id="s38VenueAdminRows">${state.venues.filter(v=>v.id!=='other').map(v=>`<label style="display:block;margin-bottom:10px"><span class="label">${esc(v.name)}</span><input class="field" data-s38-venue="${esc(v.id)}" value="${esc(s38VenueLink(v.name,v.id))}" placeholder="https://..."></label>`).join('')}</div><button class="pill primary" onclick="s38SaveVenueLinks()">บันทึกลิงก์สนาม</button></div>`}
 async function s38SaveVenueLinks(){let next={};document.querySelectorAll('[data-s38-venue]').forEach(i=>{let u=i.value.trim();if(u)next[i.dataset.s38Venue]={url:u}});await db.ref('appConfig/venueBookingLinks').set(next);state.venueBookingLinks=next;await audit('venue_booking_links_updated','appConfig',{count:Object.keys(next).length});alert('บันทึกลิงก์สนามแล้ว')}
 const _adminDashboard38=adminDashboard;adminDashboard=function(){return _adminDashboard38()+s38AdminVenueManager()}
+
+
+/* Sprint 3.8.1 — Security query fix + Coach subscription administration */
+const CD_SUBSCRIPTION_PRICE_SATANG=19900;
+const CD_TRIAL_DAYS=30;
+state.subscription=null;
+function cdSubStatus(sub){
+  if(!sub)return {key:'not_started',label:'ยังไม่เริ่ม Trial',cls:'pending'};
+  const now=Date.now(), trialEnd=Number(sub.trialEndsAt||0), paidEnd=Number(sub.currentPeriodEndsAt||0);
+  if(sub.status==='active' && paidEnd>now)return {key:'active',label:'Active Subscription',cls:'confirmed'};
+  if((sub.status==='trial'||sub.status==='active') && trialEnd>now && (!paidEnd||paidEnd<=now))return {key:'trial',label:'ทดลองใช้ฟรี',cls:'coach_approved'};
+  return {key:'expired',label:'หมดอายุ',cls:'cancelled'};
+}
+function cdDateTime(ts){return ts?new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short',year:'numeric'}).format(new Date(Number(ts))):'-'}
+async function cdLoadOwnSubscription(){
+  if(state.role!=='coach'||!state.user)return;
+  try{let s=await db.ref(`users/${state.user.uid}/subscription`).once('value');state.subscription=s.val()||null}catch(e){console.warn('subscription read',e)}
+}
+const _loadFirebaseData381=loadFirebaseData;
+loadFirebaseData=async function(){await _loadFirebaseData381();await cdLoadOwnSubscription()}
+function cdCoachSubscriptionCard(){
+  let sub=state.subscription,st=cdSubStatus(sub);
+  return `<div class="card"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0 0 4px">Coach Di Subscription</h3><div class="muted">ทดลองใช้ฟรี 1 เดือน จากนั้น 199 บาท/เดือน</div></div><span class="status ${st.cls}">${esc(st.label)}</span></div><div class="grid g4" style="margin-top:14px"><div class="metric">ค่าบริการ<b>฿199</b><small>ต่อเดือน</small></div><div class="metric">Trial สิ้นสุด<b style="font-size:18px">${cdDateTime(sub?.trialEndsAt)}</b></div><div class="metric">รอบปัจจุบันสิ้นสุด<b style="font-size:18px">${cdDateTime(sub?.currentPeriodEndsAt)}</b></div><div class="metric">สถานะ<b style="font-size:18px">${esc(st.label)}</b></div></div>${st.key==='expired'?'<div class="error" style="margin-top:12px">Subscription หมดอายุ กรุณาชำระ 199 บาท และติดต่อ Admin เพื่อ Active รอบถัดไป</div>':''}</div>`
+}
+const _coachDashboard381=coachDashboard;
+coachDashboard=function(){return cdCoachSubscriptionCard()+_coachDashboard381()}
+
+function cdAdminSubscriptionManager(){return `<div class="card"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><h2 style="margin:0">Coach Subscription</h2><p class="muted" style="margin:4px 0 0">ทดลองใช้ฟรี ${CD_TRIAL_DAYS} วัน หลังจากนั้น 199 บาท/เดือน • Admin เป็นผู้ Active หลังรับชำระ</p></div><button class="pill" onclick="cdLoadAdminSubscriptions()">รีเฟรช</button></div><div id="cdAdminSubscriptions" style="margin-top:14px">กำลังโหลด...</div></div>`}
+const _adminDashboard381=adminDashboard;
+adminDashboard=function(){return _adminDashboard381()+cdAdminSubscriptionManager()}
+async function cdLoadAdminSubscriptions(){
+  let el=document.getElementById('cdAdminSubscriptions');if(!el)return;
+  try{
+    let ps=await db.ref('coachProfiles').once('value'),profiles=ps.val()||{},rows=[];
+    for(const [uid,p] of Object.entries(profiles)){
+      let us=await db.ref(`users/${uid}`).once('value'),u=us.val()||{};
+      if(String(u.role||'').toLowerCase()!=='coach')continue;
+      let sub=u.subscription||null,st=cdSubStatus(sub),name=p.displayName||p.nameTh||p.nameEn||u.email||uid;
+      rows.push({uid,p,u,sub,st,name});
+    }
+    el.innerHTML=rows.length?rows.map(r=>`<div class="card" style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap"><div><b>${esc(r.name)}</b><div class="small">${esc(r.p.coachDiId||r.uid)}</div><div class="small">Trial: ${cdDateTime(r.sub?.trialEndsAt)} • Paid until: ${cdDateTime(r.sub?.currentPeriodEndsAt)}</div></div><span class="status ${r.st.cls}">${esc(r.st.label)}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">${r.st.key==='not_started'?`<button class="pill" onclick="cdStartTrial('${r.uid}',this)">เริ่ม Trial 1 เดือน</button>`:''}<button class="pill primary" onclick="cdActivateSubscription('${r.uid}',this)">Active Subscription ฿199 / 1 เดือน</button>${r.st.key==='active'?`<button class="pill" onclick="cdExtendSubscription('${r.uid}',3,this)">ต่ออายุ 3 เดือน</button>`:''}</div></div>`).join(''):'<div class="notice">ยังไม่พบ Coach</div>';
+  }catch(e){console.error(e);el.innerHTML=`<div class="error">โหลด Subscription ไม่สำเร็จ: ${esc(e.message||'Permission denied')}</div>`}
+}
+async function cdStartTrial(uid,btn){
+  if(btn)btn.disabled=true;try{let now=Date.now(),end=now+CD_TRIAL_DAYS*86400000;await db.ref(`users/${uid}/subscription`).set({status:'trial',priceSatang:CD_SUBSCRIPTION_PRICE_SATANG,trialStartedAt:now,trialEndsAt:end,currentPeriodStartsAt:null,currentPeriodEndsAt:null,lastActivatedBy:state.user.uid,lastActivatedAt:firebase.database.ServerValue.TIMESTAMP});await audit('subscription_trial_started',uid,{trialEndsAt:end});await cdLoadAdminSubscriptions()}catch(e){alert(e.message||'เริ่ม Trial ไม่สำเร็จ');if(btn)btn.disabled=false}
+}
+async function cdActivateSubscription(uid,btn){
+  if(!confirm('ยืนยันว่าได้รับค่าบริการ 199 บาท และ Active Subscription 1 เดือนให้ Coach คนนี้?'))return;
+  if(btn)btn.disabled=true;try{let snap=await db.ref(`users/${uid}/subscription`).once('value'),old=snap.val()||{},now=Date.now(),base=Math.max(now,Number(old.currentPeriodEndsAt||0)),end=base+30*86400000;await db.ref(`users/${uid}/subscription`).update({status:'active',priceSatang:CD_SUBSCRIPTION_PRICE_SATANG,currentPeriodStartsAt:now,currentPeriodEndsAt:end,lastPaymentSatang:CD_SUBSCRIPTION_PRICE_SATANG,lastPaidAt:firebase.database.ServerValue.TIMESTAMP,lastActivatedBy:state.user.uid,lastActivatedAt:firebase.database.ServerValue.TIMESTAMP});await db.ref(`subscriptionTransactions`).push().set({coachId:uid,amountSatang:CD_SUBSCRIPTION_PRICE_SATANG,months:1,status:'paid',activatedBy:state.user.uid,createdAt:firebase.database.ServerValue.TIMESTAMP});await audit('subscription_activated',uid,{amountSatang:CD_SUBSCRIPTION_PRICE_SATANG,months:1,currentPeriodEndsAt:end});alert('Active Subscription 1 เดือนเรียบร้อย');await cdLoadAdminSubscriptions()}catch(e){alert(e.message||'Active ไม่สำเร็จ');if(btn)btn.disabled=false}
+}
+async function cdExtendSubscription(uid,months,btn){
+  if(!confirm(`ยืนยันต่ออายุ ${months} เดือน (${199*months} บาท)?`))return;if(btn)btn.disabled=true;try{let snap=await db.ref(`users/${uid}/subscription`).once('value'),old=snap.val()||{},now=Date.now(),base=Math.max(now,Number(old.currentPeriodEndsAt||0)),end=base+(30*months)*86400000,amount=CD_SUBSCRIPTION_PRICE_SATANG*months;await db.ref(`users/${uid}/subscription`).update({status:'active',priceSatang:CD_SUBSCRIPTION_PRICE_SATANG,currentPeriodEndsAt:end,lastPaymentSatang:amount,lastPaidAt:firebase.database.ServerValue.TIMESTAMP,lastActivatedBy:state.user.uid,lastActivatedAt:firebase.database.ServerValue.TIMESTAMP});await db.ref(`subscriptionTransactions`).push().set({coachId:uid,amountSatang:amount,months,status:'paid',activatedBy:state.user.uid,createdAt:firebase.database.ServerValue.TIMESTAMP});await audit('subscription_extended',uid,{amountSatang:amount,months,currentPeriodEndsAt:end});await cdLoadAdminSubscriptions()}catch(e){alert(e.message||'ต่ออายุไม่สำเร็จ');if(btn)btn.disabled=false}
+}
+const _loadAdminVerification381=loadAdminVerification;
+loadAdminVerification=async function(){await _loadAdminVerification381();await cdLoadAdminSubscriptions()}
 
 
 </script>
