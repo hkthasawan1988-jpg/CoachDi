@@ -741,7 +741,7 @@ cdPreparePaymentBeforeBooking=async function(venueId,h){
 }
 const _cdCreatePaidBooking392=cdCreatePaidBooking;
 cdCreatePaidBooking=async function(venueId,h,btn){
- if(btn)btn.disabled=true;try{let slip=await s38ReadFile(document.getElementById('cdPreSlip')),participants=Math.max(1,Number(document.getElementById('cdParticipants')?.value||1));const coachId=String(state.coachId||''),athleteId=state.user.uid,date=String(state.selectedCell?.date||state.selectedDate),court=venueId==='other'?(chosenOther?.name||'สนามอื่น'):(venueName(venueId)||'สนามที่เลือก'),dd=date.slice(-2),hh=String(Math.floor(h)).padStart(2,'0'),suffix=Math.random().toString(36).slice(2,6).toUpperCase(),id=`${dd}${hh}${suffix}`;let us=(await db.ref(`users/${athleteId}`).once('value')).val()||{},phone=us.phone||'';if(!phone){phone=(prompt('กรุณาระบุเบอร์โทรศัพท์')||'').trim();if(!phone)throw new Error('กรุณาระบุเบอร์โทรศัพท์');await db.ref(`users/${athleteId}`).update({phone})}let booking=cleanFirebaseObject({coachId,athleteId,athlete:us.displayName||state.user.email||'Athlete',athleteEmail:state.user.email||'',phone,date,start:Number(h),end:Number(h)+1,venueId,venue:court,status:'payment_submitted',approvalStatus:'pending',paymentStatus:'payment_submitted',courtConfirmed:true,courtConfirmedByAthleteAt:firebase.database.ServerValue.TIMESTAMP,paymentProofDataUrl:slip,paymentSubmittedAt:firebase.database.ServerValue.TIMESTAMP,participants,pricePerPersonSatang:Number(state.pricing?.p60||0),priceSatang:Number(state.pricing?.p60||0),travelFeeSatang:0,platformFeeSatang:0,createdAt:firebase.database.ServerValue.TIMESTAMP,historyDeleteAfter:new Date(`${date}T23:59:59`).getTime()+30*86400000});let notifKey=db.ref(`notifications/${coachId}`).push().key;await db.ref().update({[`bookings/${id}`]:booking,[`notifications/${coachId}/${notifKey}`]:{type:'new_paid_booking',bookingId:id,senderId:athleteId,message:`มีคำขอจองใหม่ ${id} พร้อมสลิป กรุณาตรวจสอบและยืนยัน`,createdAt:firebase.database.ServerValue.TIMESTAMP,read:false}});try{await audit('paid_booking_submitted',id,{coachId,date,start:h,participants})}catch(ae){console.warn('audit log skipped',ae)}closeSheet();state.selectedCell=null;setTimeout(()=>showAthleteMenu('mybookings'),50)}catch(e){alert(e.message||'ส่งคำขอไม่สำเร็จ');if(btn)btn.disabled=false}
+ if(btn)btn.disabled=true;try{let slip=await s38ReadFile(document.getElementById('cdPreSlip')),participants=Math.max(1,Number(document.getElementById('cdParticipants')?.value||1));const coachId=String(state.coachId||''),athleteId=state.user.uid,date=String(state.selectedCell?.date||state.selectedDate),court=venueId==='other'?(chosenOther?.name||'สนามอื่น'):(venueName(venueId)||'สนามที่เลือก'),dd=date.slice(-2),hh=String(Math.floor(h)).padStart(2,'0'),suffix=Math.random().toString(36).slice(2,6).toUpperCase(),id=`${dd}${hh}${suffix}`;let us=(await db.ref(`users/${athleteId}`).once('value')).val()||{},phone=us.phone||'';if(!phone){phone=(prompt('กรุณาระบุเบอร์โทรศัพท์')||'').trim();if(!phone)throw new Error('กรุณาระบุเบอร์โทรศัพท์');await db.ref(`users/${athleteId}`).update({phone})}let booking=cleanFirebaseObject({coachId,athleteId,athlete:us.displayName||state.user.email||'Athlete',athleteEmail:state.user.email||'',phone,date,start:Number(h),end:Number(h)+1,venueId,venue:court,status:'payment_submitted',approvalStatus:'pending',paymentStatus:'payment_submitted',courtConfirmed:true,courtConfirmedByAthleteAt:firebase.database.ServerValue.TIMESTAMP,paymentProofDataUrl:slip,paymentSubmittedAt:firebase.database.ServerValue.TIMESTAMP,participants,pricePerPersonSatang:Number(state.pricing?.p60||0),priceSatang:Number(state.pricing?.p60||0),travelFeeSatang:0,platformFeeSatang:0,createdAt:firebase.database.ServerValue.TIMESTAMP});let notifKey=db.ref(`notifications/${coachId}`).push().key;await db.ref().update({[`bookings/${id}`]:booking,[`notifications/${coachId}/${notifKey}`]:{type:'new_paid_booking',bookingId:id,senderId:athleteId,message:`มีคำขอจองใหม่ ${id} พร้อมสลิป กรุณาตรวจสอบและยืนยัน`,createdAt:firebase.database.ServerValue.TIMESTAMP,read:false}});try{await audit('paid_booking_submitted',id,{coachId,date,start:h,participants})}catch(ae){console.warn('audit log skipped',ae)}closeSheet();state.selectedCell=null;setTimeout(()=>showAthleteMenu('mybookings'),50)}catch(e){alert(e.message||'ส่งคำขอไม่สำเร็จ');if(btn)btn.disabled=false}
 }
 function cd392CoachName(uid){let c=cdCoachByUid(uid);return c.displayName||c.nameTh||c.nameEn||c.coachDiId||'Coach'}
 renderAthleteBookings=function(){
@@ -749,119 +749,6 @@ renderAthleteBookings=function(){
  let first=mine.find(b=>b.date>=TODAY)?.date||mine[0].date,start=first,days=Array.from({length:5},(_,i)=>isoAdd(start,i)),minH=Math.min(6,...mine.map(b=>Number(b.start))),maxH=Math.max(22,...mine.map(b=>Number(b.end))),hours=Array.from({length:maxH-minH},(_,i)=>minH+i);
  athleteBookings.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px"><div><b>ตารางการจองของฉัน</b><div class="small muted">เวลาอยู่ด้านซ้าย • คอลัมน์เป็นวันที่</div></div></div><div class="athleteCalendarWrap"><table class="athleteCalendar"><thead><tr><th class="calTime">เวลา</th>${days.map(d=>`<th>${shortThaiDate(d)}</th>`).join('')}</tr></thead><tbody>${hours.map(h=>`<tr><td class="calTime">${fmt(h)}</td>${days.map(d=>{let b=mine.find(x=>x.date===d&&Number(x.start)<=h&&Number(x.end)>h);return `<td>${b?`<div class="athleteBookingCell"><b>${esc(cd392CoachName(b.coachId))}</b>${esc(b.venue||'')}<br><span>${fmt(b.start)}–${fmt(b.end)}</span><br><span>${esc(b.status||'')}</span><br><button class="pill" style="min-height:32px;margin-top:5px" onclick="cdOpenChat('${esc(b.id)}')">💬 แชท</button></div>`:''}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`
 }
-</script>
-
-
-<!-- Sprint 3.9.4 — Athlete booking IA + 30-day history + Coach profile permission fix + Modern wellness UI -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style id="sprint394-modern-ui">
-:root{--oura-bg:#f5f4ef;--oura-surface:#fff;--oura-ink:#101828;--oura-muted:#697386;--oura-navy:#0b1f3a;--oura-line:rgba(16,24,40,.08);--oura-shadow:0 12px 34px rgba(16,24,40,.07)}
-html,body,button,input,select,textarea{font-family:Inter,"Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif!important}
-body{background:var(--oura-bg)!important;color:var(--oura-ink)}
-.card,.scheduleShell,.sportDiscovery{border-radius:24px!important;border:1px solid var(--oura-line)!important;box-shadow:var(--oura-shadow)!important;background:rgba(255,255,255,.96)!important}
-.pageTitle{letter-spacing:-.035em!important;font-weight:700!important;color:var(--oura-navy)!important}.muted{color:var(--oura-muted)!important}
-.pill{border-radius:999px!important;font-weight:600!important}.pill.primary{background:var(--oura-navy)!important}
-.athleteSidebar{background:#0b1f3a!important}.athleteSidebar .navbtn{border-radius:14px!important}.athleteSidebar .navbtn.active{background:rgba(255,255,255,.12)!important}
-.bookingOverview{display:grid;gap:12px;margin-bottom:18px}.bookingOverviewHead{display:flex;justify-content:space-between;gap:12px;align-items:end;flex-wrap:wrap}
-.bookingTicket{border:1px solid var(--oura-line);border-radius:20px;background:#fff;overflow:hidden;box-shadow:0 8px 24px rgba(16,24,40,.05)}
-.bookingTicket>summary{list-style:none;cursor:pointer;padding:16px 18px;display:flex;justify-content:space-between;gap:14px;align-items:center}.bookingTicket>summary::-webkit-details-marker{display:none}
-.ticketMain b{font-size:17px;color:var(--oura-navy)}.ticketMeta394{font-size:13px;color:var(--oura-muted);margin-top:4px}.ticketBody394{border-top:1px solid var(--oura-line);padding:14px 18px;background:#fbfbf9}
-.historyNotice394{padding:12px 14px;border-radius:16px;background:#f1f2ef;color:#5f6670;font-size:13px;margin-bottom:14px}
-.historyMonth394{border:1px solid var(--oura-line);border-radius:18px;background:#fff;margin:10px 0;overflow:hidden}.historyMonth394>summary{cursor:pointer;padding:15px 17px;font-weight:700;color:var(--oura-navy)}
-.historyBooking394{opacity:.58;filter:grayscale(.35);border-top:1px solid var(--oura-line);padding:14px 17px;background:#f7f7f5}.historyBooking394 b{color:#4b5563}
-.athleteCalendarWrap{box-shadow:none!important}.athleteBookingCell{border-radius:12px!important}
-@media(max-width:760px){.bookingTicket>summary{align-items:flex-start}.ticketStatus394{white-space:nowrap}.historyNotice394{font-size:12px}}
-</style>
-<script id="sprint394-fixes">
-(function(){
- const DAY=86400000;
- function isHistory394(b){
-   const st=String(b.status||'');
-   return String(b.date||'')<TODAY || ['completed','cancelled','rejected_by_coach'].includes(st);
- }
- function coachName394(uid){try{return cd392CoachName(uid)}catch(_){let c=state.coaches.find(x=>x.uid===uid)||{};return c.displayName||c.nameTh||c.nameEn||'Coach'}}
- function status394(b){try{return bookingStatusTH(b)}catch(_){return b.status||'-'}}
- function expiry394(b){return Number(b.historyDeleteAfter||0)||((b.date?new Date(b.date+'T23:59:59').getTime():Date.now())+30*DAY)}
- function monthLabel394(key){let [y,m]=key.split('-').map(Number);return new Intl.DateTimeFormat('th-TH',{month:'long',year:'numeric'}).format(new Date(y,m-1,1))}
- function bookingTicket394(b){
-   return `<details class="bookingTicket" open><summary><div class="ticketMain"><b>🎟️ ${esc(coachName394(b.coachId))}</b><div class="ticketMeta394">${thaiDate(b.date)} • ${fmt(b.start)}–${fmt(b.end)} • 📍 ${esc(b.venue||'ยังไม่ระบุสนาม')}</div></div><span class="status ticketStatus394 ${['confirmed','payment_verified'].includes(b.status)||b.paymentStatus==='payment_verified'?'confirmed':'pending'}">${esc(status394(b))}</span></summary><div class="ticketBody394"><b>Booking ID:</b> ${esc(b.id)}${b.participants?`<br><b>ผู้เรียน:</b> ${esc(String(b.participants))} คน`:''}${b.pricePerPersonSatang||b.priceSatang?`<br><b>ราคา:</b> ${baht(Number(b.pricePerPersonSatang||b.priceSatang||0))} / คน`:''}<br><button class="pill" style="margin-top:10px" onclick="cdOpenChat('${esc(b.id)}')">💬 แชท</button></div></details>`
- }
- async function cleanupHistory394(){
-   if(state.role!=='athlete'||!state.user)return;
-   const mine=state.bookings.filter(b=>b.athleteId===state.user.uid&&isHistory394(b));
-   let changed=false;
-   for(const b of mine){
-     let exp=expiry394(b);
-     try{
-       if(!b.historyDeleteAfter){await db.ref(`bookings/${b.id}`).update({historyDeleteAfter:exp});b.historyDeleteAfter=exp}
-       if(exp<=Date.now()){await db.ref(`bookings/${b.id}`).remove();state.bookings=state.bookings.filter(x=>x.id!==b.id);changed=true}
-     }catch(e){console.warn('history cleanup skipped',b.id,e)}
-   }
-   return changed;
- }
-
- // Athlete sidebar: Home / My Bookings / History / Profile only.
- renderNav=function(){
-   if(state.role!=='coach'){
-     const items=[['home','หน้าหลัก','⌂'],['mybookings','การจองของฉัน','☑'],['history','ประวัติการจอง','◷'],['profile','โปรไฟล์','●']];
-     sidebar.className='sidebar athleteSidebar';
-     sidebar.innerHTML=`<div class="sideBrand"><span class="sideMark">Di</span><span>Coach Di</span></div>`+items.map(x=>`<button class="navbtn" data-athlete-page="${x[0]}" onclick="showAthleteMenu('${x[0]}')"><span class="navIcon">${x[2]}</span>${x[1]}</button>`).join('')+`<div class="sideDivider"></div><button class="navbtn sideLogout" onclick="logout()"><span class="navIcon">↪</span>ออกจากระบบ</button>`;
-     mobileNav.className='mobileNav athleteMobile';mobileNav.innerHTML=items.map(x=>`<button data-athlete-mobile="${x[0]}" onclick="showAthleteMenu('${x[0]}')">${x[2]}<br>${x[1]}</button>`).join('');return;
-   }
-   sidebar.className='sidebar';mobileNav.className='mobileNav';let items=[['dashboard','Dashboard','⌂'],['schedule','ตารางสอน','▦'],['bookings','รายการจอง','☑'],['availability','จัดการเวลาว่าง','◷'],['timeoff','วันหยุด','☀'],['income','รายได้','฿'],['payments','การชำระเงิน','▣'],['profile','ประวัติโค้ช','●'],['settings','ตั้งค่า','⚙']];sidebar.innerHTML=items.map(x=>`<button class="navbtn" data-page="${x[0]}" onclick="showCoach('${x[0]}')"><span>${x[2]}</span>${x[1]}</button>`).join('')+`<button class="navbtn" onclick=logout()>↪ ออกจากระบบ</button>`;mobileNav.innerHTML=items.slice(0,5).map(x=>`<button onclick="showCoach('${x[0]}')">${x[2]}<br>${x[1]}</button>`).join('')
- };
-
- // Home keeps Coach/Court tabs. My bookings and History become dedicated pages.
- const prevProfileMenu394=showAthleteMenu;
- showAthleteMenu=function(page){
-   if(page==='profile')return prevProfileMenu394(page);
-   setAthleteNavActive(page);athletePage.classList.remove('hidden');coachPage.classList.add('hidden');
-   const discovery=document.querySelector('.sportDiscovery'),schedule=document.querySelector('.scheduleShell'),historyCard=document.getElementById('athleteBookings')?.closest('.card'),hero=document.querySelector('.athleteHero'),tabs=document.querySelector('.athleteTabs');
-   [discovery,schedule,historyCard,hero,tabs].forEach(el=>{if(el){el.classList.remove('hidden');el.style.display=''}});
-   if(page==='home'){
-     showAthleteTab('coach');historyCard?.classList.add('hidden');
-     if(typeof cd392SetFlow==='function')cd392SetFlow('category');
-     return;
-   }
-   if(page==='mybookings'||page==='history'){
-     discovery?.classList.add('hidden');schedule?.classList.add('hidden');tabs?.classList.add('hidden');hero?.classList.add('hidden');
-     if(historyCard){historyCard.classList.remove('hidden');let h=historyCard.querySelector('h3');if(h)h.textContent=page==='history'?'ประวัติการจอง':'การจองของฉัน';}
-     renderAthleteBookings(page);historyCard?.scrollIntoView({behavior:'smooth',block:'start'});return;
-   }
- };
-
- renderAthleteBookings=function(mode){
-   if(!athleteBookings)return;
-   mode=mode||'mybookings';
-   const mine=state.bookings.filter(b=>b.athleteId===state.user?.uid);
-   if(mode==='history'){
-     const hist=mine.filter(isHistory394).sort((a,b)=>String(b.date).localeCompare(String(a.date))||Number(b.start)-Number(a.start));
-     const groups={};hist.forEach(b=>(groups[String(b.date||'').slice(0,7)]??=[]).push(b));
-     athleteBookings.innerHTML=`<div class="historyNotice394">ประวัติการจองจะแสดงแบบสีเทา และระบบจะเก็บไว้ 30 วันหลังวันเรียน/วันจองที่ผ่านมา จากนั้นจะลบออกอัตโนมัติ กรุณาบันทึกข้อมูลที่ต้องการไว้ก่อนครบกำหนด</div>`+(Object.keys(groups).length?Object.keys(groups).sort().reverse().map(k=>`<details class="historyMonth394" open><summary>${monthLabel394(k)} • ${groups[k].length} รายการ</summary>${groups[k].map(b=>`<div class="historyBooking394"><b>${esc(coachName394(b.coachId))}</b><div>${thaiDate(b.date)} • ${fmt(b.start)}–${fmt(b.end)}</div><div>📍 ${esc(b.venue||'-')} • ${esc(status394(b))}</div><div class="small">Booking ${esc(b.id)}</div></div>`).join('')}</details>`).join(''):'<div class="muted">ยังไม่มีประวัติการจอง');
-     cleanupHistory394().then(ch=>{if(ch)renderAthleteBookings('history')});return;
-   }
-   const active=mine.filter(b=>!isHistory394(b)).sort((a,b)=>String(a.date).localeCompare(String(b.date))||Number(a.start)-Number(b.start));
-   if(!active.length){athleteBookings.innerHTML='<div class="muted">ยังไม่มีการจองที่กำลังจะมาถึง</div>';return}
-   let first=active.find(b=>b.date>=TODAY)?.date||active[0].date,days=Array.from({length:5},(_,i)=>isoAdd(first,i)),minH=Math.min(6,...active.map(b=>Number(b.start))),maxH=Math.max(22,...active.map(b=>Number(b.end))),hours=Array.from({length:maxH-minH},(_,i)=>minH+i);
-   athleteBookings.innerHTML=`<div class="bookingOverview"><div class="bookingOverviewHead"><div><h2 style="margin:0">Booking ของฉัน</h2><div class="small muted">กดแต่ละตั๋วเพื่อเปิด/ปิดรายละเอียด</div></div><span class="status confirmed">${active.length} Booking</span></div>${active.map(bookingTicket394).join('')}</div><div style="margin:18px 0 10px"><b>ตารางการจอง</b><div class="small muted">เวลาอยู่ด้านซ้าย • คอลัมน์เป็นวันที่</div></div><div class="athleteCalendarWrap"><table class="athleteCalendar"><thead><tr><th class="calTime">เวลา</th>${days.map(d=>`<th>${shortThaiDate(d)}</th>`).join('')}</tr></thead><tbody>${hours.map(h=>`<tr><td class="calTime">${fmt(h)}</td>${days.map(d=>{let b=active.find(x=>x.date===d&&Number(x.start)<=h&&Number(x.end)>h);return `<td>${b?`<div class="athleteBookingCell"><b>${esc(coachName394(b.coachId))}</b><br>${esc(b.venue||'-')}<br><span>${fmt(b.start)}–${fmt(b.end)}</span><br><span>${esc(status394(b))}</span></div>`:''}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`;
- };
-
- // Coach profile: primary save must not fail because optional user mirror/audit is denied.
- saveCoachProfile=async function(){
-   try{
-     let name=coachDisplayName.value.trim();if(!name)throw new Error('กรุณาตั้งชื่อที่แสดงในแอป');
-     let id=await ensureCoachDiId(state.user.uid),photo=state.coachProfile?.photoURL||'',f=coachPhotoFile.files?.[0];if(f)photo=await fileToProfileDataUrl(f);
-     let next={coachDiId:id,displayName:name,nameTh:coachNameTh.value.trim(),nameEn:coachNameEn.value.trim(),bio:coachBio.value.trim(),photoURL:photo,status:state.coachProfile?.status||'draft',updatedAt:firebase.database.ServerValue.TIMESTAMP};
-     await db.ref(`coachProfiles/${state.user.uid}`).update(next);
-     state.coachProfile={...state.coachProfile,...next,updatedAt:Date.now()};
-     try{await db.ref(`users/${state.user.uid}`).update({displayName:name,photoURL:photo})}catch(e){console.warn('profile user mirror skipped',e)}
-     try{await audit('profile_changed',state.user.uid,{displayName:name,photoChanged:!!f})}catch(e){console.warn('profile audit skipped',e)}
-     alert('บันทึกโปรไฟล์ Coach แล้ว');showCoach('profile');
-   }catch(e){console.error('coach profile save failed',e);alert('บันทึกโปรไฟล์ไม่สำเร็จ: '+(e.message||'Permission denied'))}
- };
-})();
 </script>
 
 </body></html>
