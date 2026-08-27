@@ -73,7 +73,7 @@
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         "$id": {
-          ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'coach')"
+          ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && newData.child('senderId').val() === auth.uid) || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && newData.child('senderId').val() === auth.uid && newData.child('bookingId').isString() && root.child('bookings').child(newData.child('bookingId').val()).child('athleteId').val() === auth.uid && root.child('bookings').child(newData.child('bookingId').val()).child('coachId').val() === $uid))"
         }
       }
     },
