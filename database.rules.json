@@ -136,6 +136,25 @@
         ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'coach' && (!data.exists() && newData.child('coachId').val() === auth.uid)) || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         ".read": "auth != null && (data.child('coachId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
+    },
+    "supportChats": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "messages": {
+          "$id": {
+            ".write": "auth != null && ((auth.uid === $uid && newData.child('senderId').val() === auth.uid && (root.child('users').child(auth.uid).child('role').val() === 'athlete' || root.child('users').child(auth.uid).child('role').val() === 'coach')) || (root.child('users').child(auth.uid).child('role').val() === 'admin' && newData.child('senderRole').val() === 'admin'))"
+          }
+        }
+      }
+    },
+    "adminSupportNotifications": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$id": {
+        ".write": "auth != null && ((!data.exists() && newData.child('userId').val() === auth.uid && (root.child('users').child(auth.uid).child('role').val() === 'athlete' || root.child('users').child(auth.uid).child('role').val() === 'coach')) || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".indexOn": [
+          "createdAt"
+        ]
+      }
     }
   }
 }
