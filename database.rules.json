@@ -72,8 +72,8 @@
     "notifications": {
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        "$id": {
-          ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && newData.child('senderId').val() === auth.uid) || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && newData.child('senderId').val() === auth.uid && newData.child('bookingId').isString() && root.child('users').child($uid).child('role').val() === 'coach'))"
+        "$nid": {
+          ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.uid === $uid || newData.child('senderId').val() === auth.uid)"
         }
       }
     },
@@ -122,10 +122,10 @@
     },
     "bookingChats": {
       "$bookingId": {
-        ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('bookings').child($bookingId).child('coachId').val() === auth.uid || root.child('bookings').child($bookingId).child('athleteId').val() === auth.uid)",
+        ".read": "auth != null && (root.child('bookings').child($bookingId).child('athleteId').val() === auth.uid || root.child('bookings').child($bookingId).child('coachId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         "messages": {
-          "$messageId": {
-            ".write": "auth != null && !data.exists() && (root.child('bookings').child($bookingId).child('coachId').val() === auth.uid || root.child('bookings').child($bookingId).child('athleteId').val() === auth.uid) && newData.child('senderId').val() === auth.uid"
+          "$msgId": {
+            ".write": "auth != null && ((root.child('bookings').child($bookingId).child('athleteId').val() === auth.uid || root.child('bookings').child($bookingId).child('coachId').val() === auth.uid) && newData.child('senderId').val() === auth.uid)"
           }
         }
       }
@@ -155,6 +155,10 @@
           "createdAt"
         ]
       }
+    },
+    "adminSubscriptionAlerts": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
     }
   }
 }
