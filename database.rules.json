@@ -59,7 +59,12 @@
       ".read": "auth != null",
       "$bookingId": {
         ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'athlete' && ((!data.exists() && newData.child('athleteId').val() === auth.uid) || (data.exists() && data.child('athleteId').val() === auth.uid && newData.child('athleteId').val() === auth.uid && newData.child('coachId').val() === data.child('coachId').val()))) || (root.child('users').child(auth.uid).child('role').val() === 'coach' && (data.child('coachId').val() === auth.uid || newData.child('coachId').val() === auth.uid)) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
-      }
+      },
+      ".indexOn": [
+        "athleteId",
+        "coachId",
+        "date"
+      ]
     },
     "auditLogs": {
       "$uid": {
@@ -73,7 +78,7 @@
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         "$nid": {
-          ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.uid === $uid || newData.child('senderId').val() === auth.uid)"
+          ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth.uid === $uid && data.exists() && newData.child('senderId').val() === data.child('senderId').val()) || (!data.exists() && newData.child('senderId').val() === auth.uid && (!newData.child('bookingId').exists() || root.child('bookings').child(newData.child('bookingId').val()).child('coachId').val() === auth.uid || root.child('bookings').child(newData.child('bookingId').val()).child('athleteId').val() === auth.uid)))"
         }
       }
     },
