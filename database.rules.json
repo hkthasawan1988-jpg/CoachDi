@@ -56,8 +56,9 @@
       }
     },
     "bookings": {
-      ".read": "auth != null",
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && query.orderByChild === 'coachId' && query.equalTo === auth.uid) || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && query.orderByChild === 'athleteId' && query.equalTo === auth.uid))",
       "$bookingId": {
+        ".read": "auth != null && (data.child('coachId').val() === auth.uid || data.child('athleteId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'athlete' && ((!data.exists() && newData.child('athleteId').val() === auth.uid) || (data.exists() && data.child('athleteId').val() === auth.uid && newData.child('athleteId').val() === auth.uid && newData.child('coachId').val() === data.child('coachId').val()))) || (root.child('users').child(auth.uid).child('role').val() === 'coach' && (data.child('coachId').val() === auth.uid || newData.child('coachId').val() === auth.uid)) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       },
       ".indexOn": [
@@ -131,6 +132,18 @@
         "messages": {
           "$msgId": {
             ".write": "auth != null && ((root.child('bookings').child($bookingId).child('athleteId').val() === auth.uid || root.child('bookings').child($bookingId).child('coachId').val() === auth.uid) && newData.child('senderId').val() === auth.uid)"
+          }
+        }
+      }
+    },
+    "userChats": {
+      "$coachId": {
+        "$athleteId": {
+          ".read": "auth != null && (auth.uid === $coachId || auth.uid === $athleteId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+          "messages": {
+            "$msgId": {
+              ".write": "auth != null && (((auth.uid === $coachId || auth.uid === $athleteId) && ((!newData.exists() && data.child('senderId').val() === auth.uid) || (newData.exists() && newData.child('senderId').val() === auth.uid))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+            }
           }
         }
       }
