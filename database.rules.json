@@ -164,6 +164,40 @@
     "adminSubscriptionAlerts": {
       ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
       ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+    },
+    "coachSlotLocks": {
+      "$coachId": {
+        ".read": "auth != null && (auth.uid === $coachId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "$date": {
+          "$slot": {
+            ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+          }
+        }
+      }
+    },
+    "coachCalendar": {
+      "$coachId": {
+        ".read": "auth != null && (auth.uid === $coachId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "$bookingId": {
+          ".write": "auth != null && ((auth.uid === $coachId && root.child('bookings').child($bookingId).child('coachId').val() === auth.uid) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        }
+      }
+    },
+    "bookingDrafts": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$athleteId": {
+        ".read": "auth != null && (auth.uid === $athleteId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && ((auth.uid === $athleteId && root.child('users').child(auth.uid).child('role').val() === 'athlete' && newData.child('athleteId').val() === auth.uid) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "coachCustomerNotes": {
+      "$coachId": {
+        ".read": "auth != null && (auth.uid === $coachId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "$customerId": {
+          ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        }
+      }
     }
   }
 }
+
