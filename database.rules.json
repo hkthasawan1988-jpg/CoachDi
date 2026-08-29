@@ -203,6 +203,20 @@
         ".write": "auth != null && ((auth.uid === $athleteId && root.child('users').child(auth.uid).child('role').val() === 'athlete' && newData.child('athleteId').val() === auth.uid) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
+    "adminAds": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".indexOn": ["status", "startsAt", "endsAt", "updatedAt"]
+    },
+    "publishedAds": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".indexOn": ["status", "order", "endsAt"]
+    },
+    "adCodeUsage": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+    },
     "coachCustomerNotes": {
       "$coachId": {
         ".read": "auth != null && (auth.uid === $coachId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
