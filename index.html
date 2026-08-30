@@ -2040,4 +2040,19 @@ async function c62CheckLegal(){if(state.role!=='athlete'||!state.user?.uid)retur
 async function c62AcceptLegal(btn){const agree=document.getElementById('c62LegalAgree'),error=document.getElementById('c62LegalError');if(!agree?.checked||!state.user?.uid)return;try{btn.disabled=true;btn.textContent='กำลังบันทึก...';error?.classList.add('hidden');await db.ref(`legalAcceptances/${state.user.uid}/${C62_TERMS_VERSION}`).set({userId:state.user.uid,role:'athlete',termsVersion:C62_TERMS_VERSION,acceptedAt:firebase.database.ServerValue.TIMESTAMP});document.getElementById('c62Legal')?.remove()}catch(e){if(error){error.textContent='บันทึกไม่สำเร็จ: '+(e.message||e);error.classList.remove('hidden')}else alert('บันทึกการรับทราบไม่สำเร็จ: '+(e.message||e));btn.disabled=false;btn.textContent='ยอมรับและใช้งานต่อ'}}
 auth.onAuthStateChanged(u=>{if(u)setTimeout(()=>{s40ApplySubscriptionLock();c62CheckLegal()},1700)});
 </script>
+<style id="c63-venue-bottom-style">
+#c63VenueBottom{order:999;width:100%;margin-top:22px}.c47Home>#c63VenueBottom{margin-top:0}
+</style>
+<script id="c63-venue-bottom">
+const c63RenderHomeBase=c47RenderHome;
+c47RenderHome=function(){document.getElementById('c63VenueBottom')?.remove();c63RenderHomeBase();c63MoveVenueRecommendations()};
+function c63MoveVenueRecommendations(){
+ if(state.role!=='athlete')return;
+ const home=document.getElementById('c47Home'),title=home?.querySelector('.c47Title'),venues=home?.querySelector('.c47Venues');
+ if(!title||!venues)return;
+ const section=document.createElement('section');section.id='c63VenueBottom';section.setAttribute('aria-label','สนามแนะนำสำหรับคุณ');
+ section.append(title,venues);athletePage.appendChild(section);
+}
+auth.onAuthStateChanged(u=>{if(u)setTimeout(c63MoveVenueRecommendations,2100)});
+</script>
 </body></html>
