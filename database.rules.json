@@ -233,7 +233,7 @@
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         "$version": {
-          ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.child('userId').val() === auth.uid && newData.child('role').val() === 'athlete' && newData.child('termsVersion').val() === $version && newData.child('acceptedAt').isNumber()"
+          ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.child('userId').val() === auth.uid && newData.child('role').val() === root.child('users').child(auth.uid).child('role').val() && (newData.child('role').val() === 'athlete' || newData.child('role').val() === 'coach') && newData.child('termsVersion').val() === $version && newData.child('acceptedAt').isNumber()"
         }
       }
     },
