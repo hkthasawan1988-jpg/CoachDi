@@ -43,6 +43,12 @@
         ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
+    "coachPaymentPreferences": {
+      ".read": "auth != null",
+      "$coachId": {
+        ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' && (newData.child('mode').val() === 'prepaid' || newData.child('mode').val() === 'pay_at_venue')) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
     "coachTimeOff": {
       ".read": "auth != null",
       "$coachId": {
