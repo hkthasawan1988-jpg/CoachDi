@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="coach-di-build" content="4.3.2-permission-fix">
-<title>Coach Di — UAT Sprint 4.3.2 Permission Fix</title><link id="cd51Favicon" rel="icon" type="image/png">
+<title>Coach Di — Smart Coach Booking</title><link id="cd51Favicon" rel="icon" type="image/png">
 <style>
 :root{--navy:#001034;--teal:#004521;--orange:#B08A00;--grid:#E4E8E5;--bg:#F6F7F5;--muted:#69736E;--green:#0B7A4B}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--navy);font-family:"Noto Sans Thai","Prompt",Arial,sans-serif;font-size:14px}
@@ -171,16 +171,16 @@ body{background-image:linear-gradient(rgba(246,247,245,.91),rgba(246,247,245,.91
 </style>
 <style>.portalChooser{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 16px}.portalChoice{border:1px solid #dfe5e2;background:#fff;border-radius:12px;padding:10px 6px;min-height:44px;font-weight:800;color:#071A3D;cursor:pointer}.portalChoice.active{background:#071A3D;color:#fff;border-color:#071A3D}.portalChoice[data-role="coach"].active{background:#004521;border-color:#004521}.portalChoice[data-role="admin"].active{background:#B08A00;border-color:#B08A00;color:#071A3D}.portalHint{font-size:12px;color:#68736d;margin:-7px 0 12px}</style></head>
 <body><div class="app">
-<header class="topbar"><div class="brand"><img class="cd51TopLogo" alt="Coach Di"><span>Coach Di<small>Smart Coach Booking</small></span></div><div><button id="roleBadge" class="pill">UAT</button> <button id="logoutBtn" class="pill hidden" onclick="logout()">ออกจากระบบ</button></div></header>
+<header class="topbar"><div class="brand"><img class="cd51TopLogo" alt="Coach Di"><span>Coach Di<small>Smart Coach Booking</small></span></div><div><button id="roleBadge" class="pill">Secure</button> <button id="logoutBtn" class="pill hidden" onclick="logout()">ออกจากระบบ</button></div></header>
 
 <section id="loginView" class="auth card">
-<h1 id="loginTitle">เข้าสู่ระบบนักกีฬา</h1><p class="muted">เลือก Portal สำหรับทดสอบ UAT</p><div class="portalChooser" id="portalChooser"><button class="portalChoice" data-role="athlete" onclick="selectLoginPortal('athlete')">นักกีฬา</button><button class="portalChoice" data-role="coach" onclick="selectLoginPortal('coach')">Coach</button><button class="portalChoice" data-role="admin" onclick="selectLoginPortal('admin')">Admin</button></div><div id="portalHint" class="portalHint"></div>
+<h1 id="loginTitle">เข้าสู่ระบบนักกีฬา</h1><p class="muted">จัดการการจอง ตารางเรียน และการชำระเงินได้ในที่เดียว</p><div class="portalChooser" id="portalChooser"><button class="portalChoice" data-role="athlete" onclick="selectLoginPortal('athlete')">นักกีฬา</button><button class="portalChoice" data-role="coach" onclick="selectLoginPortal('coach')">Coach</button><button class="portalChoice" data-role="admin" onclick="selectLoginPortal('admin')">Admin</button></div><div id="portalHint" class="portalHint"></div>
 <label class="label">Email หรือเบอร์โทรศัพท์</label><input id="loginId" class="field" placeholder="coach@example.com">
 <label class="label">Password</label><div class="passwordWrap"><input id="loginPass" class="field" type="password" placeholder="Password"><button class="pill" onclick="togglePass()">แสดง</button></div>
 <label style="display:flex;gap:8px;align-items:center;margin:12px 0"><input type="checkbox" checked> จดจำฉัน</label>
 <button id="loginBtn" class="pill primary" style="width:100%" onclick="login()">เข้าสู่ระบบนักกีฬา</button><button id="registerAthleteBtn" class="pill" style="width:100%;margin-top:8px" onclick="registerAthlete()">สร้างบัญชีนักกีฬา</button>
 <button class="pill" style="width:100%;margin-top:8px" onclick="resetPassword()">ลืมรหัสผ่าน</button>
-<div id="authMessage" class="notice small">Sprint 3.0 • Login แยก Coach / Athlete อัตโนมัติ • Booking Coach ID Fix • Coach account ต้องได้รับ role coach จาก Admin</div>
+<div id="authMessage" class="notice small">เข้าสู่ระบบอย่างปลอดภัยด้วยบัญชี Coach Di ของคุณ</div>
 </section>
 
 <div id="portal" class="hidden">
