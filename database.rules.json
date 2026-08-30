@@ -7,9 +7,10 @@
       ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
     },
     "users": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".write": "auth != null && ((auth.uid === $uid && ((!data.exists() && newData.child('role').val() === 'athlete') || (data.exists() && newData.child('role').val() === data.child('role').val() && newData.child('status').val() === data.child('status').val() && newData.child('subscription').val() === data.child('subscription').val()))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        ".write": "auth != null && ((auth.uid === $uid && ((!data.exists() && newData.child('role').val() === 'athlete') || (data.exists() && newData.child('role').val() === data.child('role').val() && newData.child('status').val() === data.child('status').val() && (newData.child('subscription').val() === data.child('subscription').val() || (data.child('role').val() === 'coach' && !data.child('subscription').exists() && newData.child('subscription/status').val() === 'trial' && newData.child('subscription/priceSatang').val() === 19900 && newData.child('subscription/trialStartedAt').isNumber() && newData.child('subscription/trialEndsAt').isNumber() && newData.child('subscription/trialStartedAt').val() >= now - 60000 && newData.child('subscription/trialStartedAt').val() <= now + 60000 && newData.child('subscription/trialEndsAt').val() >= now + 5097600000 && newData.child('subscription/trialEndsAt').val() <= now + 5270400000))))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
     "coachProfiles": {
@@ -56,9 +57,10 @@
       }
     },
     "bookings": {
-      ".read": "auth != null",
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && (now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000 || now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000) && query.orderByChild === 'coachId' && query.equalTo === auth.uid) || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && query.orderByChild === 'athleteId' && query.equalTo === auth.uid))",
       "$bookingId": {
-        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'athlete' && ((!data.exists() && newData.child('athleteId').val() === auth.uid) || (data.exists() && data.child('athleteId').val() === auth.uid && newData.child('athleteId').val() === auth.uid && newData.child('coachId').val() === data.child('coachId').val()))) || (root.child('users').child(auth.uid).child('role').val() === 'coach' && (data.child('coachId').val() === auth.uid || newData.child('coachId').val() === auth.uid)) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        ".read": "auth != null && ((data.child('coachId').val() === auth.uid && (now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000 || now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000)) || data.child('athleteId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'athlete' && ((!data.exists() && newData.child('athleteId').val() === auth.uid) || (data.exists() && data.child('athleteId').val() === auth.uid && newData.child('athleteId').val() === auth.uid && newData.child('coachId').val() === data.child('coachId').val()))) || (root.child('users').child(auth.uid).child('role').val() === 'coach' && (now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000 || now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000) && ((!data.exists() && newData.child('coachId').val() === auth.uid) || (data.exists() && data.child('coachId').val() === auth.uid && ((!newData.exists() && (data.child('status').val() === 'rejected_by_coach' || data.child('status').val() === 'declined')) || (newData.exists() && newData.child('coachId').val() === data.child('coachId').val()))))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       },
       ".indexOn": [
         "athleteId",
@@ -67,6 +69,7 @@
       ]
     },
     "auditLogs": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         "$id": {
@@ -87,10 +90,10 @@
         "coachId",
         "athleteId"
       ],
-      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && query.orderByChild === 'coachId' && query.equalTo === auth.uid) || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && query.orderByChild === 'athleteId' && query.equalTo === auth.uid))",
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && (now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000 || now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000) && query.orderByChild === 'coachId' && query.equalTo === auth.uid) || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && query.orderByChild === 'athleteId' && query.equalTo === auth.uid))",
       "$id": {
-        ".read": "auth != null && (data.child('coachId').val() === auth.uid || data.child('athleteId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'coach' && newData.child('coachId').val() === auth.uid) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        ".read": "auth != null && ((data.child('coachId').val() === auth.uid && (now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000 || now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000)) || data.child('athleteId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'coach' && (now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000 || now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000) && newData.child('coachId').val() === auth.uid) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
     "refunds": {
@@ -98,13 +101,14 @@
         "coachId",
         "athleteId"
       ],
-      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && query.orderByChild === 'coachId' && query.equalTo === auth.uid) || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && query.orderByChild === 'athleteId' && query.equalTo === auth.uid))",
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && (now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000 || now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000) && query.orderByChild === 'coachId' && query.equalTo === auth.uid) || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && query.orderByChild === 'athleteId' && query.equalTo === auth.uid))",
       "$id": {
-        ".read": "auth != null && (data.child('coachId').val() === auth.uid || data.child('athleteId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && newData.child('coachId').val() === auth.uid))"
+        ".read": "auth != null && ((data.child('coachId').val() === auth.uid && (now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000 || now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000)) || data.child('athleteId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && (now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000 || now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000) && newData.child('coachId').val() === auth.uid))"
       }
     },
     "subscriptionTransactions": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
       ".indexOn": [
         "coachId"
       ],
@@ -122,6 +126,7 @@
     "coachPaymentPublic": {
       ".read": "auth != null",
       "$coachId": {
+        ".read": "auth != null",
         ".write": "auth != null && (auth.uid === $coachId || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
@@ -131,6 +136,18 @@
         "messages": {
           "$msgId": {
             ".write": "auth != null && ((root.child('bookings').child($bookingId).child('athleteId').val() === auth.uid || root.child('bookings').child($bookingId).child('coachId').val() === auth.uid) && newData.child('senderId').val() === auth.uid)"
+          }
+        }
+      }
+    },
+    "userChats": {
+      "$coachId": {
+        "$athleteId": {
+          ".read": "auth != null && ((auth.uid === $coachId && (now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000 || now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000)) || auth.uid === $athleteId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+          "messages": {
+            "$msgId": {
+              ".write": "auth != null && ((((auth.uid === $coachId && (now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000 || now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000)) || auth.uid === $athleteId) && ((!newData.exists() && data.child('senderId').val() === auth.uid) || (newData.exists() && newData.child('senderId').val() === auth.uid))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+            }
           }
         }
       }
@@ -180,6 +197,75 @@
         ".read": "auth != null && (auth.uid === $coachId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         "$bookingId": {
           ".write": "auth != null && ((auth.uid === $coachId && root.child('bookings').child($bookingId).child('coachId').val() === auth.uid) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        }
+      }
+    },
+    "bookingDrafts": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$athleteId": {
+        ".read": "auth != null && (auth.uid === $athleteId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && ((auth.uid === $athleteId && root.child('users').child(auth.uid).child('role').val() === 'athlete' && newData.child('athleteId').val() === auth.uid) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "adminAds": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".indexOn": ["status", "startsAt", "endsAt", "updatedAt"]
+    },
+    "publishedAds": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".indexOn": ["status", "order", "endsAt"]
+    },
+    "adCodeUsage": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+    },
+    "legalAcceptances": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "$version": {
+          ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.child('userId').val() === auth.uid && newData.child('role').val() === 'athlete' && newData.child('termsVersion').val() === $version && newData.child('acceptedAt').isNumber()"
+        }
+      }
+    },
+    "athleteHiddenBookings": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "$bookingId": {
+          ".write": "auth != null && ((auth.uid === $uid && root.child('users').child(auth.uid).child('role').val() === 'athlete' && root.child('bookings').child($bookingId).child('athleteId').val() === auth.uid && newData.child('hiddenAt').isNumber() && newData.child('bookingDate').val() === root.child('bookings').child($bookingId).child('date').val()) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        }
+      }
+    },
+    "groupPlayTopics": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'athlete' || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+      "$topicId": {
+        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'athlete' && ((!data.exists() && newData.child('ownerId').val() === auth.uid && newData.child('approvedCount').val() === 1 && newData.child('capacityTotal').isNumber() && newData.child('capacityTotal').val() >= 2 && newData.child('capacityTotal').val() <= 50 && newData.child('status').val() === 'open') || (data.exists() && data.child('ownerId').val() === auth.uid && newData.child('ownerId').val() === auth.uid && newData.child('capacityTotal').val() === data.child('capacityTotal').val() && newData.child('approvedCount').isNumber() && newData.child('approvedCount').val() >= data.child('approvedCount').val() && newData.child('approvedCount').val() <= data.child('capacityTotal').val() && (newData.child('status').val() === 'open' || newData.child('status').val() === 'full' || newData.child('status').val() === 'cancelled')))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      },
+      ".indexOn": ["date", "ownerId", "status"]
+    },
+    "groupPlayRequests": {
+      "$topicId": {
+        ".read": "auth != null && (root.child('groupPlayTopics').child($topicId).child('ownerId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "$uid": {
+          ".read": "auth != null && (auth.uid === $uid || root.child('groupPlayTopics').child($topicId).child('ownerId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+          ".write": "auth != null && ((auth.uid === $uid && root.child('users').child(auth.uid).child('role').val() === 'athlete' && !data.exists() && newData.child('userId').val() === auth.uid && newData.child('status').val() === 'pending' && root.child('groupPlayTopics').child($topicId).child('ownerId').val() !== auth.uid && root.child('groupPlayTopics').child($topicId).child('status').val() === 'open') || (root.child('groupPlayTopics').child($topicId).child('ownerId').val() === auth.uid && data.exists() && newData.child('userId').val() === data.child('userId').val() && ((data.child('status').val() === 'pending' && (newData.child('status').val() === 'approved' || newData.child('status').val() === 'rejected')) || (data.child('status').val() === 'approved' && newData.child('status').val() === 'rejected' && newData.child('reason').val() === 'group_full'))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        }
+      }
+    },
+    "groupPlayParticipants": {
+      "$topicId": {
+        ".read": "auth != null && (root.child('groupPlayTopics').child($topicId).child('ownerId').val() === auth.uid || root.child('groupPlayRequests').child($topicId).child(auth.uid).child('status').val() === 'approved' || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "$uid": {
+          ".write": "auth != null && (((root.child('groupPlayTopics').child($topicId).child('ownerId').val() === auth.uid || ($uid === auth.uid && newData.child('role').val() === 'owner')) && newData.child('userId').val() === $uid && ($uid === auth.uid || root.child('groupPlayRequests').child($topicId).child($uid).child('status').val() === 'pending' || root.child('groupPlayRequests').child($topicId).child($uid).child('status').val() === 'approved')) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        }
+      }
+    },
+    "groupPlayTickets": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "$ticketId": {
+          ".write": "auth != null && ((!data.exists() && newData.child('actorId').val() === auth.uid && ((newData.child('type').val() === 'group_join_request' && root.child('groupPlayTopics').child(newData.child('topicId').val()).child('ownerId').val() === $uid) || ((newData.child('type').val() === 'group_join_approved' || newData.child('type').val() === 'group_join_rejected' || newData.child('type').val() === 'group_full') && root.child('groupPlayTopics').child(newData.child('topicId').val()).child('ownerId').val() === auth.uid && root.child('groupPlayRequests').child(newData.child('topicId').val()).child($uid).exists()))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         }
       }
     },
