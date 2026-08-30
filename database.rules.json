@@ -217,6 +217,14 @@
       ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
       ".indexOn": ["status", "order", "endsAt"]
     },
+    "recommendedVenues": {
+      ".read": "auth != null",
+      "$venueId": {
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+        ".validate": "!newData.exists() || (newData.child('name').isString() && newData.child('sport').isString() && (newData.child('status').val() === 'active' || newData.child('status').val() === 'inactive'))"
+      },
+      ".indexOn": ["sport", "status", "order", "updatedAt"]
+    },
     "adCodeUsage": {
       ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
       ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
@@ -279,3 +287,4 @@
     }
   }
 }
+
