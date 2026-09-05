@@ -225,6 +225,14 @@
       },
       ".indexOn": ["sport", "status", "order", "updatedAt"]
     },
+    "broadcastCampaigns": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$broadcastId": {
+        ".validate": "!newData.exists() || (newData.child('title').isString() && newData.child('message').isString() && (newData.child('audience').val() === 'all' || newData.child('audience').val() === 'athlete' || newData.child('audience').val() === 'coach') && (newData.child('status').val() === 'draft' || newData.child('status').val() === 'published'))"
+      },
+      ".indexOn": ["status", "audience", "createdAt", "publishedAt"]
+    },
     "adCodeUsage": {
       ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
       ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
