@@ -1319,7 +1319,7 @@ auth.onAuthStateChanged(u=>{if(u)setTimeout(()=>{s40BindOwnBookings();s40BindUse
 /* Athlete + Coach navigation: remove duplicate booking/court sidebar entries; add chat/notifications. */
 const s40RenderNavBase=renderNav;renderNav=function(){
  if(state.role==='athlete'){
-   sidebar.className='sidebar athleteSidebar';const items=[['home','หน้าหลัก','⌂'],['mybookings','การจองของฉัน','☑'],['history','ประวัติการจอง','◷'],['notifications','แจ้งเตือน','◉'],['chat','แชท','💬'],['profile','โปรไฟล์','●']];
+   sidebar.className='sidebar athleteSidebar';const items=[['home','หน้าหลัก','⌂'],['mybookings','การจองของฉัน','☑'],['history','ประวัติการจอง','◷'],['notifications','แจ้งเตือน','◉'],['chat','Chat','💬'],['profile','โปรไฟล์','●']];
    sidebar.innerHTML=`<div class="sideBrand"><span class="sideMark">Di</span><span>Coach Di</span></div>`+items.map(x=>`<button class="navbtn ${x[0]==='notifications'?'s40NotifBell':''}" data-athlete-page="${x[0]}" onclick="showAthleteMenu('${x[0]}')"><span class="navIcon">${x[2]}</span>${x[1]}${x[0]==='notifications'?'<span id="s40SideNotif"></span>':''}</button>`).join('')+`<div class="sideDivider"></div><button class="navbtn sideLogout" onclick="logout()"><span class="navIcon">↪</span>ออกจากระบบ</button>`;
    mobileNav.className='mobileNav athleteMobile';mobileNav.innerHTML=items.slice(0,5).map(x=>`<button data-athlete-mobile="${x[0]}" onclick="showAthleteMenu('${x[0]}')">${x[2]}<br>${x[1]}</button>`).join('');s40PaintNotifBadge();return;
  }
