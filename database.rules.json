@@ -277,6 +277,25 @@
         }
       }
     },
+    "hittingPartnerProfiles": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'athlete' || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+      "$uid": {
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth.uid === $uid && root.child('users').child(auth.uid).child('role').val() === 'athlete' && newData.child('userId').val() === auth.uid && newData.child('status').val() === 'pending_review'))",
+        ".validate": "!newData.exists() || (newData.hasChildren(['userId','displayName','sport','area','hourlyRateSatang','status','updatedAt']) && newData.child('userId').val() === $uid && newData.child('displayName').isString() && newData.child('displayName').val().length >= 2 && newData.child('displayName').val().length <= 80 && newData.child('sport').isString() && newData.child('area').isString() && newData.child('area').val().length <= 120 && newData.child('hourlyRateSatang').isNumber() && newData.child('hourlyRateSatang').val() >= 0 && newData.child('hourlyRateSatang').val() <= 1000000 && (newData.child('status').val() === 'pending_review' || newData.child('status').val() === 'active' || newData.child('status').val() === 'rejected' || newData.child('status').val() === 'inactive') && newData.child('updatedAt').isNumber())"
+      },
+      ".indexOn": ["sport", "status", "updatedAt"]
+    },
+    "hittingPartnerRequests": {
+      "$partnerId": {
+        ".read": "auth != null && (auth.uid === $partnerId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "$requesterId": {
+          ".read": "auth != null && (auth.uid === $requesterId || auth.uid === $partnerId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+          ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth.uid === $requesterId && root.child('users').child(auth.uid).child('role').val() === 'athlete' && !data.exists() && newData.child('requesterId').val() === auth.uid && newData.child('partnerId').val() === $partnerId && newData.child('status').val() === 'pending' && root.child('hittingPartnerProfiles').child($partnerId).child('status').val() === 'active') || (auth.uid === $partnerId && data.exists() && newData.child('partnerId').val() === data.child('partnerId').val() && newData.child('requesterId').val() === data.child('requesterId').val() && newData.child('requesterName').val() === data.child('requesterName').val() && newData.child('sport').val() === data.child('sport').val() && newData.child('date').val() === data.child('date').val() && newData.child('start').val() === data.child('start').val() && newData.child('end').val() === data.child('end').val() && newData.child('venueName').val() === data.child('venueName').val() && newData.child('hourlyRateSatang').val() === data.child('hourlyRateSatang').val() && (newData.child('status').val() === 'approved' || newData.child('status').val() === 'rejected')))",
+          ".validate": "!newData.exists() || (newData.hasChildren(['partnerId','requesterId','requesterName','sport','date','start','end','venueName','hourlyRateSatang','status','createdAt']) && newData.child('partnerId').val() === $partnerId && newData.child('requesterId').val() === $requesterId && newData.child('requesterName').isString() && newData.child('sport').isString() && newData.child('date').isString() && newData.child('start').isString() && newData.child('end').isString() && newData.child('venueName').isString() && newData.child('hourlyRateSatang').isNumber() && newData.child('createdAt').isNumber())"
+        },
+        ".indexOn": ["status", "createdAt"]
+      }
+    },
     "coachCustomerNotes": {
       "$coachId": {
         ".read": "auth != null && (auth.uid === $coachId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
@@ -287,4 +306,3 @@
     }
   }
 }
-
