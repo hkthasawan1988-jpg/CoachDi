@@ -26,9 +26,30 @@
       }
     },
     "coachLocations": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$coachId": {
+        ".read": "auth != null && (auth.uid === $coachId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "coachPublicSchedule": {
       ".read": "auth != null",
       "$coachId": {
-        ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' && root.child('users').child(auth.uid).child('status').val() === 'active') || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "$appointmentId": {
+          ".validate": "!newData.exists() || (newData.hasChildren(['coachId','date','start','end','venueName','source','createdAt','updatedAt']) && newData.child('coachId').val() === $coachId && newData.child('date').isString() && newData.child('date').val().length === 10 && newData.child('start').isNumber() && newData.child('start').val() >= 0 && newData.child('start').val() < 24 && newData.child('end').isNumber() && newData.child('end').val() > newData.child('start').val() && newData.child('end').val() <= 24 && newData.child('end').val() - newData.child('start').val() <= 12 && newData.child('venueName').isString() && newData.child('venueName').val().length >= 2 && newData.child('venueName').val().length <= 120 && newData.child('source').val() === 'coach_existing_appointment' && newData.child('createdAt').isNumber() && newData.child('updatedAt').isNumber())",
+          "coachId": { ".validate": "newData.val() === $coachId" },
+          "date": { ".validate": "newData.isString() && newData.val().length === 10" },
+          "start": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 24" },
+          "end": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 24" },
+          "venueName": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 120" },
+          "venueId": { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 120)" },
+          "source": { ".validate": "newData.val() === 'coach_existing_appointment'" },
+          "recurrenceGroup": { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 10)" },
+          "createdAt": { ".validate": "newData.isNumber()" },
+          "updatedAt": { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        }
       }
     },
     "coachVenues": {
