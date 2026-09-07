@@ -9,6 +9,9 @@ html.cd-overlay-open, html.cd-overlay-open body { overflow: hidden; }
 /* The legacy mobile reset uses padding:0!important. Reserve the system inset in
    normal flow as well as in the sticky header, otherwise it covers the first card. */
 html.cd-native body { padding-top: var(--cd-safe-top) !important; padding-inline: var(--cd-safe-left) var(--cd-safe-right) !important; }
+/* overflow-x:hidden implicitly made body a separate vertical scroll container.
+   That shifted sticky headers by the inset twice and let them scroll off screen. */
+html.cd-native body, html.cd-native #portal { overflow-x: clip !important; overflow-y: visible !important; }
 html.cd-native .topbar { top: var(--cd-safe-top) !important; }
 /* Web Push is a browser/PWA feature; this app keeps its in-app notification menu. */
 html.cd-native #c105PushButton { display: none !important; }

@@ -18,7 +18,10 @@ html.cd-native {
 }
 html.cd-native .topbar { height: auto !important; min-height: 64px !important; flex-wrap: wrap; gap: 8px; }
 html.cd-native .topbar > div:last-child { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
-html.cd-native .topbar button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+html.cd-native .topbar button {
+  max-width: 100%; white-space: normal; overflow-wrap: anywhere; font-size: 16px !important;
+  color: #12304a !important; background: #fff !important; border: 1px solid #dbe4eb !important;
+}
 html.cd-native .main { padding-bottom: calc(var(--cd-bottom-clearance, var(--cd-safe-bottom)) + var(--cd-float-clearance, 0px) + 24px) !important; }
 html.cd-native .scheduleTop { top: calc(var(--cd-safe-top) + var(--cd-header-height, 64px)) !important; }
 html.cd-native :is(.cdSupportFloat, .c79MobileOpenPlay) {

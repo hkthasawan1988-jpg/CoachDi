@@ -43,7 +43,7 @@ async function assertBounds(page, insets) {
     return {
       width:innerWidth, height:innerHeight, scroll:document.documentElement.scrollWidth,
       header:rect(document.querySelector('.topbar')),
-      headerButtons:[...document.querySelectorAll('.topbar button')].filter(visible).map(rect),
+      headerButtons:[...document.querySelectorAll('.topbar button')].filter(visible).map(el=>({...rect(el),color:getComputedStyle(el).color})),
       nav:rect(document.getElementById('mobileNav')),
       navButtons:[...document.querySelectorAll('#mobileNav > button')].filter(visible).map(rect),
       glow:getComputedStyle(document.querySelector('#mobileNav .c92More')).animationName
@@ -53,6 +53,7 @@ async function assertBounds(page, insets) {
   expect(metrics.header.top).toBeGreaterThanOrEqual(insets.top);
   expect(metrics.navButtons).toHaveLength(5);
   for (const button of metrics.headerButtons) {
+    expect(button.color).toBe('rgb(18, 48, 74)');
     expect(button.top).toBeGreaterThanOrEqual(metrics.header.top);
     expect(button.bottom).toBeLessThanOrEqual(metrics.header.bottom + 1);
     expect(button.left).toBeGreaterThanOrEqual(insets.left);
@@ -81,6 +82,8 @@ for (const [width,height] of [[320,740],[360,800],[390,844],[412,915],[656,728],
     const bottom=await last.evaluate(el=>el.getBoundingClientRect().bottom);
     const obstruction=await page.locator('.cdSupportFloat').evaluate(el=>el.getBoundingClientRect().top);
     expect(bottom).toBeLessThanOrEqual(obstruction);
+    const stickyTop=await page.locator('.topbar').evaluate(el=>el.getBoundingClientRect().top);
+    expect(stickyTop).toBeGreaterThanOrEqual(insets.top);
     await page.locator('#mobileNav .c92More').click();
     await expect(page.getByRole('heading',{name:'เมนูทั้งหมด',exact:true})).toBeVisible();
     const menu=await page.locator('.c92MenuPanel').boundingBox();
