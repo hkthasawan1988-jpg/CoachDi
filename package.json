@@ -1,0 +1,22 @@
+{
+  "name": "coach-di",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Coach Di web application and Capacitor Android app",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "node scripts/build-web.mjs",
+    "check": "node scripts/check-source.mjs",
+    "test": "playwright test",
+    "android:sync": "npm run build && cap sync android",
+    "android:open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.1",
+    "@capacitor/core": "8.5.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.1",
+    "@playwright/test": "1.63.0"
+  }
+}

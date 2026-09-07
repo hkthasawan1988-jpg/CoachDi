@@ -1,0 +1,10 @@
+{
+  "appId": "com.coachdi.app",
+  "appName": "Coach Di",
+  "webDir": "dist",
+  "android": { "backgroundColor": "#061427" },
+  "plugins": {
+    "SystemBars": { "insetsHandling": "css", "style": "LIGHT" },
+    "SplashScreen": { "launchAutoHide": true, "backgroundColor": "#061427" }
+  }
+}

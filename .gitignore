@@ -1,0 +1,12 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+*.jks
+*.keystore
+keystore.properties
+.env
+.env.*
+!.env.example
+*.apk
+*.aab

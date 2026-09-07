@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Coach Di</string>
+    <string name="title_activity_main">Coach Di</string>
+    <string name="package_name">com.coachdi.app</string>
+    <string name="custom_url_scheme">com.coachdi.app</string>
+</resources>
