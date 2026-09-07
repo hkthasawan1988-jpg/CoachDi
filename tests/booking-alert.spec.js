@@ -1,42 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-async function openIsolatedApp(page, native = false) {
-  const pageErrors = [];
-  page.on('pageerror', error => pageErrors.push(error.message));
-  // All external traffic is blocked: these tests cannot reach Production Firebase.
-  await page.route('**/*', route => {
-    const url = new URL(route.request().url());
-    return url.hostname === '127.0.0.1' ? route.continue() : route.fulfill({ status: 200, body: '', contentType: 'text/javascript' });
-  });
-  await page.addInitScript(isNative => {
-    window.Capacitor = { isNativePlatform: () => isNative };
-    window.testWrites = [];
-    const snapshot = value => ({ val: () => value, exists: () => value != null, forEach: () => false });
-    const ref = path => ({
-      key: 'test-key',
-      child: name => ref(`${path}/${name}`),
-      once: async () => snapshot(path.startsWith('users/') ? { displayName: 'Test Athlete', phone: '0800000000' } : null),
-      on: () => {}, off: () => {},
-      orderByChild() { return this; }, equalTo() { return this; }, limitToLast() { return this; },
-      push: () => ref(`${path}/test-key`),
-      set: async value => { window.testWrites.push({ path, value }); },
-      update: async value => { window.testWrites.push({ path, value }); await new Promise(resolve => setTimeout(resolve, 80)); },
-      remove: async () => { window.testWrites.push({ path, remove: true }); },
-      transaction: async () => ({ committed: true, snapshot: snapshot(null) }),
-    });
-    const auth = { currentUser: null, onAuthStateChanged: () => () => {}, setPersistence: async () => {}, signOut: async () => {} };
-    const authFn = () => auth;
-    authFn.Auth = { Persistence: { LOCAL: 'local', SESSION: 'session', NONE: 'none' } };
-    const database = () => ({ ref: path => ref(path || '') });
-    database.ServerValue = { TIMESTAMP: { '.sv': 'timestamp' } };
-    const app = { auth: authFn, database, appCheck: () => ({ activate: () => {} }) };
-    window.firebase = { initializeApp: () => app, apps: [], auth: authFn, database };
-  }, native);
-  await page.goto('/');
-  await expect(page.locator('#loginView')).toBeVisible();
-  expect(pageErrors).toEqual([]);
-  expect(await page.evaluate(() => typeof state)).toBe('object');
-}
+const { openIsolatedApp } = require('./helpers/app');
 
 async function warning(page, text = 'โค้ชทดสอบ') {
   await page.evaluate(name => {

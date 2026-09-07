@@ -1,0 +1,5 @@
+{
+  "production_url": "https://coach-di.netlify.app/",
+  "normalized_index_sha256": "a0e06aa9db2181ffc195e16610794e419d7fda17b939528b5237638933d9cbf0",
+  "scope": "Migration regression guard. Only mobile-layout includes and the native public share URL adaptation are allowed relative to this captured public client. Intentional future web changes require reviewing/updating this baseline."
+}

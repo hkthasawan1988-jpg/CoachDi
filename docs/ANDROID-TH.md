@@ -78,3 +78,15 @@ Browser tests รันกับ Firebase mock และบล็อก network 
 การเข้าสู่ระบบ Firebase จริง, App Check/reCAPTCHA บน Android WebView, การอัปโหลดสลิป,
 การชำระเงิน และอุปกรณ์ Android จริงยังต้องผ่าน UAT ก่อนออก Release.
 ตัว Build ไม่เปลี่ยนหรือปิด App Check/กฎสิทธิ์ของ Production.
+
+## การรักษาพฤติกรรมเว็บเดิม
+
+`npm run check` ตรวจทั้ง source และ dist ว่า public client assets ทั้ง 25 ไฟล์ตรงกับ Production snapshot
+และตรวจ index.html ทั้งไฟล์ โดยอนุญาตเฉพาะ mobile layout includes และ native share URL ที่ผ่าน review
+หากตั้งใจเปลี่ยนเว็บในอนาคต ให้ review และปรับ `docs/web-compatibility-baseline.json` พร้อมการเปลี่ยนนั้น
+ไม่ควรแก้ hash เพียงเพื่อข้าม failure ที่ไม่ทราบสาเหตุ
+
+ชุดทดสอบเพิ่มเติมครอบคลุมทางเข้า Athlete/Coach/Admin, validation และ remember-login (Firebase mock),
+เปิด/ยกเลิกสมัคร Coach, validation ก่อนจอง, สนามอื่น, ฟอร์มเลือกพื้นที่, หน้า Booking/History/Profile/Chat
+และ URL แชร์จากเว็บปกติ พร้อมตรวจไฟล์ local ที่โหลดไม่สำเร็จ
+การทดสอบนี้ไม่ได้ยืนยันธุรกรรมจริงหรือสิทธิ์ Backend; ยังต้องใช้ UAT แยกสำหรับขั้นตอนเหล่านั้น
