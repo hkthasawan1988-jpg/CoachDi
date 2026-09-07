@@ -55,6 +55,24 @@
     }
     return patch;
   }
+  async function requestRefund(ref, options) {
+    const { uid, bank, reason = '', cancel = false, stamp, assertOwner = () => {} } = options;
+    let aborted;
+    const keepSnapshot = () => {};
+    // A one-shot read can evict the local cache before a transaction starts.
+    // Keep this exact record subscribed until the transaction finishes; never seed a
+    // null transaction with an old snapshot, which could recreate a deleted booking.
+    ref.on('value', keepSnapshot);
+    try {
+      await ref.once('value'); assertOwner();
+      const result = await ref.transaction(current => {
+        try { assertOwner(); return { ...current, ...refundPatch(current, uid, bank, reason, cancel, stamp()) }; }
+        catch (failure) { aborted = failure; return undefined; }
+      }, undefined, false);
+      if (!result.committed) throw aborted || Error('สถานะรายการเปลี่ยนแล้ว กรุณารีเฟรช');
+      return result;
+    } finally { ref.off('value', keepSnapshot); }
+  }
   // Public schedules are not a reservation ledger. Candidates always require coach confirmation.
   function candidate(booking, coach, data, now = Date.now()) {
     const aliases = coach.aliasUids || [coach.uid];
@@ -90,7 +108,7 @@
       coachDiId: coach.coachDiId || '', venueName: venue.name || booking.venue,
       start, end, date, needsConfirmation: true };
   }
-  const api = { account, coachCancelled, paymentEvidence, needsRefund, refundPatch, candidate, terminal };
+  const api = { account, coachCancelled, paymentEvidence, needsRefund, refundPatch, requestRefund, candidate, terminal };
   root.CoachDiRefundCore = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);

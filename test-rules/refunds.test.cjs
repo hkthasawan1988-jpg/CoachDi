@@ -53,8 +53,7 @@ test('submitted bank account and request identity cannot be changed or removed b
 });
 test('concurrent refund submissions commit once and retain original coach/status/payment', async () => {
   const submit = async () => {
-    const ref = db('athlete').ref('bookings/booking'); await ref.once('value');
-    return ref.transaction(current => { try { return { ...current, ...C.refundPatch(current,'athlete',bank,'',false,Date.now()) }; } catch (_) { return undefined; } }, undefined, false);
+    return C.requestRefund(db('athlete').ref('bookings/booking'), { uid:'athlete', bank, stamp:Date.now });
   };
   const results = await Promise.allSettled([submit(), submit()]);
   assert.equal(results.filter(r => r.status === 'fulfilled' && r.value.committed).length, 1);

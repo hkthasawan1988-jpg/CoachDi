@@ -129,13 +129,7 @@
       const reason = document.getElementById('cdrCancelReason')?.value || '';
       pending.add(id); button.disabled = true; error('กำลังส่งคำขอ...');
       const ref = db.ref('bookings/' + id);
-      await ref.once('value'); owner(uid);
-      let aborted;
-      const result = await ref.transaction(current => {
-        try { owner(uid); return { ...current, ...C.refundPatch(current, uid, value, reason, cancel, stamp()) }; }
-        catch (failure) { aborted = failure; return undefined; }
-      }, undefined, false);
-      if (!result.committed) throw aborted || Error('สถานะรายการเปลี่ยนแล้ว กรุณารีเฟรช');
+      const result = await C.requestRefund(ref, { uid, bank: value, reason, cancel, stamp, assertOwner: () => owner(uid) });
       owner(uid);
       const saved = result.snapshot.val();
       for (const key of ['bookings', 'allAthleteBookings']) if (Array.isArray(state[key])) state[key] = state[key].map(b => b.id === id ? { ...saved, id } : b);
