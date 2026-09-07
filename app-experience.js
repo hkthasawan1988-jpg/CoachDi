@@ -23,6 +23,11 @@
       const next = `${Math.floor(available)}px`;
       if (shell.style.getPropertyValue('--cd-chat-height') !== next) shell.style.setProperty('--cd-chat-height', next);
     });
+    document.querySelectorAll('.cdTimeGridScroll').forEach(grid => {
+      if (!grid.getClientRects().length) return;
+      const available = Math.max(120, height + top - grid.getBoundingClientRect().top - navHeight - 20);
+      grid.style.setProperty('--cd-grid-height', `${Math.floor(available)}px`);
+    });
   }
   function resize() { if (!raf) raf = requestAnimationFrame(size); }
   window.addEventListener('resize', resize);

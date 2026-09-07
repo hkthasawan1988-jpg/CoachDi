@@ -44,7 +44,7 @@ html.cd-native :is(.navbtn, .pill, .field) { min-height: 44px; }
 .s41Composer .s41Plus { display: none; }
 .c43conv, .s41LineConv { display: block !important; width: 100%; min-width: 0; box-sizing: border-box; text-align: left; padding: 10px !important; white-space: normal; }
 .c43conv b, .s41LineConv .name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; white-space: normal !important; font-size: 15px !important; }
-#coachPage:has(.c43chat) .c79MobileOpenPlay { display: none !important; }
+#coachPage:has(.c43chat,.cdTimeGrid) .c79MobileOpenPlay { display: none !important; }
 .c43conv small, .s41LineConv .preview { display: block; font-size: 13px !important; white-space: normal !important; overflow-wrap: anywhere; }
 .c43conv .c43av, .s41LineConv .s41Avatar { width: 32px; height: 32px; margin-bottom: 5px; }
 .c43bubble, .s41LineBubble { max-width: 100% !important; font-size: 16px !important; line-height: 1.55; overflow-wrap: anywhere; white-space: pre-wrap; }
@@ -54,7 +54,7 @@ html.cd-native :is(.navbtn, .pill, .field) { min-height: 44px; }
 
 /* One scrollable calendar; a drag selects times, saving is still explicit. */
 .cdScheduleHint { margin: 10px 0; font-size: 14px; color: #40566d; }
-.cdTimeGridScroll { overflow: auto; max-width: 100%; max-height: min(68dvh, 720px); overscroll-behavior: contain; border: 1px solid #dce4eb; border-radius: 12px; }
+.cdTimeGridScroll { overflow: auto; max-width: 100%; max-height: min(var(--cd-grid-height,68dvh), 720px); overscroll-behavior: contain; border: 1px solid #dce4eb; border-radius: 12px; }
 .cdTimeGrid { display: grid; grid-template-columns: 56px repeat(var(--cd-days,1),minmax(160px,1fr)); min-width: 0; }
 .cdTimeGrid[data-days="7"] { min-width: 1176px; }
 .cdGridHead { position: sticky; top: 0; z-index: 2; background: #edf4fc; font-weight: 700; padding: 8px; text-align: center; }
@@ -81,6 +81,8 @@ html.cd-native :is(.navbtn, .pill, .field) { min-height: 44px; }
 .c71ModalActions button { flex: 1; min-height: 48px; }
 .c71AppointmentForm input { box-sizing: border-box; min-width: 0; max-width: 100%; }
 @media(max-width:600px) {
+  .c43tabs { display: flex; flex-wrap: nowrap !important; max-width: 100%; overflow-x: auto; }
+  .c43tab { flex: 1 0 auto; padding: 8px 6px !important; white-space: nowrap; }
   .c43 #coachContent, .c44 #coachContent { padding: 12px 8px !important; }
   .c43head, .c71Actions { flex-wrap: wrap; }
   .c43head > div, .c71Actions input { min-width: 0; max-width: 100%; }

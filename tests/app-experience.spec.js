@@ -122,3 +122,10 @@ test('creating recurring appointments allocates separate IDs for every date',asy
   expect(writes).toHaveLength(1);expect(Object.keys(writes[0].value)).toEqual(['coachPublicSchedule/test-coach/new-1','coachPublicSchedule/test-coach/new-2','coachPublicSchedule/test-coach/new-3']);
   expect(new Set(Object.values(writes[0].value).map(v=>v.date)).size).toBe(3);
 });
+
+test('phone calendar stays above navigation and view labels do not break into letters',async({page})=>{
+  await page.setViewportSize({width:320,height:740});await openIsolatedApp(page,true);await coach(page,'schedule');
+  await expect.poll(()=>page.locator('.cdTimeGridScroll').evaluate(el=>el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(740);
+  const metrics=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,grid:document.querySelector('.cdTimeGridScroll').getBoundingClientRect().bottom,nav:document.getElementById('mobileNav').getBoundingClientRect().top,wrap:getComputedStyle(document.querySelector('.c43tab.active')).whiteSpace}));
+  expect(metrics.scroll).toBeLessThanOrEqual(320);expect(metrics.grid).toBeLessThanOrEqual(metrics.nav);expect(metrics.wrap).toBe('nowrap');
+});
