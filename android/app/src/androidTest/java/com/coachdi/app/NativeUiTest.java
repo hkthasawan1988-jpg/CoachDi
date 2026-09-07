@@ -106,6 +106,9 @@ public class NativeUiTest {
             shell("wm size 1968x2184");
             shell("wm density 480");
             awaitTrue("innerWidth>=650 && innerWidth<=660");
+            // Wait for the initial signed-out callback before showing a UI-only fixture.
+            assertEquals("true", js("(function(){window.foldAuthReady=false;auth.onAuthStateChanged(function(){window.foldAuthReady=true;});return true;})()"));
+            awaitTrue("window.foldAuthReady && auth.currentUser===null");
             // Presentation fixture only: no Firebase account, network writes or bookings.
             assertEquals("true", js("(function(){state.role='athlete';state.user={uid:'native-layout-fixture'};" +
                 "loginView.classList.add('hidden');portal.classList.remove('hidden');renderNav();c92SyncMobileNav();" +
@@ -113,9 +116,12 @@ public class NativeUiTest {
                 "document.querySelector('.main').insertAdjacentHTML('afterbegin','<section id=foldShellFixture><div class=c47Hero><div><h1>สวัสดีค่ะ/ครับ นักกีฬาทดสอบจอกาง</h1><p>ข้อความภาษาไทยสำหรับทดสอบขอบบนและแถบระบบ</p></div><div class=c47Next><b>คลาสถัดไป</b><p>สนามทดสอบชื่อภาษาไทยยาว</p><button class=c47Btn>ดูรายละเอียด</button></div></div><div style=height:900px></div><button id=foldLastButton class=pill>ปุ่มท้ายหน้า</button></section>');" +
                 "cd395SupportButton();window.scrollTo(0,0);return true;})()"));
             awaitTrue("(function(){var h=document.querySelector('.topbar').getBoundingClientRect(),t=document.querySelector('#foldShellFixture h1').getBoundingClientRect();return t.top>=h.bottom;})()");
+            assertNativeChrome("parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom'))||0");
             for (int bottom : new int[]{24, 64}) {
-                assertEquals("true", js("(function(){document.documentElement.style.setProperty('--safe-area-inset-bottom','" + bottom + "px');return true;})()"));
-                awaitTrue("(function(){var nav=document.getElementById('mobileNav').getBoundingClientRect(),support=document.querySelector('.cdSupportFloat').getBoundingClientRect(),safe=" + bottom + ";var buttons=Array.from(document.querySelectorAll('#mobileNav>button')).filter(b=>b.getClientRects().length);return buttons.length===5&&buttons.every(b=>{var r=b.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight-safe;})&&support.bottom<=nav.top-10&&document.documentElement.scrollWidth<=innerWidth;})()");
+                // SystemBars owns --safe-area-inset-* and rewrites it during resize.
+                // Simulate an effective taskbar inset without racing that native callback.
+                assertEquals("true", js("(function(){document.documentElement.style.setProperty('--cd-safe-bottom','" + bottom + "px');return true;})()"));
+                assertNativeChrome(String.valueOf(bottom));
             }
             screenshot("fold-home-taskbar");
             assertEquals("true", js("(function(){window.scrollTo(0,document.documentElement.scrollHeight);return true;})()"));
@@ -123,6 +129,16 @@ public class NativeUiTest {
             assertEquals("true", js("auth.currentUser===null"));
         } finally {
             shell("wm size reset"); shell("wm density reset");
+        }
+    }
+
+    private void assertNativeChrome(String safeExpression) throws Exception {
+        try {
+            awaitTrue("(function(){var nav=document.getElementById('mobileNav').getBoundingClientRect(),support=document.querySelector('.cdSupportFloat').getBoundingClientRect(),safe=" + safeExpression + ";var buttons=Array.from(document.querySelectorAll('#mobileNav>button')).filter(b=>b.getClientRects().length);return buttons.length===5&&buttons.every(b=>{var r=b.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight-safe;})&&support.bottom<=nav.top-10&&document.documentElement.scrollWidth<=innerWidth;})()");
+        } catch (AssertionError failure) {
+            String metrics = js("(function(){var root=document.documentElement;return {width:innerWidth,height:innerHeight,scrollWidth:root.scrollWidth,safe:getComputedStyle(root).getPropertyValue('--safe-area-inset-bottom'),effective:getComputedStyle(root).getPropertyValue('--cd-safe-bottom'),nav:document.getElementById('mobileNav').getBoundingClientRect().toJSON(),support:document.querySelector('.cdSupportFloat')?.getBoundingClientRect().toJSON(),buttons:Array.from(document.querySelectorAll('#mobileNav>button')).filter(b=>b.getClientRects().length).map(b=>b.getBoundingClientRect().toJSON())};})()");
+            screenshot("fold-layout-failure");
+            throw new AssertionError(failure.getMessage() + " Layout metrics: " + metrics, failure);
         }
     }
 
