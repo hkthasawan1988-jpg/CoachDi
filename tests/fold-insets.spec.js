@@ -111,3 +111,13 @@ test('folding, taskbar changes and large text recalculate app clearance without 
   }
   expect(await page.evaluate(()=>testWrites.length)).toBe(0);
 });
+
+test('taskbar padding alone moves floating controls without a viewport resize',async({page})=>{
+  await page.setViewportSize({width:656,height:728}); await openIsolatedApp(page,true);
+  await setInsets(page,{top:28,bottom:24}); await athleteHome(page);
+  await assertBounds(page,{top:28,right:0,bottom:24,left:0});
+  // Native CSS or an env() change can affect padding while the nav content box stays 60px.
+  await page.evaluate(()=>document.documentElement.style.setProperty('--cd-safe-bottom','72px'));
+  await assertBounds(page,{top:28,right:0,bottom:72,left:0});
+  expect(await page.evaluate(()=>testWrites.length)).toBe(0);
+});

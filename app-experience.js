@@ -25,7 +25,7 @@
     const navHeight = nav?.getClientRects().length ? nav.getBoundingClientRect().height : 0;
     // Observe only app chrome, not the scrolling content whose height we adjust.
     document.querySelectorAll('.topbar,#mobileNav,.cdSupportFloat,.c79MobileOpenPlay').forEach(el => {
-      if (!observedChrome.has(el)) { observedChrome.add(el); chromeObserver.observe(el); }
+      if (!observedChrome.has(el)) { observedChrome.add(el); chromeObserver.observe(el, { box: 'border-box' }); }
     });
     const header = document.querySelector('.topbar');
     setMetric('--cd-header-height', `${header?.getBoundingClientRect().height || 0}px`);
