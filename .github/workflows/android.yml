@@ -110,6 +110,7 @@ jobs:
             android-ui-evidence/
             android/app/build/reports/androidTests/
             android/app/build/outputs/androidTest-results/
+            android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: warn
           retention-days: 14
 

@@ -36,6 +36,7 @@ Workflow ต้องผ่าน debug และ android-ui และผู้�
 ตรวจหน้า Login, native mode, targetSdk/permission, Alert ภาษาไทยยาว, การเลื่อน body,
 หมุนจอ และปุ่ม Back พร้อม screenshot และ logcat เป็น Actions artifact.
 ใช้ข้อมูล Coach จำลองเฉพาะหน้า Alert และไม่ login/ส่ง Booking/ชำระเงินจริง.
+ใช้ APK ใน artifact `coach-di-android-ui-<sha>` สำหรับ UAT ต่อ เพราะเป็นไฟล์จาก job ที่รันทดสอบบน Emulator.
 จึงไม่ใช่หลักฐานว่า Firebase login, App Check, file picker หรือธุรกรรมจริงผ่านบนเครื่องจริง.
 
 อ้างอิงวิธีรันทดสอบ:
