@@ -10,3 +10,7 @@ keystore.properties
 !.env.example
 *.apk
 *.aab
+
+firebase-debug.log
+database-debug.log
+.firebase/

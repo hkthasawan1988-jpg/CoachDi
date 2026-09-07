@@ -8,7 +8,7 @@ const baseline = JSON.parse(await readFile(new URL('docs/web-compatibility-basel
 let html = (await readFile(new URL('index.html', root), 'utf8')).replace(/\r\n/g, '\n');
 const nativeShare = "const base=window.Capacitor?.isNativePlatform()?window.COACH_DI_PUBLIC_CONFIG.appUrl:location.origin+'/';const url=new URL(base);";
 const chatRoute = "try{showChat396=function(){if(state.role==='athlete')return showAthleteMenu('chat');if(state.role==='coach')return showCoach('messages');if(state.role==='admin')return s41ShowAdmin('support')}}catch(e){}";
-const mobileIncludes = '\n<link rel="stylesheet" href="mobile-layout.css">\n<script src="mobile-layout.js"></script>\n';
+const mobileIncludes = '\n<link rel="stylesheet" href="mobile-layout.css">\n<script src="mobile-layout.js"></script>\n<link rel="stylesheet" href="athlete-refunds.css">\n<script src="athlete-refunds-core.js"></script>\n<script src="athlete-refunds.js"></script>\n';
 assert.equal(html.split(nativeShare).length, 2, 'Expected exactly one reviewed native share adaptation');
 assert.equal(html.split(chatRoute).length, 2, 'Expected exactly one reviewed legacy chat navigation fix');
 assert.ok(html.endsWith(mobileIncludes), 'Expected the reviewed mobile layout includes');

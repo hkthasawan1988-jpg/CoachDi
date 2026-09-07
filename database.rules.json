@@ -10,7 +10,25 @@
       ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".write": "auth != null && ((auth.uid === $uid && ((!data.exists() && (newData.child('role').val() === 'athlete' || (newData.child('role').val() === 'coach' && newData.child('status').val() === 'pending_approval' && newData.child('email').val() === auth.token.email && !newData.child('subscription').exists()))) || (data.exists() && newData.child('role').val() === data.child('role').val() && newData.child('status').val() === data.child('status').val() && (newData.child('subscription').val() === data.child('subscription').val() || (data.child('role').val() === 'coach' && !data.child('subscription').exists() && newData.child('subscription/status').val() === 'trial' && newData.child('subscription/priceSatang').val() === 19900 && newData.child('subscription/trialStartedAt').isNumber() && newData.child('subscription/trialEndsAt').isNumber() && newData.child('subscription/trialStartedAt').val() >= now - 60000 && newData.child('subscription/trialStartedAt').val() <= now + 60000 && newData.child('subscription/trialEndsAt').val() >= now + 5097600000 && newData.child('subscription/trialEndsAt').val() <= now + 5270400000))))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        ".write": "auth != null && ((auth.uid === $uid && ((!data.exists() && (newData.child('role').val() === 'athlete' || (newData.child('role').val() === 'coach' && newData.child('status').val() === 'pending_approval' && newData.child('email').val() === auth.token.email && !newData.child('subscription').exists()))) || (data.exists() && newData.child('role').val() === data.child('role').val() && newData.child('status').val() === data.child('status').val() && (newData.child('subscription').val() === data.child('subscription').val() || (data.child('role').val() === 'coach' && !data.child('subscription').exists() && newData.child('subscription/status').val() === 'trial' && newData.child('subscription/priceSatang').val() === 19900 && newData.child('subscription/trialStartedAt').isNumber() && newData.child('subscription/trialEndsAt').isNumber() && newData.child('subscription/trialStartedAt').val() >= now - 60000 && newData.child('subscription/trialStartedAt').val() <= now + 60000 && newData.child('subscription/trialEndsAt').val() >= now + 5097600000 && newData.child('subscription/trialEndsAt').val() <= now + 5270400000))))) || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "refundAccount": {
+          ".validate": "newData.hasChildren(['bank','accountName','accountNumber','updatedAt']) && newData.parent().child('role').val() === 'athlete'",
+          "bank": {
+            ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 100"
+          },
+          "accountName": {
+            ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 160"
+          },
+          "accountNumber": {
+            ".validate": "newData.isString() && newData.val().matches(/^[0-9]{6,20}$/)"
+          },
+          "updatedAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
       }
     },
     "coachProfiles": {
@@ -38,17 +56,39 @@
         ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' && root.child('users').child(auth.uid).child('status').val() === 'active') || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         "$appointmentId": {
           ".validate": "!newData.exists() || (newData.hasChildren(['coachId','date','start','end','venueName','source','createdAt','updatedAt']) && newData.child('coachId').val() === $coachId && newData.child('date').isString() && newData.child('date').val().length === 10 && newData.child('start').isNumber() && newData.child('start').val() >= 0 && newData.child('start').val() < 24 && newData.child('end').isNumber() && newData.child('end').val() > newData.child('start').val() && newData.child('end').val() <= 24 && newData.child('end').val() - newData.child('start').val() <= 12 && newData.child('venueName').isString() && newData.child('venueName').val().length >= 2 && newData.child('venueName').val().length <= 120 && newData.child('source').val() === 'coach_existing_appointment' && newData.child('createdAt').isNumber() && newData.child('updatedAt').isNumber())",
-          "coachId": { ".validate": "newData.val() === $coachId" },
-          "date": { ".validate": "newData.isString() && newData.val().length === 10" },
-          "start": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 24" },
-          "end": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 24" },
-          "venueName": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 120" },
-          "venueId": { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 120)" },
-          "source": { ".validate": "newData.val() === 'coach_existing_appointment'" },
-          "recurrenceGroup": { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 10)" },
-          "createdAt": { ".validate": "newData.isNumber()" },
-          "updatedAt": { ".validate": "newData.isNumber()" },
-          "$other": { ".validate": false }
+          "coachId": {
+            ".validate": "newData.val() === $coachId"
+          },
+          "date": {
+            ".validate": "newData.isString() && newData.val().length === 10"
+          },
+          "start": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 24"
+          },
+          "end": {
+            ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 24"
+          },
+          "venueName": {
+            ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 120"
+          },
+          "venueId": {
+            ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 120)"
+          },
+          "source": {
+            ".validate": "newData.val() === 'coach_existing_appointment'"
+          },
+          "recurrenceGroup": {
+            ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 10)"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "updatedAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "$other": {
+            ".validate": false
+          }
         }
       }
     },
@@ -81,7 +121,17 @@
       ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'coach' && ((root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').isNumber() && now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000) || (root.child('users').child(auth.uid).child('subscription/trialEndsAt').isNumber() && now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000)) && query.orderByChild === 'coachId' && query.equalTo === auth.uid) || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && query.orderByChild === 'athleteId' && query.equalTo === auth.uid))",
       "$bookingId": {
         ".read": "auth != null && ((data.child('coachId').val() === auth.uid && ((root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').isNumber() && now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000) || (root.child('users').child(auth.uid).child('subscription/trialEndsAt').isNumber() && now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000))) || data.child('athleteId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'athlete' && ((!data.exists() && newData.child('athleteId').val() === auth.uid) || (data.exists() && data.child('athleteId').val() === auth.uid && newData.child('athleteId').val() === auth.uid && newData.child('coachId').val() === data.child('coachId').val()))) || (root.child('users').child(auth.uid).child('role').val() === 'coach' && ((root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').isNumber() && now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000) || (root.child('users').child(auth.uid).child('subscription/trialEndsAt').isNumber() && now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000)) && ((!data.exists() && newData.child('coachId').val() === auth.uid) || (data.exists() && data.child('coachId').val() === auth.uid && ((!newData.exists() && (data.child('status').val() === 'rejected_by_coach' || data.child('status').val() === 'declined')) || (newData.exists() && newData.child('coachId').val() === data.child('coachId').val()))))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'athlete' && ((!data.exists() && newData.child('athleteId').val() === auth.uid) || (data.exists() && data.child('athleteId').val() === auth.uid && newData.child('athleteId').val() === auth.uid && newData.child('coachId').val() === data.child('coachId').val()))) || (root.child('users').child(auth.uid).child('role').val() === 'coach' && ((root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').isNumber() && now <= root.child('users').child(auth.uid).child('subscription/currentPeriodEndsAt').val() + 259200000) || (root.child('users').child(auth.uid).child('subscription/trialEndsAt').isNumber() && now <= root.child('users').child(auth.uid).child('subscription/trialEndsAt').val() + 259200000)) && ((!data.exists() && newData.child('coachId').val() === auth.uid) || (data.exists() && data.child('coachId').val() === auth.uid && ((!newData.exists() && (data.child('status').val() === 'rejected_by_coach' || data.child('status').val() === 'declined') && !data.child('refundRequestedAt').exists() && !data.child('paymentProofDataUrl').exists() && !data.child('paymentProofUrl').exists() && !data.child('paymentProofStorage').exists() && data.child('refundReviewRequired').val() !== true && data.child('paymentStatus').val() !== 'paid' && data.child('paymentStatus').val() !== 'payment_verified') || (newData.exists() && newData.child('coachId').val() === data.child('coachId').val()))))) || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".validate": "(root.child('users').child(auth.uid).child('role').val() === 'admin') || (data.child('refundRequestedAt').exists() ? (newData.child('refundRequestedAt').val() === data.child('refundRequestedAt').val() && newData.child('refundRequestedBy').val() === data.child('refundRequestedBy').val() && newData.child('refundBank').val() === data.child('refundBank').val() && newData.child('refundAccountName').val() === data.child('refundAccountName').val() && newData.child('refundAccountNumber').val() === data.child('refundAccountNumber').val()) : (!newData.child('refundRequestedAt').exists() || (newData.hasChildren(['refundBank','refundAccountName','refundAccountNumber','refundRequestedBy']) && data.child('athleteId').val() === auth.uid && newData.child('refundRequestedBy').val() === auth.uid && newData.child('refundStatus').val() === 'requested' && newData.child('refundRequestedAt').isNumber() && newData.child('refundRequestedAt').val() >= now - 60000 && newData.child('refundRequestedAt').val() <= now + 60000)))",
+        "refundBank": {
+          ".validate": "newData.val() === data.val() || ((auth.uid === newData.parent().child('athleteId').val() || (root.child('users').child(auth.uid).child('role').val() === 'admin')) && (newData.isString() && newData.val().length >= 2 && newData.val().length <= 100))"
+        },
+        "refundAccountName": {
+          ".validate": "newData.val() === data.val() || ((auth.uid === newData.parent().child('athleteId').val() || (root.child('users').child(auth.uid).child('role').val() === 'admin')) && (newData.isString() && newData.val().length >= 2 && newData.val().length <= 160))"
+        },
+        "refundAccountNumber": {
+          ".validate": "newData.val() === data.val() || ((auth.uid === newData.parent().child('athleteId').val() || (root.child('users').child(auth.uid).child('role').val() === 'admin')) && (newData.isString() && newData.val().matches(/^[0-9]{6,20}$/)))"
+        }
       },
       ".indexOn": [
         "athleteId",
@@ -231,12 +281,21 @@
     "adminAds": {
       ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
       ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
-      ".indexOn": ["status", "startsAt", "endsAt", "updatedAt"]
+      ".indexOn": [
+        "status",
+        "startsAt",
+        "endsAt",
+        "updatedAt"
+      ]
     },
     "publishedAds": {
       ".read": "auth != null",
       ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
-      ".indexOn": ["status", "order", "endsAt"]
+      ".indexOn": [
+        "status",
+        "order",
+        "endsAt"
+      ]
     },
     "recommendedVenues": {
       ".read": "auth != null",
@@ -244,7 +303,12 @@
         ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
         ".validate": "!newData.exists() || (newData.child('name').isString() && newData.child('sport').isString() && (newData.child('status').val() === 'active' || newData.child('status').val() === 'inactive'))"
       },
-      ".indexOn": ["sport", "status", "order", "updatedAt"]
+      ".indexOn": [
+        "sport",
+        "status",
+        "order",
+        "updatedAt"
+      ]
     },
     "broadcastCampaigns": {
       ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
@@ -252,7 +316,12 @@
       "$broadcastId": {
         ".validate": "!newData.exists() || (newData.child('title').isString() && newData.child('message').isString() && (newData.child('audience').val() === 'all' || newData.child('audience').val() === 'athlete' || newData.child('audience').val() === 'coach') && (newData.child('status').val() === 'draft' || newData.child('status').val() === 'published'))"
       },
-      ".indexOn": ["status", "audience", "createdAt", "publishedAt"]
+      ".indexOn": [
+        "status",
+        "audience",
+        "createdAt",
+        "publishedAt"
+      ]
     },
     "adCodeUsage": {
       ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
@@ -279,7 +348,11 @@
       "$topicId": {
         ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'athlete' && ((!data.exists() && newData.child('ownerId').val() === auth.uid && newData.child('approvedCount').val() === 1 && newData.child('capacityTotal').isNumber() && newData.child('capacityTotal').val() >= 2 && newData.child('capacityTotal').val() <= 50 && newData.child('status').val() === 'open') || (data.exists() && data.child('ownerId').val() === auth.uid && newData.child('ownerId').val() === auth.uid && newData.child('capacityTotal').val() === data.child('capacityTotal').val() && newData.child('approvedCount').isNumber() && newData.child('approvedCount').val() >= data.child('approvedCount').val() && newData.child('approvedCount').val() <= data.child('capacityTotal').val() && (newData.child('status').val() === 'open' || newData.child('status').val() === 'full' || newData.child('status').val() === 'cancelled')))) || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       },
-      ".indexOn": ["date", "ownerId", "status"]
+      ".indexOn": [
+        "date",
+        "ownerId",
+        "status"
+      ]
     },
     "groupPlayRequests": {
       "$topicId": {
@@ -312,7 +385,11 @@
         ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth.uid === $uid && root.child('users').child(auth.uid).child('role').val() === 'athlete' && newData.child('userId').val() === auth.uid && newData.child('status').val() === 'pending_review'))",
         ".validate": "!newData.exists() || (newData.hasChildren(['userId','displayName','sport','area','hourlyRateSatang','status','updatedAt']) && newData.child('userId').val() === $uid && newData.child('displayName').isString() && newData.child('displayName').val().length >= 2 && newData.child('displayName').val().length <= 80 && newData.child('sport').isString() && newData.child('area').isString() && newData.child('area').val().length <= 120 && newData.child('hourlyRateSatang').isNumber() && newData.child('hourlyRateSatang').val() >= 0 && newData.child('hourlyRateSatang').val() <= 1000000 && (newData.child('status').val() === 'pending_review' || newData.child('status').val() === 'active' || newData.child('status').val() === 'rejected' || newData.child('status').val() === 'inactive') && newData.child('updatedAt').isNumber())"
       },
-      ".indexOn": ["sport", "status", "updatedAt"]
+      ".indexOn": [
+        "sport",
+        "status",
+        "updatedAt"
+      ]
     },
     "hittingPartnerRequests": {
       "$partnerId": {
@@ -322,7 +399,10 @@
           ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth.uid === $requesterId && root.child('users').child(auth.uid).child('role').val() === 'athlete' && !data.exists() && newData.child('requesterId').val() === auth.uid && newData.child('partnerId').val() === $partnerId && newData.child('status').val() === 'pending' && root.child('hittingPartnerProfiles').child($partnerId).child('status').val() === 'active') || (auth.uid === $partnerId && data.exists() && newData.child('partnerId').val() === data.child('partnerId').val() && newData.child('requesterId').val() === data.child('requesterId').val() && newData.child('requesterName').val() === data.child('requesterName').val() && newData.child('sport').val() === data.child('sport').val() && newData.child('date').val() === data.child('date').val() && newData.child('start').val() === data.child('start').val() && newData.child('end').val() === data.child('end').val() && newData.child('venueName').val() === data.child('venueName').val() && newData.child('hourlyRateSatang').val() === data.child('hourlyRateSatang').val() && (newData.child('status').val() === 'approved' || newData.child('status').val() === 'rejected')))",
           ".validate": "!newData.exists() || (newData.hasChildren(['partnerId','requesterId','requesterName','sport','date','start','end','venueName','hourlyRateSatang','status','createdAt']) && newData.child('partnerId').val() === $partnerId && newData.child('requesterId').val() === $requesterId && newData.child('requesterName').isString() && newData.child('sport').isString() && newData.child('date').isString() && newData.child('start').isString() && newData.child('end').isString() && newData.child('venueName').isString() && newData.child('hourlyRateSatang').isNumber() && newData.child('createdAt').isNumber())"
         },
-        ".indexOn": ["status", "createdAt"]
+        ".indexOn": [
+          "status",
+          "createdAt"
+        ]
       }
     },
     "coachCustomerNotes": {

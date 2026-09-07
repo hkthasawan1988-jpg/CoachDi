@@ -14,11 +14,12 @@ async function openIsolatedApp(page, native = false, entry = '/') {
     window.Capacitor = { isNativePlatform: () => isNative };
     window.testWrites = [];
     window.testAuthCalls = [];
+    window.testData = {};
     const snapshot = value => ({ val: () => value, exists: () => value != null, forEach: () => false });
     const ref = path => ({
       key: 'test-key',
       child: name => ref(`${path}/${name}`),
-      once: async () => snapshot(path.startsWith('users/') ? { displayName: 'Test Athlete', phone: '0800000000' } : null),
+      once: async () => { if (window.testReadErrors?.[path]) throw Error('Read failed'); return snapshot(Object.hasOwn(window.testData, path) ? window.testData[path] : path.startsWith('users/') ? { displayName: 'Test Athlete', phone: '0800000000' } : null); },
       on: (event, callback) => {
         if (Object.hasOwn(window.testRealtimeValues || {}, path)) {
           queueMicrotask(() => callback(snapshot(window.testRealtimeValues[path])));
@@ -27,18 +28,26 @@ async function openIsolatedApp(page, native = false, entry = '/') {
       }, off: () => {},
       orderByChild() { return this; }, equalTo() { return this; }, limitToLast() { return this; },
       push: () => ref(`${path}/test-key`),
-      set: async value => { window.testWrites.push({ path, value }); },
+      set: async value => { if (window.testWriteError) throw Error('Write failed'); window.testWrites.push({ path, value }); window.testData[path] = value; },
       update: async value => { window.testWrites.push({ path, value }); await new Promise(resolve => setTimeout(resolve, 80)); },
       remove: async () => { window.testWrites.push({ path, remove: true }); },
-      transaction: async () => ({ committed: true, snapshot: snapshot(null) }),
+      transaction: async callback => {
+        if (window.testWriteError) throw Error('Write failed');
+        const value = callback(window.testData[path] || null);
+        if (value === undefined) return { committed: false, snapshot: snapshot(window.testData[path] || null) };
+        window.testData[path] = value; window.testWrites.push({ path, value, transaction: true });
+        await new Promise(resolve => setTimeout(resolve, 80));
+        return { committed: true, snapshot: snapshot(value) };
+      },
     });
     const auth = { currentUser: null, onAuthStateChanged: () => () => {}, setPersistence: async value => { window.testAuthCalls.push({type: 'persistence', value}); }, signOut: async () => {}, signInWithEmailAndPassword: async (email, password) => { window.testAuthCalls.push({type: 'login', email, password}); if (window.testAuthError) throw window.testAuthError; return {user: {uid: 'test-athlete'}}; } };
     window.testAuth = auth;
+    auth.createUserWithEmailAndPassword = async (email, password) => { window.testAuthCalls.push({ type: 'register', email }); return { user: { uid: 'test-athlete', delete: async () => { window.testAuthCalls.push({ type: 'delete-new-account' }); } } }; };
     const authFn = () => auth;
     authFn.Auth = { Persistence: { LOCAL: 'local', SESSION: 'session', NONE: 'none' } };
     const database = () => ({ ref: path => ref(path || '') });
     database.ServerValue = { TIMESTAMP: { '.sv': 'timestamp' } };
-    const app = { auth: authFn, database, appCheck: () => ({ activate: () => {} }) };
+    const app = { auth: authFn, database, delete: async () => {}, appCheck: () => ({ activate: () => {} }) };
     window.firebase = { initializeApp: () => app, apps: [], auth: authFn, database };
   }, native);
   await page.goto(entry);

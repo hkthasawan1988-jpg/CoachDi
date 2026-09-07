@@ -11,7 +11,9 @@
     "check": "node scripts/check-source.mjs && node scripts/check-web-compat.mjs",
     "test": "playwright test",
     "android:sync": "npm run build && cap sync android",
-    "android:open": "cap open android"
+    "android:open": "cap open android",
+    "test:unit": "node --test test-unit/*.test.cjs",
+    "test:rules": "firebase emulators:exec --only database --project demo-coach-di-refunds --config firebase.emulator.json \"node --test test-rules/*.test.cjs\""
   },
   "dependencies": {
     "@capacitor/android": "8.5.1",
@@ -19,6 +21,9 @@
   },
   "devDependencies": {
     "@capacitor/cli": "8.5.1",
-    "@playwright/test": "1.63.0"
+    "@firebase/rules-unit-testing": "5.0.2",
+    "@playwright/test": "1.63.0",
+    "firebase": "12.18.0",
+    "firebase-tools": "15.29.0"
   }
 }

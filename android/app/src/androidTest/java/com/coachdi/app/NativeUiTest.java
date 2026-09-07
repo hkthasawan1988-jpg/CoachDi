@@ -103,6 +103,26 @@ public class NativeUiTest {
         screenshot("back-dismissed-sheet");
     }
 
+    @Test public void optionalRefundAccountRegistrationStaysInsideWebView() throws Exception {
+        assertEquals("true", js("(function(){registerAthlete();return true;})()"));
+        awaitTrue("!!document.getElementById('cdrAccountNumber') && !!document.querySelector('#sheetContent > .cdSheetBody')");
+        assertEquals("true", js("document.getElementById('cdrAccountNumber').inputMode==='numeric' && !document.getElementById('cdrAccountNumber').required"));
+        assertEquals("true", js("(function(){document.getElementById('cdrAccountName').value='ชื่อภาษาไทยสำหรับทดสอบบัญชี'.repeat(5);return true;})()"));
+        assertRegistrationFooterVisible();
+        screenshot("refund-signup-portrait");
+        activity.getScenario().onActivity(a -> a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
+        awaitTrue("innerWidth>innerHeight");
+        assertRegistrationFooterVisible();
+        screenshot("refund-signup-landscape");
+        Espresso.pressBackUnconditionally();
+        awaitTrue("document.getElementById('sheetWrap').classList.contains('hidden')");
+        assertEquals("true", js("auth.currentUser===null"));
+    }
+
+    private void assertRegistrationFooterVisible() throws Exception {
+        awaitTrue("(function(){var b=document.querySelector('[data-cdr=register]');if(!b)return false;var r=b.getBoundingClientRect();return r.width>0&&r.height>0&&r.top>=0&&r.left>=0&&r.bottom<=innerHeight+1&&r.right<=innerWidth+1&&document.documentElement.scrollWidth<=innerWidth;})()");
+    }
+
     private void assertFooterVisible() throws Exception {
         awaitTrue("(function(){var b=Array.from(document.querySelectorAll('#sheetContent button')).find(b=>b.textContent.trim()==='รับทราบ');if(!b)return false;var r=b.getBoundingClientRect();return r.width>0&&r.height>0&&r.top>=0&&r.left>=0&&r.bottom<=innerHeight+1&&r.right<=innerWidth+1&&document.documentElement.scrollWidth<=innerWidth;})()");
     }

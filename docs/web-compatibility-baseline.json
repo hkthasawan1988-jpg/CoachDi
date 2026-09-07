@@ -1,5 +1,5 @@
 {
   "production_url": "https://coach-di.netlify.app/",
   "normalized_index_sha256": "a0e06aa9db2181ffc195e16610794e419d7fda17b939528b5237638933d9cbf0",
-  "scope": "Migration regression guard. Only mobile-layout includes, the native public share URL adaptation, and the exact legacy chat navigation fix are allowed relative to this captured public client. The original production hash is unchanged. Intentional future web changes require reviewing the exact adaptation and this baseline."
+  "scope": "Migration regression guard. Only mobile-layout includes, the native public share URL adaptation, and the exact legacy chat navigation fix are allowed relative to this captured public client. The original production hash is unchanged. Intentional future web changes require reviewing the exact adaptation and this baseline. The user-authorized athlete refund extension adds three explicit local includes; baseline HTML and all 25 captured assets remain unchanged."
 }
