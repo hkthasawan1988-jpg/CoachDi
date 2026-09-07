@@ -144,6 +144,10 @@ html.cd-native .c92MenuPanel { max-height: 100%; min-height: 0; padding-bottom: 
 .c71ModalActions button { flex: 1; min-height: 48px; }
 .c71AppointmentForm input { box-sizing: border-box; min-width: 0; max-width: 100%; }
 @media(max-width:600px) {
+  /* Keep the support action reachable without covering the adjacent class button.
+     Its original text remains the accessible name and its click handler is unchanged. */
+  html.cd-native .cdSupportFloat { display: grid; place-items: center; width: 48px; height: 48px; padding: 0 !important; font-size: 0 !important; }
+  html.cd-native .cdSupportFloat::before { content: '💬'; font-size: 22px; line-height: 1; }
   html.cd-native .topbar { height: auto !important; flex-wrap: wrap; gap: 8px; }
   html.cd-native .topbar > div:last-child { display: flex; flex-wrap: wrap; gap: 6px; max-width: 100%; }
   #cdNativePushButton { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }

@@ -74,6 +74,11 @@ for (const [width,height] of [[320,740],[360,800],[390,844],[412,915],[656,728],
     const {pageErrors}=await openIsolatedApp(page,true);
     const insets={top:28,right:0,bottom:56,left:0};
     await setInsets(page,insets); await athleteHome(page); await assertBounds(page,insets);
+    const details=await page.locator('#c47Home .c47Next button').boundingBox();
+    const support=await page.locator('.cdSupportFloat').boundingBox();
+    const overlap=Math.max(0,Math.min(details.x+details.width,support.x+support.width)-Math.max(details.x,support.x)) * Math.max(0,Math.min(details.y+details.height,support.y+support.height)-Math.max(details.y,support.y));
+    expect(overlap).toBe(0);
+    await expect(page.locator('.cdSupportFloat')).toHaveAccessibleName(/แชทกับเจ้าหน้าที่/);
     await page.screenshot({path:testInfo.outputPath(`fold-home-${width}.png`)});
     // The final real control must remain reachable above the fixed app controls.
     const last=page.locator('#athletePage button:visible').last();
