@@ -56,6 +56,8 @@ GitHub Actions รันทุก Pull Request; ดาวน์โหลดไ�
 
 ไม่มีการ Publish หรือ Deploy อัตโนมัติ. หลัง PR ผ่านการตรวจและ workflow อยู่บน default branch แล้ว
 เรียก Actions > Android build > Run workflow และเลือก release_aab.
+ต้องผ่าน UAT ตาม `UAT-TH.md` และยืนยัน `uat_passed` สำหรับ revision ที่เลือกด้วย.
+Release รอทั้ง Web/Debug checks และ Android Emulator UI tests ผ่านก่อน.
 ตั้ง environment `android-release` พร้อม Secrets เหล่านี้:
 
 - `ANDROID_KEYSTORE_BASE64`: keystore ของแอปที่เข้ารหัส base64
