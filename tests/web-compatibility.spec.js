@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const { openIsolatedApp } = require('./helpers/app');
 
-for (const [role, title] of [['athlete', 'เข้าสู่ระบบนักกีฬา'], ['coach', 'เข้าสู่ระบบ Coach'], ['admin', 'เข้าสู่ระบบ Admin']]) {
+for (const [role, title] of [['athlete', 'เข้าสู่ระบบนักกีฬา'], ['coach', 'เข้าสู่ระบบ Coach / Knocker'], ['admin', 'เข้าสู่ระบบ Admin']]) {
   test(`legacy ${role} entry and query route preserve the login portal`, async ({ page }) => {
     await openIsolatedApp(page, false, `/${role}.html`);
     await expect(page).toHaveURL(new RegExp(`index\\.html\\?portal=${role}`));
