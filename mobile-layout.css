@@ -6,7 +6,9 @@
   --cd-safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
 }
 html.cd-overlay-open, html.cd-overlay-open body { overflow: hidden; }
-html.cd-native body { padding-top: var(--cd-safe-top); padding-inline: var(--cd-safe-left) var(--cd-safe-right); }
+/* The legacy mobile reset uses padding:0!important. Reserve the system inset in
+   normal flow as well as in the sticky header, otherwise it covers the first card. */
+html.cd-native body { padding-top: var(--cd-safe-top) !important; padding-inline: var(--cd-safe-left) var(--cd-safe-right) !important; }
 html.cd-native .topbar { top: var(--cd-safe-top) !important; }
 /* Web Push is a browser/PWA feature; this app keeps its in-app notification menu. */
 html.cd-native #c105PushButton { display: none !important; }

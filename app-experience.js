@@ -7,25 +7,45 @@
   const byId = id => document.getElementById(id);
   const time = value => value === 24 ? '00:00' : c71Time(value);
   const occupied = () => [...c43books().filter(core.active), ...c71AppointmentRows(), ...(state.c76GroupClasses || []).filter(core.active)];
+  const observedChrome = new WeakSet();
+  const chromeObserver = new ResizeObserver(resize);
+  const setMetric = (name, value) => {
+    const style = document.documentElement.style;
+    if (style.getPropertyValue(name) !== value) style.setProperty(name, value);
+  };
 
   function size() {
     raf = 0;
     const viewport = window.visualViewport;
     const height = viewport?.height || window.innerHeight, top = viewport?.offsetTop || 0;
     const root = document.documentElement;
-    root.style.setProperty('--cd-app-height', `${height}px`);
-    root.style.setProperty('--cd-app-top', `${top}px`);
+    setMetric('--cd-app-height', `${height}px`);
+    setMetric('--cd-app-top', `${top}px`);
     const nav = byId('mobileNav');
     const navHeight = nav?.getClientRects().length ? nav.getBoundingClientRect().height : 0;
+    // Observe only app chrome, not the scrolling content whose height we adjust.
+    document.querySelectorAll('.topbar,#mobileNav,.cdSupportFloat,.c79MobileOpenPlay').forEach(el => {
+      if (!observedChrome.has(el)) { observedChrome.add(el); chromeObserver.observe(el); }
+    });
+    const header = document.querySelector('.topbar');
+    setMetric('--cd-header-height', `${header?.getBoundingClientRect().height || 0}px`);
+    setMetric('--cd-bottom-clearance', navHeight ? `${navHeight}px` : 'var(--cd-safe-bottom)');
+    const floatSpace = selector => [...document.querySelectorAll(selector)].reduce((total, el) =>
+      total + (el.getClientRects().length ? el.getBoundingClientRect().height + 12 : 0), 0);
+    const supportSpace = floatSpace('.cdSupportFloat');
+    setMetric('--cd-support-clearance', `${supportSpace}px`);
+    setMetric('--cd-float-clearance', `${supportSpace + floatSpace('.c79MobileOpenPlay')}px`);
+    const safeBottom = parseFloat(getComputedStyle(root).getPropertyValue('--safe-area-inset-bottom')) || 0;
+    const contentBottom = navHeight ? Math.min(height + top, nav.getBoundingClientRect().top) : height + top - safeBottom;
     document.querySelectorAll('.c43chat,.s41LineShell,.c70ChatLayout').forEach(shell => {
       if (!shell.getClientRects().length) return;
-      const available = Math.max(120, height + top - shell.getBoundingClientRect().top - navHeight - 16);
+      const available = Math.max(120, contentBottom - shell.getBoundingClientRect().top - 16);
       const next = `${Math.floor(available)}px`;
       if (shell.style.getPropertyValue('--cd-chat-height') !== next) shell.style.setProperty('--cd-chat-height', next);
     });
     document.querySelectorAll('.cdTimeGridScroll').forEach(grid => {
       if (!grid.getClientRects().length) return;
-      const available = Math.max(120, height + top - grid.getBoundingClientRect().top - navHeight - 20);
+      const available = Math.max(120, contentBottom - grid.getBoundingClientRect().top - 20);
       grid.style.setProperty('--cd-grid-height', `${Math.floor(available)}px`);
     });
   }
@@ -34,6 +54,12 @@
   window.visualViewport?.addEventListener('resize', resize);
   window.visualViewport?.addEventListener('scroll', resize);
   new MutationObserver(resize).observe(document.body, { childList: true, subtree: true });
+  // Capacitor updates these CSS variables when the Fold taskbar, cutout or IME changes.
+  let previousInsets = '';
+  new MutationObserver(() => {
+    const next = ['top','right','bottom','left'].map(side => document.documentElement.style.getPropertyValue(`--safe-area-inset-${side}`)).join('|');
+    if (next !== previousInsets) { previousInsets = next; resize(); }
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
 
   function coachList() {
     const list = byId('c43list');

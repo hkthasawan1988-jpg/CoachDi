@@ -101,6 +101,31 @@ public class NativeUiTest {
         screenshot("login-portrait");
     }
 
+    @Test public void foldSizedWebViewKeepsHeaderAndNavigationInsideSystemInsets() throws Exception {
+        try {
+            shell("wm size 1968x2184");
+            shell("wm density 480");
+            awaitTrue("innerWidth>=650 && innerWidth<=660");
+            // Presentation fixture only: no Firebase account, network writes or bookings.
+            assertEquals("true", js("(function(){state.role='athlete';state.user={uid:'native-layout-fixture'};" +
+                "loginView.classList.add('hidden');portal.classList.remove('hidden');renderNav();c92SyncMobileNav();" +
+                "athletePage.classList.add('hidden');coachPage.classList.add('hidden');" +
+                "document.querySelector('.main').insertAdjacentHTML('afterbegin','<section id=foldShellFixture><div class=c47Hero><div><h1>สวัสดีค่ะ/ครับ นักกีฬาทดสอบจอกาง</h1><p>ข้อความภาษาไทยสำหรับทดสอบขอบบนและแถบระบบ</p></div><div class=c47Next><b>คลาสถัดไป</b><p>สนามทดสอบชื่อภาษาไทยยาว</p><button class=c47Btn>ดูรายละเอียด</button></div></div><div style=height:900px></div><button id=foldLastButton class=pill>ปุ่มท้ายหน้า</button></section>');" +
+                "cd395SupportButton();window.scrollTo(0,0);return true;})()"));
+            awaitTrue("(function(){var h=document.querySelector('.topbar').getBoundingClientRect(),t=document.querySelector('#foldShellFixture h1').getBoundingClientRect();return t.top>=h.bottom;})()");
+            for (int bottom : new int[]{24, 64}) {
+                assertEquals("true", js("(function(){document.documentElement.style.setProperty('--safe-area-inset-bottom','" + bottom + "px');return true;})()"));
+                awaitTrue("(function(){var nav=document.getElementById('mobileNav').getBoundingClientRect(),support=document.querySelector('.cdSupportFloat').getBoundingClientRect(),safe=" + bottom + ";var buttons=Array.from(document.querySelectorAll('#mobileNav>button')).filter(b=>b.getClientRects().length);return buttons.length===5&&buttons.every(b=>{var r=b.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight-safe;})&&support.bottom<=nav.top-10&&document.documentElement.scrollWidth<=innerWidth;})()");
+            }
+            screenshot("fold-home-taskbar");
+            assertEquals("true", js("(function(){window.scrollTo(0,document.documentElement.scrollHeight);return true;})()"));
+            awaitTrue("document.getElementById('foldLastButton').getBoundingClientRect().bottom<=document.querySelector('.cdSupportFloat').getBoundingClientRect().top");
+            assertEquals("true", js("auth.currentUser===null"));
+        } finally {
+            shell("wm size reset"); shell("wm density reset");
+        }
+    }
+
     @Test public void thaiWarningSurvivesRotationAndAndroidBack() throws Exception {
         // UI-only fixture: this warning and venue chooser do not create a booking.
         assertEquals("true", js("(function(){state.coachId='native-ui-fixture';state.coaches=[{uid:'native-ui-fixture',displayName:'รายละเอียดภาษาไทยยาวสำหรับตรวจหน้าจอ'.repeat(40)}];cd392CourtWarning('2026-10-10',10);return true;})()"));

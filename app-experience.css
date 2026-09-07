@@ -10,6 +10,66 @@ html.cd-native :is([style*="font-size:8px"], [style*="font-size:9px"], [style*="
 html.cd-native :is(.navbtn, .pill, .field) { min-height: 44px; }
 #portal :is(p, label, .c43head, .c43conv, .s41LineConv, .c43bubble, .s41LineBubble) { overflow-wrap: anywhere; }
 
+/* Android system bars and the Fold taskbar can change without a width breakpoint.
+   Use measured navigation/floating controls for both scroll clearance and offsets. */
+html.cd-native {
+  scroll-padding-top: calc(var(--cd-safe-top) + var(--cd-header-height, 64px) + 12px);
+  scroll-padding-bottom: calc(var(--cd-bottom-clearance, var(--cd-safe-bottom)) + var(--cd-float-clearance, 0px) + 16px);
+}
+html.cd-native .topbar { height: auto !important; min-height: 64px !important; flex-wrap: wrap; gap: 8px; }
+html.cd-native .topbar > div:last-child { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
+html.cd-native .topbar button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+html.cd-native .main { padding-bottom: calc(var(--cd-bottom-clearance, var(--cd-safe-bottom)) + var(--cd-float-clearance, 0px) + 24px) !important; }
+html.cd-native .scheduleTop { top: calc(var(--cd-safe-top) + var(--cd-header-height, 64px)) !important; }
+html.cd-native :is(.cdSupportFloat, .c79MobileOpenPlay) {
+  right: calc(12px + var(--cd-safe-right)) !important;
+  max-width: calc(100% - 24px - var(--cd-safe-left) - var(--cd-safe-right));
+  min-height: 48px; white-space: normal; overflow-wrap: anywhere;
+}
+html.cd-native .cdSupportFloat { bottom: calc(var(--cd-bottom-clearance, var(--cd-safe-bottom)) + 12px) !important; }
+html.cd-native .c79MobileOpenPlay { bottom: calc(var(--cd-bottom-clearance, var(--cd-safe-bottom)) + var(--cd-support-clearance, 0px) + 12px) !important; }
+html.cd-native .inlineBookingTicket { bottom: calc(var(--cd-bottom-clearance, var(--cd-safe-bottom)) + var(--cd-float-clearance, 0px) + 12px) !important; }
+html.cd-native .c105ToastHost { top: calc(var(--cd-safe-top) + var(--cd-header-height, 64px) + 12px); right: calc(12px + var(--cd-safe-right)); }
+html.cd-native .c47Hero > div { min-width: 0; }
+html.cd-native .c47Hero :is(h1, p, span) { overflow-wrap: anywhere; }
+html.cd-native .c92MenuOverlay {
+  top: var(--cd-app-top, 0px); bottom: auto; height: var(--cd-app-height, 100dvh);
+  padding: calc(12px + var(--cd-safe-top)) calc(12px + var(--cd-safe-right)) calc(12px + var(--cd-safe-bottom)) calc(12px + var(--cd-safe-left));
+  box-sizing: border-box; overflow: hidden;
+}
+html.cd-native .c92MenuPanel { max-height: 100%; min-height: 0; padding-bottom: 18px; }
+
+@media (max-width: 1024px) {
+  html.cd-native .layout { display: block !important; width: 100%; min-width: 0; }
+  html.cd-native :is(.sidebar, #sidebar, .athleteSidebar) { display: none !important; }
+  html.cd-native .main { width: 100% !important; min-width: 0; margin: 0 !important; padding-inline: 12px !important; }
+  html.cd-native #mobileNav {
+    position: fixed !important; z-index: 8900 !important;
+    left: var(--cd-safe-left) !important; right: var(--cd-safe-right) !important; bottom: 0 !important;
+    display: grid !important; grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    width: auto !important; height: auto !important; min-height: 0 !important;
+    padding: 6px 6px calc(6px + var(--cd-safe-bottom)) !important;
+    background: #fff !important; border-top: 1px solid #dfe7ec;
+    overflow: visible !important;
+  }
+  html.cd-native #mobileNav > button {
+    display: flex !important; flex-direction: column; align-items: center; justify-content: center;
+    min-width: 0 !important; min-height: 60px !important; gap: 4px;
+    padding: 6px 2px !important; border: 0; border-radius: 12px; background: transparent;
+    white-space: normal !important; line-height: 1.25 !important;
+  }
+  html.cd-native #mobileNav > .c92Secondary { display: none !important; }
+  html.cd-native #mobileNav > button > span { font-size: 20px !important; line-height: 1.2 !important; }
+  html.cd-native #mobileNav > button > small {
+    max-width: 100%; font-size: 12px !important; line-height: 1.35 !important;
+    white-space: normal !important; overflow: visible !important; overflow-wrap: anywhere;
+  }
+  html.cd-native #mobileNav .c94Pulse { animation: cdNavNotice 1.25s ease-in-out infinite !important; outline-offset: -3px !important; }
+  html.cd-native #athletePage > .athleteTabs { max-width: 100% !important; width: 100% !important; margin-inline: 0 !important; padding-inline: 4px !important; overflow-x: auto !important; }
+}
+@keyframes cdNavNotice { 0%,100% { box-shadow: inset 0 0 0 2px rgba(15,157,152,.15); } 50% { box-shadow: inset 0 0 0 3px rgba(15,157,152,.6); } }
+@media (prefers-reduced-motion: reduce) { html.cd-native #mobileNav .c94Pulse { animation: none !important; outline: 2px solid #0f9d98 !important; } }
+
 /* Keep both panes side by side even on the folded screen. */
 .c44 .c43chat, .c43chat, .s41LineShell, .c70ChatLayout {
   display: grid !important; grid-template-columns: minmax(100px, 30%) minmax(0, 1fr) !important;
