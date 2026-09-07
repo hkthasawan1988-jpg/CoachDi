@@ -58,7 +58,13 @@ test('athlete chat is side by side and composer fits at 320px',async({page})=>{
 test('click and drag select a coach appointment range without writes; save happens once',async({page})=>{
   await page.setViewportSize({width:412,height:915}); const {pageErrors}=await openIsolatedApp(page,true);await coach(page,'schedule');
   const from=page.locator('.cdGridCell[data-start="9"]'),to=page.locator('.cdGridCell[data-start="10"]');
-  await from.scrollIntoViewIfNeeded(); const a=await from.boundingBox(),b=await to.boundingBox();
+  await from.scrollIntoViewIfNeeded();
+  // Keep this range away from the auto-scroll edge so its coordinates stay fixed during the drag.
+  await page.locator('.cdTimeGridScroll').evaluate(el=>{
+    const target=el.querySelector('[data-start="9"]');
+    el.scrollTop+=target.getBoundingClientRect().top-el.getBoundingClientRect().top-el.clientHeight/3;
+  });
+  const a=await from.boundingBox(),b=await to.boundingBox();
   await page.mouse.move(a.x+30,a.y+a.height/2);await page.mouse.down();await page.mouse.move(b.x+30,b.y+b.height/2,{steps:8});await page.mouse.up();
   await expect(page.locator('#c71Start')).toHaveValue('09:00');await expect(page.locator('#c71End')).toHaveValue('10:30');
   expect(await page.evaluate(()=>testWrites.length)).toBe(0);
