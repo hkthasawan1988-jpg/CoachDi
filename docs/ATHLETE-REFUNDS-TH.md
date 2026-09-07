@@ -25,6 +25,8 @@ Rules เพิ่มการตรวจรูปแบบบัญชี จ�
 
 การแก้ Rules อยู่ใน PR เท่านั้น ก่อนนำขึ้นจริงต้องตรวจ Rules ปัจจุบันใน Firebase Console และนำเฉพาะส่วนที่รีวิวแล้วไปปรับ ไม่ใช้ไฟล์ Rules เก่าทับ Production โดยไม่เปรียบเทียบ
 
+ตรวจ Console แบบอ่านอย่างเดียวเมื่อ 7 กันยายน 2026 แล้วพบว่า Production มีเงื่อนไขอนุมัติโค้ชและตรวจไฟล์สลิปเพิ่มเติมจาก Repository ส่วน users/refundAccount ยังอ่านได้เฉพาะเจ้าของ/Admin ตามกฎระดับ users เครื่องมือ `node scripts/prepare-refund-rules.cjs CURRENT_EXPORT.json REVIEW_OUTPUT.json` ช่วยเพิ่มเฉพาะส่วนบัญชีลงในไฟล์ Rules ปัจจุบันที่ผู้ดูแล Export มา โดยเก็บกฎเดิมทุกส่วนและไม่ Deploy ต้องรีวิว diff และรัน Emulator กับไฟล์ที่รวมแล้วก่อนเผยแพร่ Rules จริง
+
 ## ทดสอบ
 
 `npm run build`, `npm run check`, `npm run test:unit`, `npm run test:rules`, `npm test` และ Android `:app:connectedDebugAndroidTest` ใน GitHub Actions

@@ -87,6 +87,24 @@ test('profile exposes an account editor and account changes during a request can
   await page.locator('[data-cdr="save-account"]').click(); await expect(page.locator('#cdrError')).toContainText('บัญชีเปลี่ยน');
   expect(await page.evaluate(() => testWrites.length)).toBe(0);
 });
+test('coach sees the submitted account and cannot start two refund methods concurrently', async ({ page }) => {
+  await openIsolatedApp(page);
+  await seed(page, { refundRequestedAt:123, refundStatus:'requested', refundBank:'ธนาคารทดสอบ', refundAccountName:'นักกีฬา ทดสอบ', refundAccountNumber:'0012345678' });
+  await page.evaluate(() => {
+    state.role='coach'; state.user={uid:'original-coach'}; testAuth.currentUser=state.user;
+    window.coinCalls=0; s38RefundCoin=async()=>{coinCalls++;await new Promise(r=>setTimeout(r,150));};
+    s38RefundDecision('booking-fixture');
+  });
+  await expect(page.locator('[data-refund-view]')).toContainText('0012345678');
+  await page.evaluate(() => {
+    document.querySelector('[data-cdr="refund-coin"]').click();
+    document.querySelector('[data-cdr="refund-cash"]').click();
+  });
+  await expect.poll(()=>page.evaluate(()=>coinCalls)).toBe(1);
+  await expect(page.locator('#cdrError')).toBeEmpty();
+  expect(await page.evaluate(()=>testWrites.length)).toBe(0);
+});
+
 for (const width of [320,360,390,412,768]) test(`refund form, long Thai account name and footer fit ${width}px including folded/expanded layout`, async ({ page }) => {
   await page.setViewportSize({width,height:568}); await openIsolatedApp(page); await seed(page);
   await page.evaluate(() => CoachDiRefunds.openRecovery('booking-fixture')); await bank(page);

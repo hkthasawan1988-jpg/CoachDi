@@ -253,16 +253,16 @@
       '<button type="button" class="pill primary" data-cdr="refund-cash" data-booking="' + E(id) + '">บันทึกหลักฐานการโอนคืน</button><button type="button" class="pill" data-cdr="refund-coin" data-booking="' + E(id) + '">คืนเป็นเหรียญตามเงื่อนไขเดิม</button>' + closeButton);
   };
   const refundCash = s38RefundCash;
-  async function completeCash(id, button) {
+  async function completeCash(id, button, method = 'cash') {
     if (pending.has('cash:' + id)) return;
     pending.add('cash:' + id); button.disabled = true;
     try {
       const b = (await db.ref('bookings/' + id).once('value')).val();
       if (!b || b.coachId !== state.user?.uid || auth.currentUser?.uid !== b.coachId || !C.needsRefund(b) || !b.refundRequestedAt) throw Error('สถานะการคืนเงินเปลี่ยนแล้ว กรุณารีเฟรช');
       C.account(accountFromBooking(b));
-      if (!document.getElementById('s38RefundSlip')?.files?.length) throw Error('กรุณาแนบสลิปคืนเงิน');
+      if (method === 'cash' && !document.getElementById('s38RefundSlip')?.files?.length) throw Error('กรุณาแนบสลิปคืนเงิน');
       state.bookings = (state.bookings || []).map(x => x.id === id ? { ...b, id } : x);
-      await refundCash(id);
+      if (method === 'coin') await s38RefundCoin(id); else await refundCash(id);
       const saved = (await db.ref('bookings/' + id).once('value')).val();
       if (C.terminal(saved)) closeSheet();
     } catch (failure) { error(errorText(failure)); }
@@ -288,7 +288,7 @@
       case 'select-coach': void selectCoach(id, button.dataset.coach, button); break;
       case 'coach-refund': s38RefundDecision(id); break;
       case 'refund-cash': void completeCash(id, button); break;
-      case 'refund-coin': if (!button.disabled) { button.disabled = true; Promise.resolve(s38RefundCoin(id)).then(() => closeSheet()).catch(failure => error(errorText(failure))).finally(() => { button.disabled = false; }); } break;
+      case 'refund-coin': void completeCash(id, button, 'coin'); break;
       case 'coach-cancel': s42DeclineModal(id); break;
     }
   });
