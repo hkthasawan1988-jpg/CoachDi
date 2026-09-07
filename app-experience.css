@@ -81,6 +81,9 @@ html.cd-native :is(.navbtn, .pill, .field) { min-height: 44px; }
 .c71ModalActions button { flex: 1; min-height: 48px; }
 .c71AppointmentForm input { box-sizing: border-box; min-width: 0; max-width: 100%; }
 @media(max-width:600px) {
+  html.cd-native .topbar { height: auto !important; flex-wrap: wrap; gap: 8px; }
+  html.cd-native .topbar > div:last-child { display: flex; flex-wrap: wrap; gap: 6px; max-width: 100%; }
+  #cdNativePushButton { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
   .c43tabs { display: flex; flex-wrap: nowrap !important; max-width: 100%; overflow-x: auto; }
   .c43tab { flex: 1 0 auto; padding: 8px 6px !important; white-space: nowrap; }
   .c43 #coachContent, .c44 #coachContent { padding: 12px 8px !important; }

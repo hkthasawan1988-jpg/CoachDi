@@ -135,3 +135,17 @@ test('phone calendar stays above navigation and view labels do not break into le
   const metrics=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,grid:document.querySelector('.cdTimeGridScroll').getBoundingClientRect().bottom,nav:document.getElementById('mobileNav').getBoundingClientRect().top,wrap:getComputedStyle(document.querySelector('.c43tab.active')).whiteSpace}));
   expect(metrics.scroll).toBeLessThanOrEqual(320);expect(metrics.grid).toBeLessThanOrEqual(metrics.nav);expect(metrics.wrap).toBe('nowrap');
 });
+
+for(const width of [320,360,390,412]) test(`native notification, guide and logout controls fit at ${width}px`,async({page})=>{
+  await page.setViewportSize({width,height:740});const {pageErrors}=await openIsolatedApp(page,true,'/',true);await coach(page);
+  await page.evaluate(async()=>{
+    logoutBtn.classList.remove('hidden'); c91InstallHelp();
+    await testAuthListeners.at(-1)(testAuth.currentUser);
+  });
+  await expect(page.locator('#cdNativePushButton')).toBeVisible();
+  await expect(page.locator('#cdNativePushButton')).toContainText('เปิดแจ้งเตือนแอป');
+  const metrics=await page.evaluate(()=>({width:document.documentElement.scrollWidth,buttons:[...document.querySelectorAll('.topbar button')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,bottom:r.bottom};}),header:document.querySelector('.topbar').getBoundingClientRect().bottom}));
+  expect(metrics.width).toBeLessThanOrEqual(width); for(const b of metrics.buttons){expect(b.left).toBeGreaterThanOrEqual(0);expect(b.right).toBeLessThanOrEqual(width);expect(b.bottom).toBeLessThanOrEqual(metrics.header);}
+  await expect.poll(()=>page.locator('#c43input').evaluate(e=>e.getBoundingClientRect().bottom)).toBeLessThanOrEqual(740);
+  expect(pageErrors).toEqual([]);expect(await page.evaluate(()=>testWrites.length)).toBe(0);
+});

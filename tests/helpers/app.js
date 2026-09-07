@@ -1,6 +1,6 @@
 const { expect } = require('@playwright/test');
 
-async function openIsolatedApp(page, native = false, entry = '/') {
+async function openIsolatedApp(page, native = false, entry = '/', nativePush = false) {
   const pageErrors = [];
   const missingAssets = [];
   page.on('response', response => { if (response.url().startsWith('http://127.0.0.1:') && response.status() >= 400) missingAssets.push(response.url()); });
@@ -10,8 +10,13 @@ async function openIsolatedApp(page, native = false, entry = '/') {
     const url = new URL(route.request().url());
     return url.hostname === '127.0.0.1' ? route.continue() : route.fulfill({ status: 200, body: '', contentType: 'text/javascript' });
   });
-  await page.addInitScript(isNative => {
+  await page.addInitScript(({isNative,nativePush}) => {
     window.Capacitor = { isNativePlatform: () => isNative };
+    if(nativePush) window.Capacitor.Plugins={
+      PushNotifications:{addListener:async()=>{},checkPermissions:async()=>({receive:'prompt'}),unregister:async()=>{}},
+      CoachDiNotifications:{getPending:async()=>({}),getSession:async()=>({uid:''}),configureSession:async()=>{},clearPending:async()=>{}}
+    };
+    window.testAuthListeners=[];
     window.testWrites = [];
     window.testAuthCalls = [];
     window.testData = {};
@@ -40,7 +45,7 @@ async function openIsolatedApp(page, native = false, entry = '/') {
         return { committed: true, snapshot: snapshot(value) };
       },
     });
-    const auth = { currentUser: null, onAuthStateChanged: () => () => {}, setPersistence: async value => { window.testAuthCalls.push({type: 'persistence', value}); }, signOut: async () => {}, signInWithEmailAndPassword: async (email, password) => { window.testAuthCalls.push({type: 'login', email, password}); if (window.testAuthError) throw window.testAuthError; return {user: {uid: 'test-athlete'}}; } };
+    const auth = { currentUser: null, onAuthStateChanged: callback => { window.testAuthListeners.push(callback); return () => {}; }, setPersistence: async value => { window.testAuthCalls.push({type: 'persistence', value}); }, signOut: async () => {}, signInWithEmailAndPassword: async (email, password) => { window.testAuthCalls.push({type: 'login', email, password}); if (window.testAuthError) throw window.testAuthError; return {user: {uid: 'test-athlete'}}; } };
     window.testAuth = auth;
     auth.createUserWithEmailAndPassword = async (email, password) => { window.testAuthCalls.push({ type: 'register', email }); return { user: { uid: 'test-athlete', delete: async () => { window.testAuthCalls.push({ type: 'delete-new-account' }); } } }; };
     const authFn = () => auth;
@@ -49,7 +54,7 @@ async function openIsolatedApp(page, native = false, entry = '/') {
     database.ServerValue = { TIMESTAMP: { '.sv': 'timestamp' } };
     const app = { auth: authFn, database, delete: async () => {}, appCheck: () => ({ activate: () => {} }) };
     window.firebase = { initializeApp: () => app, apps: [], auth: authFn, database };
-  }, native);
+  }, {isNative:native,nativePush});
   await page.goto(entry);
   await expect(page.locator('#loginView')).toBeVisible();
   expect(pageErrors).toEqual([]);
