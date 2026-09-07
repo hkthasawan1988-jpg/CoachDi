@@ -7,15 +7,14 @@ import static org.junit.Assert.assertTrue;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
+import android.os.ParcelFileDescriptor;
 import android.os.SystemClock;
 import androidx.lifecycle.Lifecycle;
 import androidx.test.espresso.Espresso;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -53,13 +52,17 @@ public class NativeUiTest {
     }
 
     private void screenshot(String name) throws Exception {
-        File directory = new File(InstrumentationRegistry.getInstrumentation().getTargetContext().getExternalFilesDir(null), "uat");
-        assertTrue(directory.isDirectory() || directory.mkdirs());
-        Bitmap bitmap = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
-        assertTrue("Android screenshot unavailable", bitmap != null);
-        try (FileOutputStream stream = new FileOutputStream(new File(directory, name + ".png"))) {
-            assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream));
-        } finally { bitmap.recycle(); }
+        // Shared test evidence survives Gradle uninstalling the app after the run.
+        shell("mkdir -p /sdcard/Download/coach-di-uat");
+        shell("screencap -p /sdcard/Download/coach-di-uat/" + name + ".png");
+    }
+
+    private void shell(String command) throws Exception {
+        ParcelFileDescriptor pipe = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(command);
+        try (InputStream output = new ParcelFileDescriptor.AutoCloseInputStream(pipe)) {
+            byte[] buffer = new byte[1024];
+            while (output.read(buffer) != -1) { /* Wait for the shell command to complete. */ }
+        }
     }
 
     @Before public void waitForBundledApp() throws Exception {
@@ -70,7 +73,7 @@ public class NativeUiTest {
 
     @Test public void packagedLoginLoadsWithoutNotificationPermission() throws Exception {
         awaitTrue("!document.getElementById('loginView').classList.contains('hidden') && !!document.getElementById('loginBtn')");
-        assertEquals("true", js("firebase.auth().currentUser===null"));
+        assertEquals("true", js("auth.currentUser===null"));
         android.content.Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), PackageManager.GET_PERMISSIONS);
         assertEquals(36, info.applicationInfo.targetSdkVersion);
@@ -96,7 +99,7 @@ public class NativeUiTest {
         Espresso.pressBackUnconditionally();
         awaitTrue("document.getElementById('sheetWrap').classList.contains('hidden')");
         assertEquals(Lifecycle.State.RESUMED, activity.getScenario().getState());
-        assertEquals("true", js("firebase.auth().currentUser===null"));
+        assertEquals("true", js("auth.currentUser===null"));
         screenshot("back-dismissed-sheet");
     }
 
