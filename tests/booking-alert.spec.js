@@ -154,9 +154,8 @@ test('native app shares a public coach URL and keeps Web Push hidden', async ({ 
   await expect(page.locator('html')).toHaveClass(/cd-native/);
   const url = await page.evaluate(() => {
     state.coachProfile = { coachDiId: 'CD-TEST-001' };
-    const button = document.createElement('button');
-    button.id = 'c105PushButton';
-    button.textContent = 'Web Push';
+    const button = document.getElementById('c105PushButton');
+    button.classList.remove('hidden');
     document.body.append(button);
     return c72CoachBookingUrl();
   });
