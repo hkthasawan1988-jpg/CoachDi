@@ -115,3 +115,55 @@ test('browser coach share link keeps the current web origin', async ({ page }) =
   const url = await page.evaluate(() => { state.coachProfile = { coachDiId: 'CD-TEST' }; return c72CoachBookingUrl(); });
   expect(url).toBe('http://127.0.0.1:4173/?portal=athlete&coach=CD-TEST');
 });
+
+for (const role of ['athlete', 'coach', 'admin']) {
+  test(`legacy sidebar chat preserves ${role} portal and return navigation`, async ({ page }) => {
+    const { pageErrors, missingAssets } = await openIsolatedApp(page);
+    await page.evaluate(role => {
+      state.role = role;
+      state.user = { uid: `test-${role}`, email: `${role}@example.invalid`, displayName: 'Test User' };
+      testAuth.currentUser = state.user;
+      state.coachProfile = { displayName: 'Test Coach' };
+      state.subscription = {};
+      localStorage.setItem('coachDiLocationConsent', 'denied');
+      loginView.classList.add('hidden'); portal.classList.remove('hidden');
+      renderNav();
+      window.testPortalNodes = ['athletePage', 'coachPage'].map(id => document.getElementById(id));
+      cd396InjectChatNav();
+    }, role);
+    for (let cycle = 0; cycle < 2; cycle++) {
+      // Click the actual legacy entry: calling showAthleteMenu('chat') directly missed this bug.
+      await page.locator('#cd396ChatNav').click();
+      const chatHost = role === 'athlete' ? '#s40ChatHost' : role === 'coach' ? '#c43thread' : '#cdAdminSupport395';
+      await expect(page.locator(chatHost)).toBeVisible();
+      expect(await page.evaluate(() => testPortalNodes.every(node => node.isConnected))).toBe(true);
+      const home = role === 'athlete' ? '[data-athlete-page="home"]' : role === 'coach'
+        ? 'button[onclick="showCoach(\'overview\')"]' : '[data-admin-page="overview"]';
+      await page.locator('#sidebar').locator(home).click();
+      await expect(page.locator(role === 'athlete' ? '#c47Home' : '#coachContent')).toBeVisible();
+      await expect(page.locator(chatHost)).toHaveCount(0);
+      await page.evaluate(() => cd396InjectChatNav());
+    }
+    expect(pageErrors).toEqual([]);
+    expect(missingAssets).toEqual([]);
+    expect(await page.evaluate(() => testWrites.length)).toBe(0);
+  });
+}
+
+test('legacy coach chat keeps the existing subscription lock', async ({ page }) => {
+  const { pageErrors } = await openIsolatedApp(page);
+  await page.evaluate(() => {
+    state.role = 'coach';
+    state.user = { uid: 'test-coach' };
+    testAuth.currentUser = state.user;
+    state.subscription = { currentPeriodEndsAt: Date.now() - 90 * 86400000 };
+    loginView.classList.add('hidden'); portal.classList.remove('hidden');
+    renderNav(); cd396InjectChatNav();
+  });
+  await page.locator('#cd396ChatNav').click();
+  await expect(page.locator('.c62LockPage')).toBeVisible();
+  await expect(page.locator('#c43thread')).toHaveCount(0);
+  await expect(page.locator('#athletePage')).toHaveCount(1);
+  expect(pageErrors).toEqual([]);
+  expect(await page.evaluate(() => testWrites.length)).toBe(0);
+});

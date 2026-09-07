@@ -82,7 +82,7 @@ Browser tests รันกับ Firebase mock และบล็อก network 
 ## การรักษาพฤติกรรมเว็บเดิม
 
 `npm run check` ตรวจทั้ง source และ dist ว่า public client assets ทั้ง 25 ไฟล์ตรงกับ Production snapshot
-และตรวจ index.html ทั้งไฟล์ โดยอนุญาตเฉพาะ mobile layout includes และ native share URL ที่ผ่าน review
+และตรวจ index.html ทั้งไฟล์ โดยอนุญาตเฉพาะ mobile layout includes, native share URL และ legacy chat route ที่ผ่าน review
 หากตั้งใจเปลี่ยนเว็บในอนาคต ให้ review และปรับ `docs/web-compatibility-baseline.json` พร้อมการเปลี่ยนนั้น
 ไม่ควรแก้ hash เพียงเพื่อข้าม failure ที่ไม่ทราบสาเหตุ
 
@@ -90,3 +90,18 @@ Browser tests รันกับ Firebase mock และบล็อก network 
 เปิด/ยกเลิกสมัคร Coach, validation ก่อนจอง, สนามอื่น, ฟอร์มเลือกพื้นที่, หน้า Booking/History/Profile/Chat
 และ URL แชร์จากเว็บปกติ พร้อมตรวจไฟล์ local ที่โหลดไม่สำเร็จ
 การทดสอบนี้ไม่ได้ยืนยันธุรกรรมจริงหรือสิทธิ์ Backend; ยังต้องใช้ UAT แยกสำหรับขั้นตอนเหล่านั้น
+
+## แก้ปุ่มแชทเก่าที่ทำให้เมนูอื่นใช้งานไม่ได้
+
+การตรวจ Production หลังผู้ใช้เข้าสู่ระบบพบว่า `cd396ChatNav` เรียกฟังก์ชันรุ่นเก่าที่แทนที่
+`main.innerHTML` ทั้งหมด ทำให้ `athletePage` และ `coachPage` หายไป และกลับหน้าหลักแล้วเกิด
+`Cannot read properties of null (reading 'children')`.
+แก้ `showChat396` ให้เรียก router ปัจจุบันตาม role: Athlete Chat, Coach Messages หรือ Admin Support.
+จึงรักษาส่วนหน้าเว็บหลักและผ่าน subscription gate เดิมของ Coach; ไม่เปลี่ยนการส่งข้อความหรือ Booking/Firebase.
+Regression tests คลิกปุ่มที่ฉีดลง sidebar จริงและกลับหน้าหลักซ้ำ ครอบคลุมทั้งสาม role
+รวมถึง Coach ที่ subscription ถูกล็อก. Compatibility guard อนุญาตเฉพาะการแก้ route ตรงจุดนี้
+และยังใช้ hash ของ Production เดิม.
+
+Live UI ตรวจโปรไฟล์ รายการจอง ประวัติ ตาราง Coach และเปิด/ยกเลิกขั้นตอนเลือกสนามแล้ว.
+ไม่มีการส่งข้อความ สร้างรายการจอง ชำระเงิน หรือแก้ไขโปรไฟล์จริงในการตรวจนี้.
+ผล live เป็นของเว็บ Production ก่อน deploy; การแก้ใน PR ต้องผ่าน UAT หลังนำขึ้น staging/อุปกรณ์.
