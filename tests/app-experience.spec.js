@@ -104,19 +104,21 @@ test('group class calendar cells open the group screen and cannot become an appo
   expect(await page.evaluate(()=>testWrites.length)).toBe(0);
 });
 
-test('editing a recurring appointment preserves its ID and allocates separate later dates',async({page})=>{
+test('creating recurring appointments allocates separate IDs for every date',async({page})=>{
   await openIsolatedApp(page,true); await coach(page,'schedule');
   await page.evaluate(()=>{
-    const appointment={id:'existing',date:TODAY,start:9,end:10,venueName:'สนามเดิม',status:'active',createdAt:1};
-    state.c71CoachAppointments=[appointment]; testData['coachPublicSchedule/test-coach']={existing:appointment};
     let sequence=0;const originalRef=db.ref.bind(db);
     db.ref=path=>{const ref=originalRef(path);if(path==='coachPublicSchedule/test-coach')ref.push=()=>({key:'new-'+(++sequence)});return ref;};
-    c71OpenAppointment('existing');
+    c71OpenAppointment();
+    document.getElementById('c71Date').value=TODAY;
+    document.getElementById('c71Start').value='09:00';
+    document.getElementById('c71End').value='10:00';
+    document.getElementById('c71Venue').value='สนามประจำ';
     document.getElementById('c71Recurring').checked=true;
     document.getElementById('c71Until').value=isoAdd(TODAY,14);
   });
   await page.locator('#c71SaveBtn').click(); await expect(page.locator('#csModalRoot')).toHaveCount(0);
   const writes=await page.evaluate(()=>testWrites.filter(w=>Object.keys(w.value||{}).some(k=>k.startsWith('coachPublicSchedule/'))));
-  expect(writes).toHaveLength(1);expect(Object.keys(writes[0].value)).toEqual(['coachPublicSchedule/test-coach/existing','coachPublicSchedule/test-coach/new-1','coachPublicSchedule/test-coach/new-2']);
+  expect(writes).toHaveLength(1);expect(Object.keys(writes[0].value)).toEqual(['coachPublicSchedule/test-coach/new-1','coachPublicSchedule/test-coach/new-2','coachPublicSchedule/test-coach/new-3']);
   expect(new Set(Object.values(writes[0].value).map(v=>v.date)).size).toBe(3);
 });
