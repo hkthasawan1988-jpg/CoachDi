@@ -1,4 +1,4 @@
-import { mkdir, copyFile, readdir, rm } from 'node:fs/promises';
+import { mkdir, copyFile, readFile, readdir, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -11,5 +11,12 @@ const names = (await readdir(root)).filter(name =>
   /^(index|athlete|coach|admin)\.html$/.test(name) ||
   /^coach-di-[\w-]+\.(png|jpg)$/.test(name) ||
   /^(mobile-layout\.css|mobile-layout\.js|_headers)$/.test(name));
-for (const name of names) await copyFile(path.join(root, name), path.join(output, name));
-console.log(`Built ${names.length} web assets into dist/`);
+const productionAssets = JSON.parse(await readFile(path.join(root, 'docs/production-assets.json'), 'utf8'));
+const all = [...new Set([...names, ...productionAssets.map(asset => asset.path)])];
+for (const name of all) {
+  const target = path.resolve(output, name);
+  if (!target.startsWith(output + path.sep)) throw new Error(`Invalid asset path: ${name}`);
+  await mkdir(path.dirname(target), { recursive: true });
+  await copyFile(path.join(root, name), target);
+}
+console.log(`Built ${all.length} web assets into dist/`);

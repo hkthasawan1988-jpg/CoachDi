@@ -1,6 +1,7 @@
 /* Presentation only: keep existing elements, handlers, IDs and booking writes. */
 (() => {
   'use strict';
+  document.documentElement.classList.toggle('cd-native', !!window.Capacitor?.isNativePlatform());
   const overlay = document.getElementById('sheetWrap');
   const content = document.getElementById('sheetContent');
   if (!overlay || !content) return;

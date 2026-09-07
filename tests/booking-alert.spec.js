@@ -1,6 +1,8 @@
 const { test, expect } = require('@playwright/test');
 
 async function openIsolatedApp(page) {
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
   // All external traffic is blocked: these tests cannot reach Production Firebase.
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
@@ -26,10 +28,13 @@ async function openIsolatedApp(page) {
     authFn.Auth = { Persistence: { LOCAL: 'local', SESSION: 'session', NONE: 'none' } };
     const database = () => ({ ref: path => ref(path || '') });
     database.ServerValue = { TIMESTAMP: { '.sv': 'timestamp' } };
-    window.firebase = { initializeApp: () => ({}), apps: [], auth: authFn, database };
+    const app = { auth: authFn, database, appCheck: () => ({ activate: () => {} }) };
+    window.firebase = { initializeApp: () => app, apps: [], auth: authFn, database };
   });
   await page.goto('/');
   await expect(page.locator('#loginView')).toBeVisible();
+  expect(pageErrors).toEqual([]);
+  expect(await page.evaluate(() => typeof state)).toBe('object');
 }
 
 async function warning(page, text = 'โค้ชทดสอบ') {

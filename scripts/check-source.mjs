@@ -7,10 +7,18 @@ for (const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
   new vm.Script(match[2], { filename: `index.html:inline-${++count}` });
 }
 new vm.Script(await readFile(new URL('../mobile-layout.js', import.meta.url), 'utf8'));
+let external = 0;
+for (const match of html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)) {
+  const url = new URL(match[1], 'https://coach-di.netlify.app/');
+  if (url.hostname !== 'coach-di.netlify.app') continue;
+  const source = await readFile(new URL(`../dist${url.pathname}`, import.meta.url), 'utf8');
+  new vm.Script(source, { filename: url.pathname });
+  external++;
+}
 const manifest = await readFile(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8');
 if (manifest.includes('POST_NOTIFICATIONS')) throw new Error('In-app alerts do not need notification permission');
 const assets = await readdir(new URL('../dist/', import.meta.url));
 for (const forbidden of ['database.rules.json', 'firebase.json', 'package.json']) {
   if (assets.includes(forbidden)) throw new Error(`${forbidden} must not be bundled as a web asset`);
 }
-console.log(`Syntax OK: ${count} inline scripts and mobile-layout.js; Android permission and web asset checks passed.`);
+console.log(`Syntax OK: ${count} inline and ${external} local external scripts; Android permission and web asset checks passed.`);
