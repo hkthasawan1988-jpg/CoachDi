@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "41680156013",
+    "firebase_url": "https://coach-di-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "coach-di",
+    "storage_bucket": "coach-di.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:41680156013:android:7a155a2e2b7a000f189664",
+        "android_client_info": {
+          "package_name": "com.coachdi.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABhmoqVwl43OfyT4blMNg-x5OhhPPNO8k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

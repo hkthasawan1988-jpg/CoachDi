@@ -41,6 +41,11 @@ jobs:
       - run: npm run build
       - run: npm run check
       - run: npm run test:unit
+      - name: Validate isolated public schedule function
+        run: |
+          npm ci --prefix functions-mobile
+          node --check functions-mobile/index.js
+          node --check functions-mobile/backfill.cjs
       - run: npm run test:rules
       - run: npx playwright install --with-deps chromium
       - run: npm test

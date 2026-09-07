@@ -148,13 +148,14 @@
   async function candidateData(coach) {
     const ids = [...new Set([coach.uid, ...(coach.aliasUids || [])])];
     const records = await Promise.all(ids.map(async uid => {
-      const names = ['coachAvailability','coachVenues','coachPublicSchedule','coachTimeOff','coachGroupClasses'];
+      const names = ['coachAvailability','coachVenues','coachPublicSchedule','coachTimeOff','coachGroupClasses','coachBookingSchedule'];
       const snaps = await Promise.all(names.map(name => db.ref(name + '/' + uid).once('value')));
       return { uid, values: snaps.map(x => x.val()) };
     }));
     const primary = records.find(x => x.uid === coach.uid).values;
     const merged = i => Object.fromEntries(records.flatMap(r => Object.entries(r.values[i] || {}).map(([key, value]) => [r.uid + ':' + key, value])));
-    return { availability: primary[0], venues: primary[1], schedule: merged(2), timeOff: merged(3), groups: merged(4),
+    const booked = Object.fromEntries(Object.entries(merged(5)).filter(([,row]) => row.active !== false));
+    return { availability: primary[0], venues: primary[1], schedule: {...merged(2), ...booked}, timeOff: merged(3), groups: merged(4),
       ownBookings: mine().filter(b => ids.includes(b.coachId)) };
   }
   async function recommendations(b) {

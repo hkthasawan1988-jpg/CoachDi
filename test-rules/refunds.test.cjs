@@ -69,3 +69,20 @@ test('existing athlete signup and unrelated booking updates remain allowed', asy
   await assertSucceeds(db('athlete').ref('bookings/unpaid').update({ athleteNote:'ข้อความเดิม' }));
   await assertSucceeds(db('coach').ref('bookings/unpaid').update({ declineReason:'ตารางไม่ว่าง' }));
 });
+
+test('device tokens can only be read and updated by their signed-in owner', async () => {
+  const token={token:'fixture-token-12345678901234567890',deviceId:'device',enabled:true,platform:'android',createdAt:1,lastSeenAt:1};
+  await assertSucceeds(db('athlete').ref('fcmTokens/athlete/device').set(token));
+  await assertSucceeds(db('athlete').ref('fcmTokens/athlete/device').once('value'));
+  await assertFails(db('other').ref('fcmTokens/athlete').once('value'));
+  await assertFails(db('coach').ref('fcmTokens/athlete/device').set(token));
+  await assertSucceeds(db('athlete').ref('fcmTokens/athlete/device').update({enabled:false}));
+});
+
+test('public booking projection is readable without exposing or granting writes to private bookings', async () => {
+  await env.withSecurityRulesDisabled(async context=>context.database().ref('coachBookingSchedule/coach/opaque').set({active:true,date:'2026-10-10',start:10,end:11,venueName:'สนามทดสอบ'}));
+  await assertSucceeds(db('other').ref('coachBookingSchedule/coach').once('value'));
+  await assertFails(db('other').ref('bookings/booking').once('value'));
+  for (const uid of ['other','coach','admin']) await assertFails(db(uid).ref('coachBookingSchedule/coach/opaque').set({active:false}));
+  await assertFails(env.unauthenticatedContext().database().ref('coachBookingSchedule/coach').once('value'));
+});

@@ -71,13 +71,14 @@ public class NativeUiTest {
         awaitTrue("innerHeight>innerWidth && window.Capacitor.isNativePlatform() && document.documentElement.classList.contains('cd-native')");
     }
 
-    @Test public void packagedLoginLoadsWithoutNotificationPermission() throws Exception {
+    @Test public void packagedLoginLoadsWithoutRequestingNotificationPermission() throws Exception {
         awaitTrue("!document.getElementById('loginView').classList.contains('hidden') && !!document.getElementById('loginBtn')");
         assertEquals("true", js("auth.currentUser===null"));
         android.content.Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), PackageManager.GET_PERMISSIONS);
         assertEquals(36, info.applicationInfo.targetSdkVersion);
-        assertFalse(Arrays.asList(info.requestedPermissions).contains("android.permission.POST_NOTIFICATIONS"));
+        assertTrue(Arrays.asList(info.requestedPermissions).contains("android.permission.POST_NOTIFICATIONS"));
+        assertEquals(PackageManager.PERMISSION_DENIED, context.checkSelfPermission("android.permission.POST_NOTIFICATIONS"));
         awaitTrue("!document.getElementById('c105PushButton') || getComputedStyle(document.getElementById('c105PushButton')).display==='none'");
         screenshot("login-portrait");
     }
@@ -125,5 +126,27 @@ public class NativeUiTest {
 
     private void assertFooterVisible() throws Exception {
         awaitTrue("(function(){var b=Array.from(document.querySelectorAll('#sheetContent button')).find(b=>b.textContent.trim()==='รับทราบ');if(!b)return false;var r=b.getBoundingClientRect();return r.width>0&&r.height>0&&r.top>=0&&r.left>=0&&r.bottom<=innerHeight+1&&r.right<=innerWidth+1&&document.documentElement.scrollWidth<=innerWidth;})()");
+    }
+    @Test public void dataPushDisplaysOnceAndSignedOutSessionSuppressesIt() throws Exception {
+        android.content.Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        shell("pm grant com.coachdi.app android.permission.POST_NOTIFICATIONS");
+        android.content.SharedPreferences preferences = context.getSharedPreferences(CoachDiNotificationsPlugin.PREFS, android.content.Context.MODE_PRIVATE);
+        android.app.NotificationManager manager = (android.app.NotificationManager) context.getSystemService(android.content.Context.NOTIFICATION_SERVICE);
+        class TestService extends CoachDiMessagingService { TestService() { attachBaseContext(context); } }
+        TestService service = new TestService();
+        com.google.firebase.messaging.RemoteMessage message = new com.google.firebase.messaging.RemoteMessage.Builder("41680156013")
+            .setMessageId("fixture-message").addData("notificationId","fixture-notification").addData("type","chat_message")
+            .addData("body","private fixture text").build();
+        try {
+            preferences.edit().putString("uid","fixture").putBoolean("enabled",true).commit();
+            service.onMessageReceived(message); service.onMessageReceived(message);
+            assertEquals(1, manager.getActiveNotifications().length);
+            assertEquals("fixture-notification",manager.getActiveNotifications()[0].getTag());
+            assertFalse(manager.getActiveNotifications()[0].getNotification().extras.getCharSequence(android.app.Notification.EXTRA_TEXT).toString().contains("private fixture text"));
+            manager.cancelAll(); preferences.edit().putBoolean("enabled",false).commit();
+            service.onMessageReceived(message); assertEquals(0,manager.getActiveNotifications().length);
+        } finally {
+            manager.cancelAll(); preferences.edit().clear().commit(); shell("pm revoke com.coachdi.app android.permission.POST_NOTIFICATIONS");
+        }
     }
 }

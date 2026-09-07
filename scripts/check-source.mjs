@@ -16,7 +16,7 @@ for (const match of html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi
   external++;
 }
 const manifest = await readFile(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8');
-if (manifest.includes('POST_NOTIFICATIONS')) throw new Error('In-app alerts do not need notification permission');
+if (!manifest.includes('POST_NOTIFICATIONS') || !manifest.includes('CoachDiMessagingService')) throw new Error('Native push requires notification permission and its data-message service');
 const assets = await readdir(new URL('../dist/', import.meta.url));
 for (const forbidden of ['database.rules.json', 'firebase.json', 'package.json']) {
   if (assets.includes(forbidden)) throw new Error(`${forbidden} must not be bundled as a web asset`);

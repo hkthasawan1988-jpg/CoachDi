@@ -412,6 +412,19 @@
           ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         }
       }
+    },
+    "coachBookingSchedule": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "fcmTokens": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$deviceId": {
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "newData.hasChildren(['token','deviceId','enabled','platform','createdAt','lastSeenAt']) && newData.child('token').isString() && newData.child('token').val().length >= 20 && newData.child('token').val().length <= 4096 && newData.child('deviceId').val() === $deviceId && newData.child('enabled').isBoolean() && (newData.child('platform').val() === 'android' || newData.child('platform').val() === 'web' || newData.child('platform').val() === 'ios-web') && newData.child('createdAt').isNumber() && newData.child('lastSeenAt').isNumber()"
+        }
+      }
     }
   }
 }
