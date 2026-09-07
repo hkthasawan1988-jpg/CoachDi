@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-async function openIsolatedApp(page) {
+async function openIsolatedApp(page, native = false) {
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(error.message));
   // All external traffic is blocked: these tests cannot reach Production Firebase.
@@ -8,7 +8,8 @@ async function openIsolatedApp(page) {
     const url = new URL(route.request().url());
     return url.hostname === '127.0.0.1' ? route.continue() : route.fulfill({ status: 200, body: '', contentType: 'text/javascript' });
   });
-  await page.addInitScript(() => {
+  await page.addInitScript(isNative => {
+    window.Capacitor = { isNativePlatform: () => isNative };
     window.testWrites = [];
     const snapshot = value => ({ val: () => value, exists: () => value != null, forEach: () => false });
     const ref = path => ({
@@ -30,7 +31,7 @@ async function openIsolatedApp(page) {
     database.ServerValue = { TIMESTAMP: { '.sv': 'timestamp' } };
     const app = { auth: authFn, database, appCheck: () => ({ activate: () => {} }) };
     window.firebase = { initializeApp: () => app, apps: [], auth: authFn, database };
-  });
+  }, native);
   await page.goto('/');
   await expect(page.locator('#loginView')).toBeVisible();
   expect(pageErrors).toEqual([]);
@@ -119,4 +120,47 @@ test('the existing submit handler runs once on rapid double click', async ({ pag
   await expect(page.locator('#sheetWrap')).toBeHidden();
   const writes = await page.evaluate(() => testWrites.filter(w => Object.keys(w.value || {}).some(k => k.startsWith('bookings/'))));
   expect(Object.keys(writes[0].value).filter(k => k.startsWith('bookings/'))).toHaveLength(1);
+});
+
+test('booking tags and long Thai tickets stay inside the mobile viewport', async ({ page }) => {
+  await openIsolatedApp(page);
+  await page.evaluate(() => {
+    loginView.classList.add('hidden');
+    portal.classList.remove('hidden');
+    athletePage.classList.remove('hidden');
+    c94SetAlert(document.getElementById('courtTabBtn'), 125);
+    showBookingSuccessTicket('test-booking', {
+      date: '2026-10-10', start: 10, end: 11,
+      venue: 'สนามเทนนิสชื่อภาษาไทยยาวมากพร้อมรายละเอียด'.repeat(35)
+    });
+  });
+  for (const width of [320, 360, 390, 412]) {
+    await page.setViewportSize({ width, height: 640 });
+    const button = await page.locator('#courtTabBtn').boundingBox();
+    const badge = await page.locator('#courtTabBtn > .c94Badge').boundingBox();
+    expect(badge.x).toBeGreaterThanOrEqual(button.x);
+    expect(badge.y).toBeGreaterThanOrEqual(button.y);
+    expect(badge.x + badge.width).toBeLessThanOrEqual(button.x + button.width);
+    expect(badge.y + badge.height).toBeLessThanOrEqual(button.y + button.height);
+    const ticket = page.locator('#inlineBookingTicket');
+    expect(await ticket.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+  expect(await page.evaluate(() => testWrites.length)).toBe(0);
+});
+
+test('native app shares a public coach URL and keeps Web Push hidden', async ({ page }) => {
+  await openIsolatedApp(page, true);
+  await expect(page.locator('html')).toHaveClass(/cd-native/);
+  const url = await page.evaluate(() => {
+    state.coachProfile = { coachDiId: 'CD-TEST-001' };
+    const button = document.createElement('button');
+    button.id = 'c105PushButton';
+    button.textContent = 'Web Push';
+    document.body.append(button);
+    return c72CoachBookingUrl();
+  });
+  expect(url).toBe('https://coach-di.netlify.app/?portal=athlete&coach=CD-TEST-001');
+  await expect(page.locator('#c105PushButton')).toBeHidden();
+  expect(await page.evaluate(() => testWrites.length)).toBe(0);
 });

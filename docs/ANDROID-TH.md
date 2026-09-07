@@ -28,6 +28,7 @@ Booking warning และเมนูแจ้งเตือนเป็น in-
 Production มี Web Push ของ PWA แยกต่างหากใน `scaling.js` / `firebase-messaging-sw.js`.
 Android รุ่นนี้ไม่ได้เพิ่ม native Push plugin หรือ POST_NOTIFICATIONS; ซ่อนปุ่ม Web Push
 ใน Android แต่คงเมนูแจ้งเตือนภายในแอป. การส่ง native Push ขณะปิดแอปยังไม่อยู่ในรุ่นนี้.
+ลิงก์แชร์โค้ชจาก Android ใช้ appUrl สาธารณะ แทน origin localhost ของ Capacitor.
 
 ## Build
 
