@@ -87,9 +87,9 @@
     };
   }
 
-  function eventCard(row, isAppointment) {
-    const label = isAppointment ? 'นัดที่มีอยู่' : (row.athlete || row.athleteName || 'มีผู้จองแล้ว');
-    return `<button type="button" class="cdGridEvent" ${isAppointment ? 'data-appointment' : 'data-booking'}="${esc(row.id)}"><b>📍 ${esc(row.venueName || row.venue || 'สนามรอยืนยัน')}</b><small>${time(Number(row.start))}–${time(Number(row.end))} · ${esc(label)}</small></button>`;
+  function eventCard(row, isAppointment, isGroup) {
+    const label = isAppointment ? 'นัดที่มีอยู่' : isGroup ? 'Open Play / คลาสกลุ่ม' : (row.athlete || row.athleteName || 'มีผู้จองแล้ว');
+    return `<button type="button" class="cdGridEvent" ${isAppointment ? 'data-appointment' : isGroup ? 'data-group-class' : 'data-booking'}="${esc(row.id)}"><b>📍 ${esc(row.venueName || row.venue || 'สนามรอยืนยัน')}</b><small>${time(Number(row.start))}–${time(Number(row.end))} · ${esc(label)}</small></button>`;
   }
   function grid(days) {
     const bookings = c43books().filter(core.active), appointments = c71AppointmentRows();
@@ -98,7 +98,7 @@
       const cell = { date, start, end: start + .5 };
       const present = blocks.filter(row => core.overlaps(row, cell));
       const free = !present.length && date >= TODAY;
-      return `<div class="cdGridCell" data-date="${date}" data-start="${start}" data-free="${free}" ${free ? `tabindex="0" role="button" aria-label="เพิ่มนัด ${date} ${time(start)}"` : ''}>${present.map(row => eventCard(row, appointments.includes(row))).join('')}</div>`;
+      return `<div class="cdGridCell" data-date="${date}" data-start="${start}" data-free="${free}" ${free ? `tabindex="0" role="button" aria-label="เพิ่มนัด ${date} ${time(start)}"` : ''}>${present.map(row => eventCard(row, appointments.includes(row), (state.c76GroupClasses || []).includes(row))).join('')}</div>`;
     }).join('')}`).join('')}</div></div>`;
   }
   c58DayCalendar = date => grid([date || TODAY]);
@@ -171,6 +171,7 @@
     const appointment = event.target.closest('[data-appointment]'), booking = event.target.closest('[data-booking]'), day = event.target.closest('button[data-add-date]');
     if (appointment) c71OpenAppointment(appointment.dataset.appointment);
     else if (booking) s42Detail(booking.dataset.booking);
+    else if (event.target.closest('[data-group-class]')) showCoach('groupclasses');
     else if (day) openRange({date:day.dataset.addDate,start:9,end:10});
   });
   c71SaveAppointment = async function (id = '', button) {
@@ -199,7 +200,7 @@
       for (const day of dates) if (conflicts.some(row => core.overlaps(row,{date:day,start,end}))) throw Error(`เวลาชนกับตารางเดิม: ${day}`);
       const updates = {}, original = appointments.find(row => row.id === id);
       for (const day of dates) {
-        const key = id || db.ref(`coachPublicSchedule/${uid}`).push().key;
+        const key = id && day === date ? id : db.ref(`coachPublicSchedule/${uid}`).push().key;
         updates[`coachPublicSchedule/${uid}/${key}`] = c71PublicRecord(uid, day, start, end, venueName, c71VenueId(venueName), original?.createdAt || firebase.database.ServerValue.TIMESTAMP, recurring ? date : '');
       }
       await db.ref().update(updates);

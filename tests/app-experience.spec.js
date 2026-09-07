@@ -90,3 +90,33 @@ test('public booked slots show venue in blue while private booking data stays ab
   await expect(page.locator('.daySlot.booked').first()).toContainText('สนามของการจองอื่น');
   expect(await page.evaluate(()=>testWrites.length)).toBe(0);
 });
+
+test('group class calendar cells open the group screen and cannot become an appointment',async({page})=>{
+  await openIsolatedApp(page,true); await coach(page,'schedule');
+  await page.evaluate(()=>{
+    state.c76GroupClasses=[{id:'group-one',date:TODAY,start:10,end:11,status:'open',venueName:'สนามคลาสกลุ่ม'}];
+    showCoach('schedule');
+    window.testOpenedSection=''; showCoach=section=>{window.testOpenedSection=section;};
+  });
+  await expect(page.locator('.cdGridCell[data-start="10"]')).toHaveAttribute('data-free','false');
+  await page.locator('[data-group-class="group-one"]').first().click();
+  expect(await page.evaluate(()=>testOpenedSection)).toBe('groupclasses');
+  expect(await page.evaluate(()=>testWrites.length)).toBe(0);
+});
+
+test('editing a recurring appointment preserves its ID and allocates separate later dates',async({page})=>{
+  await openIsolatedApp(page,true); await coach(page,'schedule');
+  await page.evaluate(()=>{
+    const appointment={id:'existing',date:TODAY,start:9,end:10,venueName:'สนามเดิม',status:'active',createdAt:1};
+    state.c71CoachAppointments=[appointment]; testData['coachPublicSchedule/test-coach']={existing:appointment};
+    let sequence=0;const originalRef=db.ref.bind(db);
+    db.ref=path=>{const ref=originalRef(path);if(path==='coachPublicSchedule/test-coach')ref.push=()=>({key:'new-'+(++sequence)});return ref;};
+    c71OpenAppointment('existing');
+    document.getElementById('c71Recurring').checked=true;
+    document.getElementById('c71Until').value=isoAdd(TODAY,14);
+  });
+  await page.locator('#c71SaveBtn').click(); await expect(page.locator('#csModalRoot')).toHaveCount(0);
+  const writes=await page.evaluate(()=>testWrites.filter(w=>Object.keys(w.value||{}).some(k=>k.startsWith('coachPublicSchedule/'))));
+  expect(writes).toHaveLength(1);expect(Object.keys(writes[0].value)).toEqual(['coachPublicSchedule/test-coach/existing','coachPublicSchedule/test-coach/new-1','coachPublicSchedule/test-coach/new-2']);
+  expect(new Set(Object.values(writes[0].value).map(v=>v.date)).size).toBe(3);
+});
