@@ -20,12 +20,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.Arrays;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /** Runs the packaged app in Android WebView. No account login or backend writes. */
 @RunWith(AndroidJUnit4.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class NativeUiTest {
     @Rule public ActivityScenarioRule<MainActivity> activity = new ActivityScenarioRule<>(MainActivity.class);
 
@@ -79,6 +82,7 @@ public class NativeUiTest {
         assertEquals(36, info.applicationInfo.targetSdkVersion);
         assertTrue(Arrays.asList(info.requestedPermissions).contains("android.permission.POST_NOTIFICATIONS"));
         assertEquals(PackageManager.PERMISSION_DENIED, context.checkSelfPermission("android.permission.POST_NOTIFICATIONS"));
+        awaitTrue("Capacitor.isPluginAvailable('PushNotifications') && Capacitor.isPluginAvailable('CoachDiNotifications')");
         awaitTrue("!document.getElementById('c105PushButton') || getComputedStyle(document.getElementById('c105PushButton')).display==='none'");
         screenshot("login-portrait");
     }
@@ -127,7 +131,7 @@ public class NativeUiTest {
     private void assertFooterVisible() throws Exception {
         awaitTrue("(function(){var b=Array.from(document.querySelectorAll('#sheetContent button')).find(b=>b.textContent.trim()==='รับทราบ');if(!b)return false;var r=b.getBoundingClientRect();return r.width>0&&r.height>0&&r.top>=0&&r.left>=0&&r.bottom<=innerHeight+1&&r.right<=innerWidth+1&&document.documentElement.scrollWidth<=innerWidth;})()");
     }
-    @Test public void dataPushDisplaysOnceAndSignedOutSessionSuppressesIt() throws Exception {
+    @Test public void zDataPushDisplaysOnceAndSignedOutSessionSuppressesIt() throws Exception {
         android.content.Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         shell("pm grant com.coachdi.app android.permission.POST_NOTIFICATIONS");
         android.content.SharedPreferences preferences = context.getSharedPreferences(CoachDiNotificationsPlugin.PREFS, android.content.Context.MODE_PRIVATE);
@@ -146,7 +150,9 @@ public class NativeUiTest {
             manager.cancelAll(); preferences.edit().putBoolean("enabled",false).commit();
             service.onMessageReceived(message); assertEquals(0,manager.getActiveNotifications().length);
         } finally {
-            manager.cancelAll(); preferences.edit().clear().commit(); shell("pm revoke com.coachdi.app android.permission.POST_NOTIFICATIONS");
+            // Runs last; Gradle uninstalls this disposable emulator app after instrumentation.
+            // Revoking a runtime permission here would kill the instrumentation process.
+            manager.cancelAll(); preferences.edit().clear().commit();
         }
     }
 }
