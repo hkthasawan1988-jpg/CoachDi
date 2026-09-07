@@ -55,6 +55,20 @@ public class NativeUiTest {
     }
 
     private void screenshot(String name) throws Exception {
+        // JavaScript can finish before the WebView compositor presents the new frame.
+        CountDownLatch frameReady = new CountDownLatch(1);
+        activity.getScenario().onActivity(a -> {
+            android.webkit.WebView view = a.getBridge().getWebView();
+            view.postVisualStateCallback(SystemClock.uptimeMillis(), new android.webkit.WebView.VisualStateCallback() {
+                @Override public void onComplete(long requestId) {
+                    view.invalidate();
+                    view.postOnAnimation(() -> view.postOnAnimation(frameReady::countDown));
+                }
+            });
+        });
+        assertTrue("WebView visual frame timed out", frameReady.await(10, TimeUnit.SECONDS));
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        SystemClock.sleep(300);
         // Shared test evidence survives Gradle uninstalling the app after the run.
         shell("mkdir -p /sdcard/Download/coach-di-uat");
         shell("screencap -p /sdcard/Download/coach-di-uat/" + name + ".png");
