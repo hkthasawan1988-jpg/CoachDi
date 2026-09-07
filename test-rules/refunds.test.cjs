@@ -70,10 +70,11 @@ test('existing athlete signup and unrelated booking updates remain allowed', asy
   await assertSucceeds(db('coach').ref('bookings/unpaid').update({ declineReason:'ตารางไม่ว่าง' }));
 });
 
-test('device tokens can only be read and updated by their signed-in owner', async () => {
-  const token={token:'fixture-token-12345678901234567890',deviceId:'device',enabled:true,platform:'android',createdAt:1,lastSeenAt:1};
+test('Android device tokens retain deployed owner/admin access and reject unrelated users', async () => {
+  const token={token:'fixture-token-'.repeat(12),deviceId:'device',role:'athlete',enabled:true,platform:'android',createdAt:1,lastSeenAt:1};
   await assertSucceeds(db('athlete').ref('fcmTokens/athlete/device').set(token));
   await assertSucceeds(db('athlete').ref('fcmTokens/athlete/device').once('value'));
+  await assertSucceeds(db('admin').ref('fcmTokens/athlete/device').once('value'));
   await assertFails(db('other').ref('fcmTokens/athlete').once('value'));
   await assertFails(db('coach').ref('fcmTokens/athlete/device').set(token));
   await assertSucceeds(db('athlete').ref('fcmTokens/athlete/device').update({enabled:false}));

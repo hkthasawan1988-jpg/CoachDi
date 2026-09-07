@@ -25,6 +25,8 @@ FCM data messages เดิมไม่มี android.priority=high จึงอ
 ยังต้อง deploy function และ Rules ที่ผ่านการรวมกับ export ปัจจุบัน และ backfill รายการเดิมก่อนใช้งานส่วนนี้จริง ไม่ deploy อัตโนมัติ
 
 ## ก่อนเปิดใช้งานบน Production
+สำเนา Rules ที่อ่านจาก Console วันที่ 7 กันยายน 2026 อยู่ใน test-rules/production-baseline.rules.json และ database.rules.json เป็นข้อเสนอที่รวมกับสำเนานี้แล้ว รักษา Nodes เดิมรวม Omise, Group Class และกฎอนุมัติโค้ช พร้อมทดสอบเทียบกับ baseline ไม่ได้ publish ไป Firebase
+กฎ fcmTokens ที่ใช้งานจริงรองรับ platform android อยู่แล้ว และให้เจ้าของกับ Admin เข้าถึง จึงรักษากฎเดิมทั้งหมดไว้
 1. ตรวจและรวม Rules ปัจจุบันด้วย prepare-refund-rules.cjs (ถ้ายังไม่ได้เพิ่มฟีเจอร์คืนเงิน) แล้ว prepare-mobile-rules.cjs ห้ามทับ Rules ปัจจุบันจาก repository ทั้งไฟล์
 2. ตรวจ fcmTokens rules ปัจจุบันว่าเจ้าของเขียน platform android ได้ และรักษาสิทธิ์ private ของบัญชี/Booking
 3. ติดตั้ง dependency ใน functions-mobile แล้ว deploy เฉพาะ syncCoachBookingSchedule ด้วย firebase.mobile.json ห้ามลบ/แทนที่ Functions การชำระเงินหรือ Push เดิม

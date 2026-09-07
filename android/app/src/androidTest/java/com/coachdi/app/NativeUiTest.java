@@ -131,6 +131,11 @@ public class NativeUiTest {
     private void assertFooterVisible() throws Exception {
         awaitTrue("(function(){var b=Array.from(document.querySelectorAll('#sheetContent button')).find(b=>b.textContent.trim()==='รับทราบ');if(!b)return false;var r=b.getBoundingClientRect();return r.width>0&&r.height>0&&r.top>=0&&r.left>=0&&r.bottom<=innerHeight+1&&r.right<=innerWidth+1&&document.documentElement.scrollWidth<=innerWidth;})()");
     }
+    private void awaitNotificationCount(android.app.NotificationManager manager, int expected) {
+        long deadline = SystemClock.elapsedRealtime() + 5000;
+        while (manager.getActiveNotifications().length != expected && SystemClock.elapsedRealtime() < deadline) SystemClock.sleep(50);
+        assertEquals(expected, manager.getActiveNotifications().length);
+    }
     @Test public void zDataPushDisplaysOnceAndSignedOutSessionSuppressesIt() throws Exception {
         android.content.Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         shell("pm grant com.coachdi.app android.permission.POST_NOTIFICATIONS");
@@ -144,10 +149,11 @@ public class NativeUiTest {
         try {
             preferences.edit().putString("uid","fixture").putBoolean("enabled",true).commit();
             service.onMessageReceived(message); service.onMessageReceived(message);
-            assertEquals(1, manager.getActiveNotifications().length);
+            awaitNotificationCount(manager, 1);
             assertEquals("fixture-notification",manager.getActiveNotifications()[0].getTag());
             assertFalse(manager.getActiveNotifications()[0].getNotification().extras.getCharSequence(android.app.Notification.EXTRA_TEXT).toString().contains("private fixture text"));
             manager.cancelAll(); preferences.edit().putBoolean("enabled",false).commit();
+            awaitNotificationCount(manager, 0);
             service.onMessageReceived(message); assertEquals(0,manager.getActiveNotifications().length);
         } finally {
             // Runs last; Gradle uninstalls this disposable emulator app after instrumentation.
