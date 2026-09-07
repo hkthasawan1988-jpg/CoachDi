@@ -19,7 +19,12 @@ async function openIsolatedApp(page, native = false, entry = '/') {
       key: 'test-key',
       child: name => ref(`${path}/${name}`),
       once: async () => snapshot(path.startsWith('users/') ? { displayName: 'Test Athlete', phone: '0800000000' } : null),
-      on: () => {}, off: () => {},
+      on: (event, callback) => {
+        if (Object.hasOwn(window.testRealtimeValues || {}, path)) {
+          queueMicrotask(() => callback(snapshot(window.testRealtimeValues[path])));
+        }
+        return callback;
+      }, off: () => {},
       orderByChild() { return this; }, equalTo() { return this; }, limitToLast() { return this; },
       push: () => ref(`${path}/test-key`),
       set: async value => { window.testWrites.push({ path, value }); },

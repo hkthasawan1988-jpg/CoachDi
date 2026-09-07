@@ -125,6 +125,7 @@ for (const role of ['athlete', 'coach', 'admin']) {
       testAuth.currentUser = state.user;
       state.coachProfile = { displayName: 'Test Coach' };
       state.subscription = {};
+      if (role === 'admin') window.testRealtimeValues = { adminSupportNotifications: null, users: null };
       localStorage.setItem('coachDiLocationConsent', 'denied');
       loginView.classList.add('hidden'); portal.classList.remove('hidden');
       renderNav();
@@ -136,7 +137,7 @@ for (const role of ['athlete', 'coach', 'admin']) {
       await page.locator('#cd396ChatNav').click();
       const chatHost = role === 'athlete' ? '#s40ChatHost' : role === 'coach' ? '#c43thread' : '#c70Thread';
       await expect(page.locator(chatHost)).toBeVisible();
-      if (role === 'admin') await expect(page.locator('#c70InboxRows')).toContainText('ยังไม่มีข้อความถึง Admin');
+      if (role === 'admin') await expect(page.locator('#c70InboxRows')).toContainText('ไม่พบบทสนทนาตามที่ค้นหา');
       expect(await page.evaluate(() => testPortalNodes.every(node => node.isConnected))).toBe(true);
       const home = role === 'athlete' ? '[data-athlete-page="home"]' : role === 'coach'
         ? 'button[onclick="showCoach(\'overview\')"]' : '[data-admin-page="overview"]';
