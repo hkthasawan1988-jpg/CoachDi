@@ -135,7 +135,7 @@
       if (auth.currentUser?.uid !== uid || epoch !== generation) return;
       if (notice) {
         const verification = notice.type?.startsWith('payout_verification_');
-        if (state.role === 'coach') showCoach(verification ? 'payments' : notice.type === 'chat_message' ? 'messages' : 'bookings');
+        if (state.role === 'coach') showCoach(verification ? 'settings' : notice.type === 'chat_message' ? 'messages' : 'bookings');
         else if (state.role === 'admin') s41ShowAdmin(verification ? 'verify' : notice.type?.includes('support') ? 'support' : 'overview');
         else showAthleteMenu(notice.type === 'chat_message' ? 'chat' : 'notifications');
       }

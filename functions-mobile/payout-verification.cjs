@@ -24,7 +24,7 @@ function notification(coachId, recipientId, account, status, time) {
     type: 'payout_verification_' + status,
     title: pending ? 'บัญชีรับเงินรอตรวจสอบ' : 'ผลการตรวจสอบบัญชีรับเงิน',
     message: pending ? 'มีคำขอตรวจสอบบัญชีรับเงินของโค้ช กรุณาเปิดรายการรออนุมัติ' : status === 'approved' ? 'บัญชีรับเงินของคุณได้รับอนุมัติแล้ว' : 'กรุณาแก้ไขข้อมูลบัญชีรับเงินและส่งให้ตรวจสอบอีกครั้ง',
-    senderId: 'system', recipientId, coachId, target: pending ? 'verification' : 'payments',
+    senderId: 'system', recipientId, coachId, target: pending ? 'verify' : 'settings',
     createdAt: Date.parse(time), read: false
   }};
 }

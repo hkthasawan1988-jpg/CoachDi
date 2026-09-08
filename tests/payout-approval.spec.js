@@ -17,6 +17,8 @@ test('admin overview exposes previously hidden pending bank requests; queue upda
   await page.locator('[data-payout-action="open"]').click();await expect(page.locator('#cdPayoutRows')).toContainText('Coach ทดสอบ');
   await page.evaluate(()=>testPayoutListeners.coachPaymentAccounts.callback({val:()=>({})}));await expect(page.locator('#cdPayoutStatus')).toHaveText('ไม่มีบัญชีรับเงินรออนุมัติ');
   await page.evaluate(value=>testPayoutListeners.coachPaymentAccounts.callback({val:()=>({coach:value})}),pending);await expect(page.locator('#cdPayoutRows article')).toHaveCount(1);expect(pageErrors).toEqual([]);
+  await page.evaluate(()=>{state.notifications=[{type:'payout_verification_pending',message:'มีบัญชีรับเงินรออนุมัติ',read:true}];c95OpenNotifications();});
+  await page.getByRole('button',{name:'ดูรายการรออนุมัติบัญชีรับเงิน',exact:true}).click();await expect(page.locator('#cdPayoutRows article')).toHaveCount(1);
 });
 test('permission failure cannot masquerade as an empty admin bank queue',async({page})=>{
   await openIsolatedApp(page);await admin(page,{},true);await page.evaluate(()=>s41ShowAdmin('verify'));
@@ -62,11 +64,16 @@ test('admin stale review does not approve replaced bank details and duplicate de
   await page.evaluate(()=>{adminVerifyPayout('coach',true);adminVerifyPayout('coach',true);});await expect(page.locator('#cdPayoutStatus')).toContainText('อนุมัติบัญชีรับเงินแล้ว');expect(await page.evaluate(()=>testWrites.filter(w=>w.transaction&&w.path.startsWith('coachPaymentAccounts/')))).toHaveLength(1);
 });
 test('coach submission is not lost when nonessential audit fails, duplicate taps create one request',async({page})=>{
-  await openIsolatedApp(page);await page.evaluate(()=>{state.role='coach';state.user={uid:'test-coach'};testAuth.currentUser=state.user;state.coachProfile={displayName:'Coach'};state.paymentAccount={};state.subscription={trialEndsAt:Date.now()+86400000};audit=async()=>{throw Error('audit unavailable');};loginView.classList.add('hidden');portal.classList.remove('hidden');showCoach('payments');});
+  await openIsolatedApp(page);await page.evaluate(()=>{state.role='coach';state.user={uid:'test-coach'};testAuth.currentUser=state.user;state.coachProfile={displayName:'Coach'};state.paymentAccount={};state.subscription={trialEndsAt:Date.now()+86400000};audit=async()=>{throw Error('audit unavailable');};loginView.classList.add('hidden');portal.classList.remove('hidden');showCoach('overview');});
+  await page.locator('#sidebar').getByRole('button',{name:/ตั้งค่า/}).click();
+  await expect(page.locator('#payBank')).toBeVisible();
   await page.locator('#payBank').fill(pending.bank);await page.locator('#payNumber').fill(pending.accountNumber);await page.locator('#payCoachName').fill(pending.coachLegalName);await page.locator('#payAccountName').fill(pending.accountName);
-  await page.evaluate(()=>{submitPaymentVerification();submitPaymentVerification();});await expect(page.locator('#payMsg')).toContainText('เข้าคิว Admin แล้ว');expect(await page.evaluate(()=>testWrites.filter(w=>w.transaction&&w.path.startsWith('coachPaymentAccounts/')))).toHaveLength(1);
+  await page.locator('[onclick="submitPaymentVerification()"]').dblclick();await expect(page.locator('#payMsg')).toContainText('เข้าคิว Admin แล้ว');
+  expect(await page.evaluate(()=>state.c43p)).toBe('settings');await expect(page.locator('#payBank')).toHaveValue(pending.bank);expect(await page.evaluate(()=>testWrites.filter(w=>w.transaction&&w.path.startsWith('coachPaymentAccounts/')))).toHaveLength(1);
   await page.evaluate(()=>submitPaymentVerification());await expect(page.locator('#payMsg')).toContainText('ไม่ได้ส่งซ้ำ');expect(await page.evaluate(()=>testWrites.filter(w=>w.transaction&&w.path.startsWith('coachPaymentAccounts/')))).toHaveLength(1);
   expect(await page.evaluate(()=>testWrites.some(w=>w.path.startsWith('notifications/')))).toBe(false);
+  await page.evaluate(()=>{state.notifications=[{type:'payout_verification_approved',message:'บัญชีรับเงินได้รับอนุมัติแล้ว',read:true}];c95OpenNotifications();});
+  await page.getByRole('button',{name:'ดูบัญชีรับเงิน',exact:true}).click();await expect(page.locator('#payBank')).toHaveValue(pending.bank);expect(await page.evaluate(()=>state.c43p)).toBe('settings');
 });
 for(const width of [320,360,390,412])test(`complete menu opens bank approval at ${width}px with long Thai and expanded details`,async({page})=>{
   await page.setViewportSize({width,height:800});await openIsolatedApp(page,true);await admin(page);

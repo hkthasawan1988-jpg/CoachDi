@@ -14,7 +14,7 @@ async function openIsolatedApp(page, native = false, entry = '/', nativePush = f
     window.Capacitor = { isNativePlatform: () => isNative };
     if(nativePush) window.Capacitor.Plugins={
       PushNotifications:{addListener:async()=>{},checkPermissions:async()=>({receive:'prompt'}),unregister:async()=>{}},
-      CoachDiNotifications:{getPending:async()=>({}),getSession:async()=>({uid:''}),configureSession:async()=>{},clearPending:async()=>{}}
+      CoachDiNotifications:{getPending:async()=>({}),getSession:async()=>({uid:''}),configureSession:async()=>{},clearPending:async()=>{},unregister:async()=>{}}
     };
     window.testAuthListeners=[];
     window.testWrites = [];

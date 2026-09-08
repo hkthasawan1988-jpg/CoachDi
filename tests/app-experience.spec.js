@@ -137,11 +137,25 @@ test('phone calendar stays above navigation and view labels do not break into le
 });
 
 for(const width of [320,360,390,412]) test(`native notification, guide and logout controls fit at ${width}px`,async({page})=>{
+  await page.clock.install();
   await page.setViewportSize({width,height:740});const {pageErrors}=await openIsolatedApp(page,true,'/',true);await coach(page);
   await page.evaluate(async()=>{
-    logoutBtn.classList.remove('hidden'); c91InstallHelp();
-    await testAuthListeners.at(-1)(testAuth.currentUser);
+    const user=testAuth.currentUser;
+    // Firebase notifies every observer; listener order changes as features are added.
+    // Seed an existing, active account so the real session/bootstrap observers can run.
+    testData[`users/${user.uid}`]={role:'coach',status:'active',displayName:'โค้ชทดสอบ'};
+    testData[`coachProfiles/${user.uid}`]={coachDiId:'ID_TEST',displayName:'โค้ชทดสอบ',status:'active'};
+    testData[`users/${user.uid}/subscription`]={status:'trial',trialEndsAt:Date.now()+30*86400000};
+    testData[`legalAcceptances/${user.uid}/${C62_TERMS_VERSION}`]={acceptedAt:1};
+    testRealtimeValues[`coachPublicSchedule/${user.uid}`]={};
+    localStorage.setItem(c91GuideKey(),'seen');
+    await Promise.all([...testAuthListeners].map(listener=>listener(user)));
   });
+  // Finish delayed login observers before selecting the chat screen under test.
+  await page.clock.runFor(3000);
+  await expect(page.locator('#portal')).toBeVisible();
+  await coach(page);
+  await page.evaluate(()=>c91InstallHelp());
   await expect(page.locator('#cdNativePushButton')).toBeVisible();
   await expect(page.locator('#cdNativePushButton')).toContainText('เปิดแจ้งเตือนแอป');
   const metrics=await page.evaluate(()=>({width:document.documentElement.scrollWidth,buttons:[...document.querySelectorAll('.topbar button')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,bottom:r.bottom};}),header:document.querySelector('.topbar').getBoundingClientRect().bottom}));

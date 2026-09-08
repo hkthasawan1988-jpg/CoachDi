@@ -150,7 +150,7 @@ test('missing native registration callback times out and leaves a retry action',
 });
 
 test('payout verification taps open the verified account section for coach and admin',async()=>{
-  for(const [role,target] of [['coach','payments'],['admin','verify']]) {
+  for(const [role,target] of [['coach','settings'],['admin','verify']]) {
     const t=await setup({permission:'granted',notice:{type:'payout_verification_pending'}});
     t.sandbox.state.role=role;await t.login(role);await until(()=>t.calls.includes('native-on'));
     t.events.pushNotificationActionPerformed({notification:{data:{userId:role,notificationId:'verification-notice'}}});
