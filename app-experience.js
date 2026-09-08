@@ -24,7 +24,7 @@
     const nav = byId('mobileNav');
     const navHeight = nav?.getClientRects().length ? nav.getBoundingClientRect().height : 0;
     // Observe only app chrome, not the scrolling content whose height we adjust.
-    document.querySelectorAll('.topbar,#mobileNav,.cdSupportFloat,.c79MobileOpenPlay').forEach(el => {
+    document.querySelectorAll('.topbar,#mobileNav,.cdSupportFloat,.c79MobileOpenPlay,#c95AdInquiry').forEach(el => {
       if (!observedChrome.has(el)) { observedChrome.add(el); chromeObserver.observe(el, { box: 'border-box' }); }
     });
     const header = document.querySelector('.topbar');
@@ -41,7 +41,9 @@
     root.classList.toggle('cd-chat-active', chatVisible);
     document.querySelectorAll('.c43chat,.s41LineShell,.c70ChatLayout').forEach(shell => {
       if (!shell.getClientRects().length) return;
-      const available = Math.max(120, contentBottom - shell.getBoundingClientRect().top - 16);
+      const footer = byId('c95AdInquiry');
+      const footerSpace = shell.closest('#athletePage') && footer?.getClientRects().length ? footer.getBoundingClientRect().height + 4 : 0;
+      const available = Math.max(120, contentBottom - shell.getBoundingClientRect().top - footerSpace - 8);
       const next = `${Math.floor(available)}px`;
       if (shell.style.getPropertyValue('--cd-chat-height') !== next) shell.style.setProperty('--cd-chat-height', next);
     });

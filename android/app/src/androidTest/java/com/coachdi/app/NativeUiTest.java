@@ -89,6 +89,26 @@ public class NativeUiTest {
         awaitTrue("innerHeight>innerWidth && window.Capacitor.isNativePlatform() && document.documentElement.classList.contains('cd-native')");
     }
 
+    @Test public void athleteChatUsesScreenAfterHomeWithContactFooter() throws Exception {
+        assertEquals("true", js("(function(){window.chatAuthReady=false;auth.onAuthStateChanged(function(){window.chatAuthReady=true;});return true;})()"));
+        awaitTrue("window.chatAuthReady && auth.currentUser===null");
+        // Stub database reads before routing. Mutations fail immediately; this fixture
+        // cannot submit a real message, booking, payment or notification registration.
+        assertEquals("true", js("(function(){db.ref=function(path){const snapshot={val:()=>null,exists:()=>false};const ref={child:()=>ref,once:async()=>snapshot,on:(event,cb)=>cb(snapshot),off:()=>{},orderByChild:()=>ref,equalTo:()=>ref,limitToLast:()=>ref};['set','update','remove','push','transaction'].forEach(key=>ref[key]=()=>{throw Error('Native layout fixture forbids writes');});return ref;};" +
+            "state.role='athlete';state.user={uid:'native-chat-fixture'};state.coaches=[{uid:'coach',displayName:'โค้ชทดสอบ'}];state.allAthleteBookings=[{id:'fixture',coachId:'coach',athleteId:state.user.uid,coachName:'โค้ชทดสอบ',date:TODAY,start:10,end:11,venue:'สนามทดสอบ',status:'confirmed'}];" +
+            "localStorage.setItem('coachDiLocationConsent','denied');loginView.classList.add('hidden');portal.classList.remove('hidden');logoutBtn.classList.remove('hidden');renderNav();c91InstallHelp();" +
+            "logoutBtn.parentElement.insertAdjacentHTML('afterbegin','<button id=cdNativePushButton class=pill>🔔 เปิดแจ้งเตือนแอป</button>');showAthleteMenu('home');return true;})()"));
+        awaitTrue("!!document.getElementById('c63VenueBottom') && !!document.getElementById('c95AdInquiry')");
+        assertEquals("true", js("(function(){showAthleteMenu('mybookings');return true;})()"));
+        awaitTrue("athletePage.lastElementChild.id==='c95AdInquiry' && document.getElementById('s40AthleteDynamic').dataset.page==='mybookings'");
+        assertEquals("true", js("(function(){showAthleteMenu('chat');return true;})()"));
+        awaitTrue("!!document.getElementById('s41LineInput')");
+        assertEquals("true", js("(function(){document.getElementById('s41LineMessages').innerHTML='<div class=s41LineBubble>'+ 'ข้อความภาษาไทยทดสอบแชท '.repeat(60)+'</div>';return true;})()"));
+        awaitTrue("(function(){var shell=document.querySelector('.s41LineShell').getBoundingClientRect(),footer=document.getElementById('c95AdInquiry').getBoundingClientRect(),nav=document.getElementById('mobileNav').getBoundingClientRect(),input=document.getElementById('s41LineInput').getBoundingClientRect();return shell.height>innerHeight*.35&&shell.bottom<=footer.top&&footer.bottom<=nav.top&&nav.top-footer.bottom<12&&input.top>=shell.top&&input.bottom<=shell.bottom&&document.documentElement.scrollWidth<=innerWidth;})()");
+        assertEquals("true", js("auth.currentUser===null"));
+        screenshot("athlete-chat-footer");
+    }
+
     @Test public void packagedLoginLoadsWithoutRequestingNotificationPermission() throws Exception {
         awaitTrue("!document.getElementById('loginView').classList.contains('hidden') && !!document.getElementById('loginBtn')");
         assertEquals("true", js("auth.currentUser===null"));

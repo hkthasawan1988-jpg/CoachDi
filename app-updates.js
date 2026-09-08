@@ -5,6 +5,18 @@
   const memory=new Map();
   const now=()=>Date.now()+offset;
   const session=()=>state.user?.uid?`${state.role}:${state.user.uid}`:'';
+  // Home's venue block survives route changes. Keep contact copy after the active
+  // page instead of inserting a card beside that hidden, stale home block.
+  c95AdInquiryHtml=function(){return `<footer id="c95AdInquiry" class="cdAdFooter" aria-label="ติดต่อประชาสัมพันธ์สนาม"><span>สนใจประชาสัมพันธ์สนาม?</span><a href="mailto:${C95_AD_EMAIL}?subject=Coach%20Di%20Advertising%20Inquiry">อีเมล</a><button type="button" onclick="c95OpenStaffChat()">แชทกับทีมงาน</button></footer>`;};
+  c95InstallAdInquiry=function(){
+    const host=document.getElementById('athletePage');
+    if(state.role!=='athlete'||!host){document.getElementById('c95AdInquiry')?.remove();return;}
+    let footer=document.getElementById('c95AdInquiry');
+    if(!footer?.classList.contains('cdAdFooter')){footer?.remove();host.insertAdjacentHTML('beforeend',c95AdInquiryHtml());footer=document.getElementById('c95AdInquiry');}
+    if(host.lastElementChild!==footer)host.appendChild(footer);
+    // Legacy routes hide all athlete children before showing their own content.
+    if(footer.style.display)footer.style.removeProperty('display');
+  };
   function clear(){for(const [ref,cb] of refs)ref.off('value',cb);refs=[];owner='';users={};loaded=false;failed=false;offset=0;document.getElementById('cdCustomerSummary')?.remove();closeLaunch(false);}
   function ensure(){
     const current=session();if(current===owner)return;clear();if(!current)return;owner=current;
@@ -74,7 +86,7 @@
     const action=event.target.closest('[data-cd-launch]')?.dataset.cdLaunch;if(action){closeLaunch();if(action==='view')showAthleteMenu('groupclasses');}
   });
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){ensure();offerLaunch();}});
-  const refresh=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;if(!state.user?.uid)return;ensure();summary();offerLaunch();});};
+  const refresh=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;if(!state.user?.uid)return;ensure();summary();c95InstallAdInquiry();offerLaunch();});};
   new MutationObserver(refresh).observe(document.getElementById('portal'),{childList:true,subtree:true});
   new MutationObserver(refresh).observe(document.body,{childList:true});
 })(window);

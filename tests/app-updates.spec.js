@@ -56,10 +56,8 @@ test('past class including earlier today is blocked before any writes; a future 
   await page.evaluate(()=>Promise.all([c76CreateClass({preventDefault(){}}),c76CreateClass({preventDefault(){}})]));
   await expect(page.locator('#c76Modal')).toHaveCount(0);expect(await page.evaluate(()=>testWrites.filter(w=>w.path.startsWith('coachGroupClasses/')))).toHaveLength(1);
 });
-test('rescheduling and reopening a past class cannot write; ad copy is compact with a usable contact button',async({page})=>{
+test('rescheduling and reopening a past class cannot write',async({page})=>{
   await openIsolatedApp(page);await page.evaluate(value=>{state.role='coach';state.user={uid:'coach-one'};testAuth.currentUser=state.user;state.c76GroupClasses=[{...value,date:'2020-01-01'}];state.coachProfile={};loginView.classList.add('hidden');portal.classList.remove('hidden');c111OpenGroupClassEdit('new-class');},row);
   await page.evaluate(()=>c111SaveGroupClassEdit({preventDefault(){}},'new-class'));await expect(page.locator('#cdClassDateError')).toContainText('เลยเวลามาแล้ว');
   page.once('dialog',dialog=>dialog.accept());await page.evaluate(()=>c76SetClassStatus('new-class','open',{}));expect(await page.evaluate(()=>testWrites)).toHaveLength(0);
-  await page.evaluate(()=>{c76CloseModal();coachPage.classList.remove('hidden');coachContent.innerHTML=c95AdInquiryHtml();});
-  expect(await page.locator('#c95AdInquiry h2').evaluate(el=>getComputedStyle(el).fontSize)).toBe('16px');expect((await page.locator('.c95AdButton.primary').boundingBox()).height).toBeGreaterThanOrEqual(44);
 });
