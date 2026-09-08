@@ -17,6 +17,15 @@
     // Legacy routes hide all athlete children before showing their own content.
     if(footer.style.display)footer.style.removeProperty('display');
   };
+  const athleteRouteBase=showAthleteMenu;
+  showAthleteMenu=function(page){
+    const result=athleteRouteBase.apply(this,arguments);
+    if(page==='chat')requestAnimationFrame(()=>{
+      if(document.getElementById('s40AthleteDynamic')?.dataset.page!=='chat')return;
+      window.scrollTo({top:0,behavior:'instant'});root.CoachDiExperience?.resize();
+    });
+    return result;
+  };
   function clear(){for(const [ref,cb] of refs)ref.off('value',cb);refs=[];owner='';users={};loaded=false;failed=false;offset=0;document.getElementById('cdCustomerSummary')?.remove();closeLaunch(false);}
   function ensure(){
     const current=session();if(current===owner)return;clear();if(!current)return;owner=current;

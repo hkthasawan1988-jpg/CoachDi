@@ -50,10 +50,13 @@ test('athlete chat keeps the draft and footer visible on fold resize and short k
 test('web chat and repeated athlete routes keep a single small footer after content',async({page})=>{
   await page.setViewportSize({width:390,height:844});const {pageErrors}=await openIsolatedApp(page);await athleteHome(page);
   for(const route of ['chat','home','mybookings','groupclasses','chat']){
+    if(route==='chat')await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
     await page.evaluate(route=>showAthleteMenu(route),route);
     await expect(page.locator('#c95AdInquiry')).toHaveCount(1);await expect(page.locator('#c95AdInquiry')).toBeVisible();
     expect(await page.evaluate(()=>athletePage.lastElementChild.id)).toBe('c95AdInquiry');
   }
+  await expect.poll(()=>page.evaluate(()=>scrollY)).toBe(0);
+  await expect.poll(()=>page.evaluate(()=>document.querySelector('.s41LineShell').getBoundingClientRect().top>=document.querySelector('.topbar').getBoundingClientRect().bottom)).toBe(true);
   await expect(page.locator('#c95AdInquiry a')).toHaveAttribute('href',/^mailto:hkthasawan1988@gmail\.com\?subject=/);
   await page.evaluate(()=>{window.staffContactOpened=false;c95OpenStaffChat=()=>{window.staffContactOpened=true;};});
   await page.getByRole('button',{name:'แชทกับทีมงาน',exact:true}).click();expect(await page.evaluate(()=>staffContactOpened)).toBe(true);
