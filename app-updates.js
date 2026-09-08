@@ -3,6 +3,10 @@
   const C=root.CoachDiUpdatesCore,E=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   let owner='',refs=[],users={},loaded=false,failed=false,offset=0,queued=false,submitBusy=false;
   const memory=new Map();
+  // Two literal escaped-newline text nodes in the legacy HTML otherwise add
+  // an anonymous line below the app, even after the chat fits its viewport.
+  function cleanEscapedNewlines(){for(const node of [...document.body.childNodes])if(node.nodeType===Node.TEXT_NODE&&node.textContent.trim()==='\\n')node.remove();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',cleanEscapedNewlines,{once:true});else cleanEscapedNewlines();
   const now=()=>Date.now()+offset;
   const session=()=>state.user?.uid?`${state.role}:${state.user.uid}`:'';
   // Home's venue block survives route changes. Keep contact copy after the active
