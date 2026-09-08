@@ -277,7 +277,7 @@
       ".read": false,
       "$coachId": {
         ".read": "auth != null && (auth.uid === $coachId || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'athlete' && root.child('coachProfiles').child($coachId).child('status').val() === 'active'))",
-        ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' && root.child('users').child(auth.uid).child('status').val() === 'active') || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
         "accountNumber": {
           ".validate": "!newData.exists() || (newData.isString() && newData.val().matches(/^[0-9]{8,20}$/))"
         }

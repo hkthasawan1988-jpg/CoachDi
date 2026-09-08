@@ -14,7 +14,7 @@ before(async()=>{
 after(async()=>{if(env)await env.cleanup();});
 beforeEach(async()=>{
   await env.clearDatabase();
-  await env.withSecurityRulesDisabled(async ctx=>ctx.database().ref().set({users:{coach:{role:'coach',status:'active'},other:{role:'coach',status:'active'},admin:{role:'admin'},athlete:{role:'athlete'},pending:{role:'coach',status:'pending_approval'}},coachProfiles:{coach:{status:'active',registrationComplete:true,displayName:'Coach'}}}));
+  await env.withSecurityRulesDisabled(async ctx=>ctx.database().ref().set({users:{coach:{role:'coach',status:'active'},other:{role:'coach',status:'active'},admin:{role:'admin'},admin2:{role:'admin'},athlete:{role:'athlete'},pending:{role:'coach',status:'pending_approval'}},coachProfiles:{coach:{status:'active',registrationComplete:true,displayName:'Coach'}}}));
 });
 test('active coach submits privately and admin can list legacy and new pending requests',async()=>{
   const value=pending();await assertSucceeds(db('coach').ref('coachPaymentAccounts/coach').set(value));
@@ -38,8 +38,13 @@ test('admin review retains submitted details and only the first concurrent pendi
   const ref=db('admin').ref('coachPaymentAccounts/coach');
   await assertSucceeds(db('coach').ref('coachPaymentAccounts/coach').set(pending()));
   await assertFails(ref.update({verificationStatus:'approved',verifiedBy:'admin',verifiedAt:stamp(),accountNumber:'9987654321'}));
-  const review=()=>ref.transaction(current=>current?.verificationStatus==='pending'?{...current,verificationStatus:'approved',verifiedBy:'admin',verifiedAt:stamp()}:undefined);
-  const results=await Promise.all([review(),review()]);
+  const second=db('admin2').ref('coachPaymentAccounts/coach');
+  // Each Admin screen reads the queue before reviewing; keep both clients' snapshots loaded.
+  const listen=()=>{};ref.on('value',listen);second.on('value',listen);
+  await Promise.all([ref.once('value'),second.once('value')]);
+  const review=(target,uid)=>target.transaction(current=>current?.verificationStatus==='pending'?{...current,verificationStatus:'approved',verifiedBy:uid,verifiedAt:stamp()}:undefined);
+  const results=await Promise.all([review(ref,'admin'),review(second,'admin2')]);
+  ref.off('value',listen);second.off('value',listen);
   assert.equal(results.filter(result=>result.committed).length,1);
   assert.equal((await ref.once('value')).val().verificationStatus,'approved');
   await assertFails(ref.update({verificationStatus:'rejected',verifiedAt:stamp(),rejectionReason:'Outdated review'}));
@@ -58,6 +63,9 @@ test('coach cannot publish their own approved payment snapshot but normal profil
   await assertSucceeds(profile.update({displayName:'Updated Coach'}));
   await assertFails(profile.child('paymentPublic').set({verificationStatus:'approved',accountName:'Forged'}));
   await assertFails(db('coach').ref('coachPaymentPublic/coach').set({verificationStatus:'approved'}));
+  await assertSucceeds(db('admin').ref('coachPaymentPublic/coach').set({verificationStatus:'approved',accountNumber:'0012345678'}));
+  await assertFails(db('coach').ref('coachPaymentPublic/coach/accountNumber').set('9987654321'));
+  await assertFails(db('coach').ref('coachPaymentPublic/coach').remove());
   await assertSucceeds(db('admin').ref('coachProfiles/coach/paymentPublic').set({verificationStatus:'approved',accountName:'Reviewed'}));
   await assertSucceeds(profile.update({displayName:'Still Editable'}));
   await assertFails(profile.child('paymentPublic/accountName').set('Changed'));

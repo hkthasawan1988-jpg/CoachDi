@@ -11,7 +11,7 @@ async function admin(page,accounts={coach:pending},error=false){
   },{accounts,error});
 }
 
-test('admin overview and complete menu expose previously hidden pending bank requests; queue updates live',async({page})=>{
+test('admin overview exposes previously hidden pending bank requests; queue updates live',async({page})=>{
   const {pageErrors}=await openIsolatedApp(page);await admin(page);
   await expect(page.locator('#cdPayoutSummary')).toContainText('รออนุมัติ 1 รายการ');await expect(page.locator('[data-payout-nav]')).toHaveCount(1);
   await page.locator('[data-payout-action="open"]').click();await expect(page.locator('#cdPayoutRows')).toContainText('Coach ทดสอบ');
@@ -29,6 +29,12 @@ test('failed admin review leaves the request actionable and rejecting requires a
   await page.evaluate(()=>testWriteError=true);await page.locator('[data-payout-action="approve"]').click();await expect(page.locator('#cdPayoutStatus')).toContainText('บันทึกผลไม่สำเร็จ');await expect(page.locator('[data-payout-action="approve"]')).toBeEnabled();
   await page.evaluate(()=>testWriteError=false);await page.locator('[data-payout-action="approve"]').click();await expect(page.locator('#cdPayoutStatus')).toContainText('อนุมัติบัญชีรับเงินแล้ว');
 });
+test('review primes a cold Firebase ref without replacing the displayed request snapshot',async({page})=>{
+  await openIsolatedApp(page);await admin(page);await page.evaluate(()=>s41ShowAdmin('verify'));
+  await page.evaluate(()=>{const original=db.ref.bind(db);db.ref=path=>{const ref=original(path);if(path==='coachPaymentAccounts/coach'){let primed=false;const once=ref.once.bind(ref),transaction=ref.transaction.bind(ref);ref.once=async()=>{const result=await once('value');primed=true;return result;};ref.transaction=callback=>primed?transaction(callback):Promise.resolve({committed:false,snapshot:{val:()=>null}});}return ref;};});
+  await page.locator('[data-payout-action="approve"]').click();await expect(page.locator('#cdPayoutStatus')).toContainText('อนุมัติบัญชีรับเงินแล้ว');
+  expect(await page.evaluate(()=>testWrites.filter(w=>w.transaction&&w.path==='coachPaymentAccounts/coach'))).toHaveLength(1);
+});
 test('a slow public sync from the previous admin cannot block or mutate the next admin session',async({page})=>{
   await openIsolatedApp(page);await admin(page);
   await page.evaluate(value=>{
@@ -44,6 +50,7 @@ test('a slow public sync from the previous admin cannot block or mutate the next
 test('a deferred review transaction cancels when its admin session has ended',async({page})=>{
   await openIsolatedApp(page);await admin(page);await page.evaluate(()=>s41ShowAdmin('verify'));
   await page.evaluate(()=>{const original=db.ref.bind(db);db.ref=path=>{const ref=original(path);if(path==='coachPaymentAccounts/coach'){const transaction=ref.transaction.bind(ref);ref.transaction=async callback=>{await new Promise(resolve=>window.releasePayoutReview=resolve);return transaction(callback);};}return ref;};window.oldPayoutReview=adminVerifyPayout('coach',true);});
+  await page.waitForFunction(()=>typeof releasePayoutReview==='function');
   await page.evaluate(async()=>{state.user={uid:'admin-next'};testAuth.currentUser=state.user;await s41ShowAdmin('overview');releasePayoutReview();await oldPayoutReview;});
   expect(await page.evaluate(()=>testWrites.filter(w=>w.transaction&&w.path==='coachPaymentAccounts/coach'))).toHaveLength(0);
 });
@@ -61,7 +68,10 @@ test('coach submission is not lost when nonessential audit fails, duplicate taps
   await page.evaluate(()=>submitPaymentVerification());await expect(page.locator('#payMsg')).toContainText('ไม่ได้ส่งซ้ำ');expect(await page.evaluate(()=>testWrites.filter(w=>w.transaction&&w.path.startsWith('coachPaymentAccounts/')))).toHaveLength(1);
   expect(await page.evaluate(()=>testWrites.some(w=>w.path.startsWith('notifications/')))).toBe(false);
 });
-for(const width of [320,360,390,412])test(`bank approval card fits at ${width}px with long Thai and expanded details`,async({page})=>{
-  await page.setViewportSize({width,height:800});await openIsolatedApp(page,true);await admin(page);await page.evaluate(()=>s41ShowAdmin('verify'));await page.locator('#cdPayoutRows summary').click();
+for(const width of [320,360,390,412])test(`complete menu opens bank approval at ${width}px with long Thai and expanded details`,async({page})=>{
+  await page.setViewportSize({width,height:800});await openIsolatedApp(page,true);await admin(page);
+  await page.getByRole('button',{name:'เปิดเมนูทั้งหมด',exact:true}).click();
+  await page.locator('#c92MenuOverlay').getByRole('button',{name:/อนุมัติบัญชีรับเงิน/}).click();
+  await expect(page.locator('#cdPayoutRows')).toBeVisible();await page.locator('#cdPayoutRows summary').click();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);await page.locator('[data-payout-action="approve"]').scrollIntoViewIfNeeded();await expect(page.locator('[data-payout-action="approve"]')).toBeVisible();
 });

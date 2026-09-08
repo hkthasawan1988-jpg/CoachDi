@@ -23,7 +23,7 @@ Rules จำกัดโค้ชให้ส่ง pending และป้อ�
 ## ขั้นตอนเปิดใช้หลังอนุมัติการเผยแพร่
 
 1. เก็บ Netlify deploy เดิมและ export Firebase Rules ล่าสุด ตรวจว่าหน้าเว็บจริงยังตรง baseline; คงไฟล์และการตั้งค่า Production เดิม ทำ preview และ smoke test ก่อน publish
-2. รวม Rules ล่าสุดด้วย `scripts/prepare-mobile-rules.cjs` และ `scripts/prepare-payout-rules.cjs` ตรวจ diff/Rules emulator แล้วจึง publish เฉพาะ Rules ที่ผ่านการตรวจ
+2. รวม Rules ล่าสุดตามลำดับบัญชีคืนเงิน → ตารางสาธารณะ → บัญชีรับเงิน: ใช้ `scripts/prepare-refund-rules.cjs` ก่อน (หากกฎคืนเงินมีแล้วให้ตรวจว่าตรงข้อเสนอ), จากนั้น `scripts/prepare-mobile-rules.cjs` และ `scripts/prepare-payout-rules.cjs` ตรวจ diff/Rules emulator กับผลรวมจริง แล้วจึง publish เฉพาะ Rules ที่ผ่านการตรวจ
 3. ติดตั้ง dependencies แล้ว Deploy เฉพาะสองฟังก์ชันใหม่ใน codebase เดิมที่เตรียมไว้:
 
    `firebase deploy --project coach-di --config firebase.mobile.json --only functions:coach-di-mobile:syncCoachBookingSchedule,functions:coach-di-mobile:syncCoachPayoutVerification`

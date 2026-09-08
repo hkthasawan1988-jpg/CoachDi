@@ -85,9 +85,21 @@ test('superseded account events do nothing and a completed review notifies only 
 
 test('payout rules migration preserves unrelated rules, adds only scoped protections and rejects unknown authorization',()=>{
   const next=migration.merge(baseline);
-  for(const key of Object.keys(baseline.rules)) if(!['coachPaymentAccounts','coachProfiles'].includes(key)) assert.deepEqual(next.rules[key],baseline.rules[key]);
+  for(const key of Object.keys(baseline.rules)) if(!['coachPaymentAccounts','coachProfiles','coachPaymentPublic'].includes(key)) assert.deepEqual(next.rules[key],baseline.rules[key]);
   assert.equal(next.rules.coachProfiles.$coachId['.write'],baseline.rules.coachProfiles.$coachId['.write']);
   assert.deepEqual(migration.merge(next),next);
   const changed=structuredClone(baseline);changed.rules.coachPaymentAccounts.$coachId['.write']='unexpected';
   assert.throws(()=>migration.merge(changed),/changed/);
+});
+
+test('payout rules migration rejects partial or misleading pending guards instead of silently skipping protection',()=>{
+  const next=migration.merge(baseline);
+  for(const mutate of [
+    x=>x.rules.coachPaymentAccounts.$coachId['.write']="auth != null || newData.child('verificationStatus').val() === 'pending'",
+    x=>delete x.rules.coachPaymentAccounts.$coachId['.validate'],
+    x=>delete x.rules.coachProfiles.$coachId['.validate'],
+    x=>x.rules.coachPaymentPublic.$coachId['.write']='auth != null'
+  ]){const changed=structuredClone(next);mutate(changed);assert.throws(()=>migration.merge(changed),/changed|incomplete/);}
+  const prior=structuredClone(next);prior.rules.coachPaymentPublic.$coachId['.write']=baseline.rules.coachPaymentPublic.$coachId['.write'];
+  assert.deepEqual(migration.merge(prior),next);
 });

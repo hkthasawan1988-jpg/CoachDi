@@ -10,12 +10,10 @@ const time = key => `newData.child('${key}').isNumber() && newData.child('${key}
 function merge(current) {
   const next = structuredClone(current), r = next.rules;
   if (r?.['.read'] !== false || r?.['.write'] !== false) throw Error('Review root access first');
-  const account = r.coachPaymentAccounts?.$coachId, profile = r.coachProfiles?.$coachId;
-  if (!account || !profile || typeof account['.write'] !== 'string') throw Error('Expected existing payout/profile rules');
+  const account = r.coachPaymentAccounts?.$coachId, profile = r.coachProfiles?.$coachId, publicAccount = r.coachPaymentPublic?.$coachId;
+  if (!account || !profile || !publicAccount || typeof account['.write'] !== 'string') throw Error('Expected existing payout/profile rules');
   const marker = "newData.child('verificationStatus').val() === 'pending'";
-  if (account['.write'].includes(marker)) return next;
   const originalWrite = "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' && root.child('users').child(auth.uid).child('status').val() === 'active') || root.child('users').child(auth.uid).child('role').val() === 'admin')";
-  if (account['.write'] !== originalWrite) throw Error('Payout authorization changed; review it before merging');
   const pending = [
     "newData.exists()", marker,
     "!newData.child('verifiedBy').exists()", "!newData.child('verifiedAt').exists()", "!newData.child('rejectionReason').exists()",
@@ -26,13 +24,25 @@ function merge(current) {
     "(!data.child('verifiedAt').isNumber() || newData.child('submittedAt').val() > data.child('verifiedAt').val())",
     "(!newData.child('requestId').exists() || (newData.child('requestId').isString() && newData.child('requestId').val().length >= 8 && newData.child('requestId').val().length <= 128))"
   ].join(' && ');
-  account['.write'] = `auth != null && (${admin} || (auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' && root.child('users').child(auth.uid).child('status').val() === 'active' && ${pending}))`;
+  const accountWrite = `auth != null && (${admin} || (auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach' && root.child('users').child(auth.uid).child('status').val() === 'active' && ${pending}))`;
   const review = `newData.child('verificationStatus').val() === 'pending' || (${admin} && data.child('verificationStatus').val() === 'pending' && (newData.child('verificationStatus').val() === 'approved' || newData.child('verificationStatus').val() === 'rejected') && ${unchanged} && newData.child('verifiedBy').val() === auth.uid && ${time('verifiedAt')} && (!data.child('submittedAt').isNumber() || newData.child('verifiedAt').val() >= data.child('submittedAt').val()) && (newData.child('verificationStatus').val() !== 'rejected' || (${isText('rejectionReason',1,1000)})))`;
-  account['.validate'] = account['.validate'] ? `(${account['.validate']}) && (${review})` : review;
   const publicFields = ['verificationStatus','bank','accountNumber','masked','accountName','qrDataUrl','updatedAt','revision'];
   const publicUnchanged = publicFields.map(key => `newData.child('paymentPublic/${key}').val() === data.child('paymentPublic/${key}').val()`).join(' && ');
   const protectPublic = `${admin} || (newData.child('paymentPublic').exists() === data.child('paymentPublic').exists() && ${publicUnchanged})`;
+  const publicWrite = `auth != null && ${admin}`;
+  const hasGuard = (value, guard) => value === guard || (typeof value === 'string' && value.startsWith('(') && value.endsWith(`) && (${guard})`));
+  if (![originalWrite,publicWrite].includes(publicAccount['.write'])) throw Error('Public payout authorization changed; review it before merging');
+  // Accept only our exact reviewed authorization and complete validation guards as idempotent.
+  // A substring such as "pending" can also occur in permissive or partially migrated rules.
+  if (account['.write'] === accountWrite && hasGuard(account['.validate'],review) && hasGuard(profile['.validate'],protectPublic)) {
+    publicAccount['.write'] = publicWrite;
+    return next;
+  }
+  if (account['.write'] !== originalWrite) throw Error('Payout authorization changed or guards are incomplete; review it before merging');
+  account['.write'] = accountWrite;
+  account['.validate'] = account['.validate'] ? `(${account['.validate']}) && (${review})` : review;
   profile['.validate'] = profile['.validate'] ? `(${profile['.validate']}) && (${protectPublic})` : protectPublic;
+  publicAccount['.write'] = publicWrite;
   return next;
 }
 
