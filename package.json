@@ -13,7 +13,8 @@
     "android:sync": "npm run build && cap sync android",
     "android:open": "cap open android",
     "test:unit": "node --test test-unit/*.test.cjs",
-    "test:rules": "firebase emulators:exec --only database --project demo-coach-di-refunds --config firebase.emulator.json \"node --test test-rules/*.test.cjs\""
+    "test:rules": "firebase emulators:exec --only database --project demo-coach-di-refunds --config firebase.emulator.json \"node --test test-rules/*.test.cjs\"",
+    "test:auth": "node scripts/prepare-auth-tests.mjs && firebase emulators:exec --only auth --project demo-coach-di-session --config firebase.auth-emulator.json \"playwright test --config playwright.auth.config.js\""
   },
   "dependencies": {
     "@capacitor/android": "8.5.1",

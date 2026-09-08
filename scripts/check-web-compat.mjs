@@ -14,6 +14,12 @@ assert.equal(html.split(chatRoute).length, 2, 'Expected exactly one reviewed leg
 assert.ok(html.endsWith(mobileIncludes), 'Expected the reviewed mobile layout includes');
 html = html.slice(0, -mobileIncludes.length).replace(nativeShare, "const url=new URL(location.origin+'/');");
 html = html.replace(chatRoute, "try{showChat396=cd398ChatPage}catch(e){}");
+const sessionChanges = JSON.parse(await readFile(new URL('docs/session-compatibility-changes.json', root), 'utf8'));
+assert.equal(sessionChanges.length, 7, 'Expected seven reviewed session restoration adaptations');
+for (const {before, after} of sessionChanges) {
+  assert.equal(html.split(after).length, 2, 'Session adaptation must match exactly once: ' + after.slice(0, 70));
+  html = html.replace(after, before);
+}
 assert.equal(hash(html), baseline.normalized_index_sha256,
   'Unexpected changes to the Production web client. Review the change and migration baseline before proceeding.');
 
@@ -23,4 +29,4 @@ for (const asset of assets) {
   assert.equal(hash(await readFile(new URL(`dist/${asset.path}`, root))), asset.sha256, `Production asset omitted or changed in build: ${asset.path}`);
 }
 assert.equal(await readFile(new URL('dist/index.html', root), 'utf8'), await readFile(new URL('index.html', root), 'utf8'));
-console.log(`Web compatibility passed: complete Production HTML preserved except reviewed adaptations; ${assets.length} client assets match in source and build.`);
+console.log(`Web compatibility passed: Production HTML preserved except reviewed layout/chat/session adaptations; ${assets.length} client assets match in source and build.`);

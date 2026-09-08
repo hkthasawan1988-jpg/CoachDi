@@ -48,6 +48,7 @@ jobs:
           node --check functions-mobile/backfill.cjs
       - run: npm run test:rules
       - run: npx playwright install --with-deps chromium
+      - run: npm run test:auth
       - run: npm test
       - run: npx cap sync android
       - name: Clean and build Debug APK; lint Android
@@ -68,6 +69,8 @@ jobs:
           path: |
             playwright-report/
             test-results/
+            auth-test-report/
+            auth-test-results/
             android/app/build/reports/
           if-no-files-found: ignore
           retention-days: 14

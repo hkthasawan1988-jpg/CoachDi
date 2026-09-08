@@ -60,6 +60,7 @@
       profileSaved = true;
       if (auth.currentUser) throw Error('สร้างบัญชีแล้ว กรุณาเข้าสู่ระบบด้วย Email ที่สมัคร');
       closeSheet(); authMessage.textContent = 'สร้างบัญชีนักกีฬาแล้ว กำลังเข้าสู่ระบบ...';
+      CoachDiSession.preference(firebasePortalScope, document.getElementById('rememberLogin')?.checked !== false);
       await auth.setPersistence(document.getElementById('rememberLogin')?.checked === false ? firebase.auth.Auth.Persistence.SESSION : firebase.auth.Auth.Persistence.LOCAL);
       await auth.signInWithEmailAndPassword(email, password);
     } catch (failure) {

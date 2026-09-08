@@ -14,3 +14,6 @@ keystore.properties
 firebase-debug.log
 database-debug.log
 .firebase/
+.auth-test-sdk/
+auth-test-results/
+auth-test-report/

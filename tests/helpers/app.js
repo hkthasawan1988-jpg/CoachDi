@@ -56,6 +56,7 @@ async function openIsolatedApp(page, native = false, entry = '/', nativePush = f
     window.firebase = { initializeApp: () => app, apps: [], auth: authFn, database };
   }, {isNative:native,nativePush});
   await page.goto(entry);
+  await page.evaluate(() => testAuthListeners[0](null));
   await expect(page.locator('#loginView')).toBeVisible();
   expect(pageErrors).toEqual([]);
   expect(await page.evaluate(() => typeof state)).toBe('object');
