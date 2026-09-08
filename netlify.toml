@@ -4,3 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+# Firebase Android client identifier from google-services.json is public app config.
+# Exempt only this exact value; keep all secret scanning enabled.
+SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "AIzaSyABhmoqVwl43OfyT4blMNg-x5OhhPPNO8k"
