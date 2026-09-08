@@ -29,6 +29,7 @@ html.cd-native :is(.cdSupportFloat, .c79MobileOpenPlay) {
   max-width: calc(100% - 24px - var(--cd-safe-left) - var(--cd-safe-right));
   min-height: 48px; white-space: normal; overflow-wrap: anywhere;
 }
+html.cd-native.cd-chat-active .cdSupportFloat { display: none !important; }
 html.cd-native .cdSupportFloat { bottom: calc(var(--cd-bottom-clearance, var(--cd-safe-bottom)) + 12px) !important; }
 html.cd-native .c79MobileOpenPlay { bottom: calc(var(--cd-bottom-clearance, var(--cd-safe-bottom)) + var(--cd-support-clearance, 0px) + 12px) !important; }
 html.cd-native .inlineBookingTicket { bottom: calc(var(--cd-bottom-clearance, var(--cd-safe-bottom)) + var(--cd-float-clearance, 0px) + 12px) !important; }

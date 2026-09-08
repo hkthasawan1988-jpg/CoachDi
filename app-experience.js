@@ -37,6 +37,8 @@
     setMetric('--cd-float-clearance', `${supportSpace + floatSpace('.c79MobileOpenPlay')}px`);
     const safeBottom = parseFloat(getComputedStyle(root).getPropertyValue('--safe-area-inset-bottom')) || 0;
     const contentBottom = navHeight ? Math.min(height + top, nav.getBoundingClientRect().top) : height + top - safeBottom;
+    const chatVisible = [...document.querySelectorAll('.c43chat,.s41LineShell,.c70ChatLayout')].some(shell => shell.getClientRects().length);
+    root.classList.toggle('cd-chat-active', chatVisible);
     document.querySelectorAll('.c43chat,.s41LineShell,.c70ChatLayout').forEach(shell => {
       if (!shell.getClientRects().length) return;
       const available = Math.max(120, contentBottom - shell.getBoundingClientRect().top - 16);

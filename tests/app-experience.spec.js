@@ -143,9 +143,12 @@ for(const width of [320,360,390,412]) test(`native notification, guide and logou
     const user=testAuth.currentUser;
     // Firebase notifies every observer; listener order changes as features are added.
     // Seed an existing, active account so the real session/bootstrap observers can run.
-    testData[`users/${user.uid}`]={role:'coach',status:'active',displayName:'โค้ชทดสอบ'};
-    testData[`coachProfiles/${user.uid}`]={coachDiId:'ID_TEST',displayName:'โค้ชทดสอบ',status:'active'};
-    testData[`users/${user.uid}/subscription`]={status:'trial',trialEndsAt:Date.now()+30*86400000};
+    const subscription={status:'trial',trialEndsAt:Date.now()+30*86400000};
+    // The legacy account bootstrap reads completion flags and subscription on the
+    // parent user record; the flat database fixture must also seed the child read.
+    testData[`users/${user.uid}`]={role:'coach',status:'active',displayName:'โค้ชทดสอบ',registrationComplete:true,subscription};
+    testData[`coachProfiles/${user.uid}`]={coachDiId:'ID_TEST',displayName:'โค้ชทดสอบ',status:'active',registrationComplete:true};
+    testData[`users/${user.uid}/subscription`]=subscription;
     testData[`legalAcceptances/${user.uid}/${C62_TERMS_VERSION}`]={acceptedAt:1};
     testRealtimeValues[`coachPublicSchedule/${user.uid}`]={};
     localStorage.setItem(c91GuideKey(),'seen');
@@ -155,11 +158,13 @@ for(const width of [320,360,390,412]) test(`native notification, guide and logou
   await page.clock.runFor(3000);
   await expect(page.locator('#portal')).toBeVisible();
   await coach(page);
+  const writesBefore = await page.evaluate(() => testWrites.length);
   await page.evaluate(()=>c91InstallHelp());
   await expect(page.locator('#cdNativePushButton')).toBeVisible();
   await expect(page.locator('#cdNativePushButton')).toContainText('เปิดแจ้งเตือนแอป');
   const metrics=await page.evaluate(()=>({width:document.documentElement.scrollWidth,buttons:[...document.querySelectorAll('.topbar button')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,bottom:r.bottom};}),header:document.querySelector('.topbar').getBoundingClientRect().bottom}));
   expect(metrics.width).toBeLessThanOrEqual(width); for(const b of metrics.buttons){expect(b.left).toBeGreaterThanOrEqual(0);expect(b.right).toBeLessThanOrEqual(width);expect(b.bottom).toBeLessThanOrEqual(metrics.header);}
   await expect.poll(()=>page.locator('#c43input').evaluate(e=>e.getBoundingClientRect().bottom)).toBeLessThanOrEqual(740);
-  expect(pageErrors).toEqual([]);expect(await page.evaluate(()=>testWrites.length)).toBe(0);
+  expect(pageErrors).toEqual([]);
+  expect(await page.evaluate((base)=>testWrites.slice(base),writesBefore)).toEqual([]);
 });
