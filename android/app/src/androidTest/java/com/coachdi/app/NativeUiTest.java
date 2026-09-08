@@ -2,6 +2,7 @@ package com.coachdi.app;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.pm.ActivityInfo;
@@ -191,6 +192,17 @@ public class NativeUiTest {
         while (manager.getActiveNotifications().length != expected && SystemClock.elapsedRealtime() < deadline) SystemClock.sleep(50);
         assertEquals(expected, manager.getActiveNotifications().length);
     }
+    @Test public void yNativeNotificationChannelUsesSystemSoundAndReportsSettings() throws Exception {
+        android.content.Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        android.app.NotificationManager manager = (android.app.NotificationManager) context.getSystemService(android.content.Context.NOTIFICATION_SERVICE);
+        shell("pm grant com.coachdi.app android.permission.POST_NOTIFICATIONS");
+        js("(Capacitor.Plugins.CoachDiNotifications.prepareChannel().then(()=>Capacitor.Plugins.CoachDiNotifications.getStatus()).then(status=>window.__nativeNotificationStatus=status),true)");
+        awaitTrue("window.__nativeNotificationStatus && window.__nativeNotificationStatus.appEnabled && window.__nativeNotificationStatus.channelEnabled");
+        android.app.NotificationChannel channel = manager.getNotificationChannel(CoachDiMessagingService.CHANNEL);
+        assertNotNull(channel);
+        assertEquals(android.app.NotificationManager.IMPORTANCE_HIGH, channel.getImportance());
+        assertEquals(android.provider.Settings.System.DEFAULT_NOTIFICATION_URI, channel.getSound());
+    }
     @Test public void zDataPushDisplaysOnceAndSignedOutSessionSuppressesIt() throws Exception {
         android.content.Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         shell("pm grant com.coachdi.app android.permission.POST_NOTIFICATIONS");
@@ -207,6 +219,16 @@ public class NativeUiTest {
             awaitNotificationCount(manager, 1);
             assertEquals("fixture-notification",manager.getActiveNotifications()[0].getTag());
             assertFalse(manager.getActiveNotifications()[0].getNotification().extras.getCharSequence(android.app.Notification.EXTRA_TEXT).toString().contains("private fixture text"));
+            manager.cancelAll(); awaitNotificationCount(manager, 0);
+            com.google.firebase.messaging.RemoteMessage wrongRecipient = new com.google.firebase.messaging.RemoteMessage.Builder("41680156013")
+                .setMessageId("fixture-other").addData("notificationId","fixture-other-notification")
+                .addData("userId","other-user").addData("body","other account text").build();
+            service.onMessageReceived(wrongRecipient); assertEquals(0,manager.getActiveNotifications().length);
+            com.google.firebase.messaging.RemoteMessage ownRecipient = new com.google.firebase.messaging.RemoteMessage.Builder("41680156013")
+                .setMessageId("fixture-own").addData("notificationId","fixture-own-notification")
+                .addData("userId","fixture").addData("body","own account text").build();
+            service.onMessageReceived(ownRecipient); awaitNotificationCount(manager, 1);
+            assertEquals("own account text",manager.getActiveNotifications()[0].getNotification().extras.getCharSequence(android.app.Notification.EXTRA_TEXT).toString());
             manager.cancelAll(); preferences.edit().putBoolean("enabled",false).commit();
             awaitNotificationCount(manager, 0);
             service.onMessageReceived(message); assertEquals(0,manager.getActiveNotifications().length);

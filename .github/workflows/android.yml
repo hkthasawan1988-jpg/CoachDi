@@ -46,6 +46,10 @@ jobs:
           npm ci --prefix functions-mobile
           node --check functions-mobile/index.js
           node --check functions-mobile/backfill.cjs
+          node --check functions-mobile/payout-verification.cjs
+          npm ci --prefix functions-push
+          node --check functions-push/index.js
+          node --check functions-push/sender.cjs
       - run: npm run test:rules
       - run: npx playwright install --with-deps chromium
       - run: npm run test:auth
