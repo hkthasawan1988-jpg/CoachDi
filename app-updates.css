@@ -8,7 +8,7 @@
 #c95AdInquiry p{font-size:13px!important;line-height:1.65!important}
 #c95AdInquiry .c95AdEyebrow{font-size:10px!important}
 #c95AdInquiry .c95AdButton{font-size:13px!important;min-height:44px!important}
-.cdClassLaunch{position:fixed;inset:0;z-index:15000;display:flex;align-items:center;justify-content:center;background:#10233f80;box-sizing:border-box;padding:16px;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));height:100vh;height:100dvh;overscroll-behavior:contain}
+.cdClassLaunch{position:fixed;inset:0;z-index:15000;display:flex;align-items:center;justify-content:center;background:#10233f80;box-sizing:border-box;padding:16px;padding:calc(12px + var(--cd-safe-top,env(safe-area-inset-top,0px))) calc(12px + var(--cd-safe-right,env(safe-area-inset-right,0px))) calc(12px + var(--cd-safe-bottom,env(safe-area-inset-bottom,0px))) calc(12px + var(--cd-safe-left,env(safe-area-inset-left,0px)));height:100vh;height:100dvh;overscroll-behavior:contain}
 .cdClassLaunch *{box-sizing:border-box;min-width:0;overflow-wrap:anywhere}
 .cdClassLaunch section{display:flex;flex-direction:column;width:100%;max-width:540px;max-height:100%;overflow:hidden;border-radius:20px;background:#fff;color:#10233f;box-shadow:0 16px 60px #10233f50}
 .cdClassLaunch header{padding:20px 20px 12px;flex-shrink:0;background:#edf9f6}

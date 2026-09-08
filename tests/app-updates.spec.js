@@ -49,7 +49,7 @@ for(const width of [320,360,390,412,840])test(`new class alert stays within ${wi
 });
 test('past class including earlier today is blocked before any writes; a future class submits once',async({page})=>{
   await openIsolatedApp(page);await page.evaluate(()=>{state.role='coach';state.user={uid:'coach-create'};testAuth.currentUser=state.user;state.coachProfile={displayName:'Coach'};state.subscription={trialEndsAt:Date.now()+86400000};loginView.classList.add('hidden');portal.classList.remove('hidden');audit=async()=>{};c76OpenCreate();});
-  await page.locator('#c76Title').fill('คลาสทดสอบ');await page.locator('#c76Venue').selectOption('__other');await page.locator('#c76OtherVenue').fill('สนามทดสอบ');
+  await page.locator('#c76Title').fill('คลาสทดสอบ');await page.locator('#c76Price').fill('200');await page.locator('#c76Venue').selectOption('__other');await page.locator('#c76OtherVenue').fill('สนามทดสอบ');
   await page.evaluate(()=>{const local=new Date(Date.now()+7*3600000).toISOString();document.getElementById('c76Date').value=local.slice(0,10);document.getElementById('c76Start').value='00:00';document.getElementById('c76End').value='23:59';return c76CreateClass({preventDefault(){}});});
   await expect(page.locator('#cdClassDateError')).toContainText('เลยเวลามาแล้ว');expect(await page.evaluate(()=>testWrites)).toHaveLength(0);
   await page.locator('#c76Date').fill(future);await page.locator('#c76Start').fill('10:00');await page.locator('#c76End').fill('11:00');
@@ -60,6 +60,6 @@ test('rescheduling and reopening a past class cannot write; ad copy is compact w
   await openIsolatedApp(page);await page.evaluate(value=>{state.role='coach';state.user={uid:'coach-one'};testAuth.currentUser=state.user;state.c76GroupClasses=[{...value,date:'2020-01-01'}];state.coachProfile={};loginView.classList.add('hidden');portal.classList.remove('hidden');c111OpenGroupClassEdit('new-class');},row);
   await page.evaluate(()=>c111SaveGroupClassEdit({preventDefault(){}},'new-class'));await expect(page.locator('#cdClassDateError')).toContainText('เลยเวลามาแล้ว');
   page.once('dialog',dialog=>dialog.accept());await page.evaluate(()=>c76SetClassStatus('new-class','open',{}));expect(await page.evaluate(()=>testWrites)).toHaveLength(0);
-  await page.evaluate(()=>{c76CloseModal();coachContent.innerHTML=c95AdInquiryHtml();});
+  await page.evaluate(()=>{c76CloseModal();coachPage.classList.remove('hidden');coachContent.innerHTML=c95AdInquiryHtml();});
   expect(await page.locator('#c95AdInquiry h2').evaluate(el=>getComputedStyle(el).fontSize)).toBe('16px');expect((await page.locator('.c95AdButton.primary').boundingBox()).height).toBeGreaterThanOrEqual(44);
 });

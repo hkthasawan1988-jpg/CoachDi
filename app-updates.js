@@ -17,7 +17,7 @@
     if(!host||state.role!=='admin'||state.c47AdminPage!=='overview'){document.getElementById('cdCustomerSummary')?.remove();return;}
     let panel=document.getElementById('cdCustomerSummary');if(!panel){panel=document.createElement('section');panel.id='cdCustomerSummary';panel.setAttribute('aria-label','สรุปจำนวนลูกค้า');host.prepend(panel);}
     const value=failed?'โหลดข้อมูลไม่สำเร็จ':loaded?`${C.customers(users).toLocaleString('th-TH')} คน`:'กำลังโหลด…';
-    const html=`<div><b>ลูกค้าทั้งหมด</b><strong aria-live="polite">${value}</strong><p>บัญชีนักกีฬาที่สมัครแล้ว · ไม่รวม Coach และ Admin</p></div><button type="button" class="pill" data-cd-customers>${failed?'ลองโหลดอีกครั้ง':'ดูรายชื่อลูกค้า'}</button>`;
+    const html=`<div><b>ลูกค้าทั้งหมด</b><strong aria-live="polite">${value}</strong><p>บัญชีนักกีฬาที่สมัครแล้ว · ไม่รวม Coach และ Admin</p></div><button type="button" class="pill" data-cd-customers="1">${failed?'ลองโหลดอีกครั้ง':'ดูรายชื่อลูกค้า'}</button>`;
     if(panel.innerHTML!==html)panel.innerHTML=html;
   }
   // c97 counted every open class again immediately after c94MarkSeen cleared the count.

@@ -143,6 +143,29 @@ public class NativeUiTest {
         }
     }
 
+    @Test public void groupClassAnnouncementSurvivesRotationAndBackMarksItRead() throws Exception {
+        assertEquals("true", js("(function(){window.classAuthReady=false;auth.onAuthStateChanged(function(){window.classAuthReady=true;});return true;})()"));
+        awaitTrue("window.classAuthReady && auth.currentUser===null");
+        // Read-only presentation fixture: no Firebase login, class creation or booking.
+        assertEquals("true", js("(function(){state.role='athlete';state.user={uid:'native-class-fixture'};" +
+            "localStorage.removeItem('coachdi-class-announcements:v1:native-class-fixture');" +
+            "loginView.classList.add('hidden');portal.classList.remove('hidden');renderNav();" +
+            "state.c94GroupRows=Array.from({length:8},(_,i)=>({id:'native-class-'+i,coachId:'fixture-coach',coachName:'โค้ชทดสอบ',title:'คลาสกลุ่มใหม่สำหรับทดสอบภาษาไทยยาว'.repeat(4),date:new Date(Date.now()+432000000).toISOString().slice(0,10),start:'10:00',end:'11:00',status:'open',capacity:8,approvedCount:1,venueName:'สนามทดสอบภาษาไทยยาว'.repeat(4),priceSatang:20000,createdAt:Date.now()}));" +
+            "c94Refresh();return true;})()"));
+        awaitTrue("!!document.getElementById('cdClassLaunch')");
+        assertClassFooterVisible();screenshot("group-class-portrait");
+        activity.getScenario().onActivity(a -> a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
+        awaitTrue("innerWidth>innerHeight");assertClassFooterVisible();screenshot("group-class-landscape");
+        Espresso.pressBackUnconditionally();
+        awaitTrue("!document.getElementById('cdClassLaunch')");
+        assertEquals("true", js("(function(){c94Refresh();return !document.getElementById('cdClassLaunch')&&state.c94Counts.group===0&&auth.currentUser===null;})()"));
+        assertEquals(Lifecycle.State.RESUMED, activity.getScenario().getState());
+    }
+
+    private void assertClassFooterVisible() throws Exception {
+        awaitTrue("(function(){var box=document.querySelector('#cdClassLaunch section').getBoundingClientRect(),footer=document.querySelector('#cdClassLaunch footer').getBoundingClientRect(),body=document.querySelector('.cdClassLaunchBody'),safe=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom'))||0;return box.left>=0&&box.right<=innerWidth&&footer.bottom<=innerHeight-safe&&footer.top>=0&&body.scrollHeight>body.clientHeight&&document.documentElement.scrollWidth<=innerWidth;})()");
+    }
+
     @Test public void thaiWarningSurvivesRotationAndAndroidBack() throws Exception {
         // UI-only fixture: this warning and venue chooser do not create a booking.
         assertEquals("true", js("(function(){state.coachId='native-ui-fixture';state.coaches=[{uid:'native-ui-fixture',displayName:'รายละเอียดภาษาไทยยาวสำหรับตรวจหน้าจอ'.repeat(40)}];cd392CourtWarning('2026-10-10',10);return true;})()"));
