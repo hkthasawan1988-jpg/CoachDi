@@ -266,8 +266,8 @@ async function login(){
   CoachDiSession.preference(firebasePortalScope,remember);
   try{remember?localStorage.setItem(C99_LOGIN_EMAIL_KEY,email):localStorage.removeItem(C99_LOGIN_EMAIL_KEY)}catch(_){}
   await auth.signInWithEmailAndPassword(email,password);
- }catch(e){authMessage.textContent=thaiAuthError(e)}
- finally{sessionLoginPending=false;sessionLoginIntent=null;loginBtn.disabled=false}
+ }catch(e){sessionLoginIntent=null;authMessage.textContent=thaiAuthError(e)}
+ finally{sessionLoginPending=false;loginBtn.disabled=false}
 }
 async function registerAthlete(){try{let email=loginId.value.trim(),pass=loginPass.value;if(!email||pass.length<6)throw new Error("กรุณากรอก Email และ Password อย่างน้อย 6 ตัวอักษร");let c=await auth.createUserWithEmailAndPassword(email,pass);await db.ref(`users/${c.user.uid}`).set({role:"athlete",email,createdAt:firebase.database.ServerValue.TIMESTAMP});authMessage.textContent="สร้างบัญชีนักกีฬาแล้ว"}catch(e){authMessage.textContent=thaiAuthError(e)}}
 async function resetPassword(){const email=loginId.value.trim().toLowerCase(),btn=document.getElementById('resetPasswordBtn');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){authMessage.textContent='กรุณากรอก Email ที่ถูกต้องก่อนกดลืมรหัสผ่าน';return}try{btn.disabled=true;authMessage.textContent='กำลังส่งลิงก์ตั้งรหัสผ่านใหม่...';await auth.sendPasswordResetEmail(email);authMessage.textContent='ส่งคำขอแล้วจาก Firebase • กรุณาตรวจ Inbox และ Spam/Junk ของ Email นี้'}catch(e){console.error('password reset',e);authMessage.textContent=thaiAuthError(e)}finally{btn.disabled=false}}
@@ -354,7 +354,7 @@ async function restoreCoachDiSession(user,loginIntent=null){
  }finally{if(revision===sessionBootstrapRevision)sessionBootstrapBusy=false}
 }
 function retryCoachDiSession(){if(auth.currentUser&&!sessionBootstrapBusy)return restoreCoachDiSession(auth.currentUser)}
-auth.onAuthStateChanged(user=>restoreCoachDiSession(user,sessionLoginIntent));
+auth.onAuthStateChanged(user=>{const intent=user?sessionLoginIntent:null;if(user)sessionLoginIntent=null;return restoreCoachDiSession(user,intent)});
 window.addEventListener('online',()=>{if(state.authBootstrapError)retryCoachDiSession()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&state.authBootstrapError)retryCoachDiSession()});
 function renderNav(){

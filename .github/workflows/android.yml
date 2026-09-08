@@ -71,6 +71,7 @@ jobs:
             test-results/
             auth-test-report/
             auth-test-results/
+            !auth-test-results/**/browser-profile/**
             android/app/build/reports/
           if-no-files-found: ignore
           retention-days: 14

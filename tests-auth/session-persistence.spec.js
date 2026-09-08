@@ -27,7 +27,11 @@ async function attach(context,role){
   },{role});
   await context.route('**/*',async route=>{
     const url=new URL(route.request().url());
-    if(url.origin===emulator)return route.continue();
+    // Keep browser requests same-origin; proxy only these demo Auth endpoints to the emulator.
+    // Chromium's loopback permission otherwise blocks cross-port requests in routed test pages.
+    if(url.origin===origin&&/^\/(identitytoolkit|securetoken)\.googleapis\.com\//.test(url.pathname)){
+      const response=await route.fetch({url:emulator+url.pathname+url.search});return route.fulfill({response});
+    }
     const sdkName=url.pathname.split('/').at(-1);
     if(url.hostname==='www.gstatic.com'&&sdk[sdkName])return route.fulfill({status:200,contentType:'text/javascript',body:sdk[sdkName]});
     if(url.origin!==origin)return route.fulfill({status:200,contentType:'text/javascript',body:''});
@@ -38,7 +42,7 @@ async function attach(context,role){
       expect(html.includes(marker)).toBeTruthy();
       html=html.replace(marker,`firebase.database=()=>window.sessionTestDb;firebase.database.ServerValue={TIMESTAMP:{'.sv':'timestamp'}};
         const auth=coachDiFirebaseApp.auth(),db=window.sessionTestDb;
-        auth.useEmulator('${emulator}',{disableWarnings:true});
+        auth.useEmulator('${origin}',{disableWarnings:true});
         const sessionRealListener=auth.onAuthStateChanged.bind(auth);let sessionPrimaryListener=true;
         auth.onAuthStateChanged=function(callback){if(!sessionPrimaryListener)return ()=>{};sessionPrimaryListener=false;return sessionRealListener(async user=>{
           if(document.readyState==='loading')await new Promise(resolve=>document.addEventListener('DOMContentLoaded',resolve,{once:true}));
@@ -61,7 +65,7 @@ async function open(context,url='/'){
 }
 async function loginAs(page,user,remember=true){
   await expect(page.locator('#loginView')).toBeVisible();
-  await page.locator(`#portalChooser [data-role="${user.role}"]`).click();
+  if(await page.evaluate(()=>selectedLoginPortal)!==user.role)await page.locator(`#portalChooser [data-role="${user.role}"]`).click();
   await page.locator('#loginId').fill(user.email);await page.locator('#loginPass').fill(user.password);
   await page.locator('#rememberLogin').setChecked(remember);await page.locator('#loginBtn').click();
   await expect(page.locator('#portal')).toBeVisible();
@@ -105,5 +109,17 @@ test('SESSION opt-out ends when the browser process closes',async({request},test
     await context.close();context=await chromium.launchPersistentContext(profile,{headless:true,serviceWorkers:'block'});
     await attach(context,'athlete');page=await open(context);await expect(page.locator('#loginView')).toBeVisible();
     expect(await page.evaluate(()=>auth.currentUser)).toBeNull();await expect(page.locator('#rememberLogin')).not.toBeChecked();
+  }finally{await context.close();}
+});
+
+test('explicit sign-in still rejects a coach account on the athlete login form',async({browser,request})=>{
+  const user=await account(request,'coach'),context=await browser.newContext();
+  try{
+    await attach(context,'coach');const page=await open(context);
+    await page.locator('#loginId').fill(user.email);await page.locator('#loginPass').fill(user.password);
+    await page.locator('#loginBtn').click();
+    await expect(page.locator('#authMessage')).toContainText('ไม่สามารถเข้า athlete Portal ได้');
+    expect(await page.evaluate(()=>auth.currentUser)).toBeNull();await expect(page.locator('#portal')).toBeHidden();
+    await loginAs(page,user);
   }finally{await context.close();}
 });
