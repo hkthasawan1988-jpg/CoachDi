@@ -11,6 +11,7 @@
 /* Chat already reserves measured navigation space. Extra page padding would
    create an outer scroll area that slides the conversation under the header. */
 html.cd-chat-active .main{padding-bottom:0!important}
+html.cd-chat-active .layout{min-height:0!important}
 /* Make room for the conversation and composer while the keyboard is open. */
 @media(max-height:560px){.cd-chat-active #athletePage>.athleteTabs,.cd-chat-active #s40ChatHost>.pageTitle{display:none!important}}
 .cdClassLaunch{position:fixed;inset:0;z-index:15000;display:flex;align-items:center;justify-content:center;background:#10233f80;box-sizing:border-box;padding:16px;padding:calc(12px + var(--cd-safe-top,env(safe-area-inset-top,0px))) calc(12px + var(--cd-safe-right,env(safe-area-inset-right,0px))) calc(12px + var(--cd-safe-bottom,env(safe-area-inset-bottom,0px))) calc(12px + var(--cd-safe-left,env(safe-area-inset-left,0px)));height:100vh;height:100dvh;overscroll-behavior:contain}

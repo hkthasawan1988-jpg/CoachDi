@@ -57,6 +57,7 @@ test('web chat and repeated athlete routes keep a single small footer after cont
   }
   await expect.poll(()=>page.evaluate(()=>scrollY)).toBe(0);
   await expect.poll(()=>page.evaluate(()=>document.querySelector('.s41LineShell').getBoundingClientRect().top>=document.querySelector('.topbar').getBoundingClientRect().bottom)).toBe(true);
+  expect(await page.evaluate(()=>document.documentElement.scrollHeight)).toBeLessThanOrEqual(844);
   await expect(page.locator('#c95AdInquiry a')).toHaveAttribute('href',/^mailto:hkthasawan1988@gmail\.com\?subject=/);
   await page.evaluate(()=>{window.staffContactOpened=false;c95OpenStaffChat=()=>{window.staffContactOpened=true;};});
   await page.getByRole('button',{name:'แชทกับทีมงาน',exact:true}).click();expect(await page.evaluate(()=>staffContactOpened)).toBe(true);
