@@ -12,9 +12,10 @@ async function openIsolatedApp(page, native = false, entry = '/', nativePush = f
   });
   await page.addInitScript(({isNative,nativePush}) => {
     window.Capacitor = { isNativePlatform: () => isNative };
+    window.testPushEvents={};window.testPushCalls=[];window.testNativeSession={uid:''};
     if(nativePush) window.Capacitor.Plugins={
-      PushNotifications:{addListener:async()=>{},checkPermissions:async()=>({receive:'prompt'}),unregister:async()=>{}},
-      CoachDiNotifications:{getPending:async()=>({}),getSession:async()=>({uid:''}),configureSession:async()=>{},clearPending:async()=>{},unregister:async()=>{}}
+      PushNotifications:{addListener:async(name,cb)=>{testPushEvents[name]=cb;},checkPermissions:async()=>({receive:window.testPushPermission||'prompt'}),requestPermissions:async()=>{testPushCalls.push('permission');window.testPushPermission='granted';return {receive:'granted'};},register:async()=>{testPushCalls.push('register');testPushEvents.registration?.({value:'fixture-token'});},unregister:async()=>{}},
+      CoachDiNotifications:{getPending:async()=>({}),getSession:async()=>testNativeSession,configureSession:async(value)=>{window.testNativeSession=value;},clearPending:async()=>{},unregister:async()=>{},prepareChannel:async()=>{},getStatus:async()=>({appEnabled:true,channelEnabled:true})}
     };
     window.testAuthListeners=[];
     window.testWrites = [];

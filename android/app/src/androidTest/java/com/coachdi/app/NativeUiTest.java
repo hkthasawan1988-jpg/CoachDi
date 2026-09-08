@@ -97,7 +97,7 @@ public class NativeUiTest {
         assertEquals("true", js("(function(){db.ref=function(path){const snapshot={val:()=>null,exists:()=>false};const ref={child:()=>ref,once:async()=>snapshot,on:(event,cb)=>cb(snapshot),off:()=>{},orderByChild:()=>ref,equalTo:()=>ref,limitToLast:()=>ref};['set','update','remove','push','transaction'].forEach(key=>ref[key]=()=>{throw Error('Native layout fixture forbids writes');});return ref;};" +
             "state.role='athlete';state.user={uid:'native-chat-fixture'};state.coaches=[{uid:'coach',displayName:'โค้ชทดสอบ'}];state.allAthleteBookings=[{id:'fixture',coachId:'coach',athleteId:state.user.uid,coachName:'โค้ชทดสอบ',date:TODAY,start:10,end:11,venue:'สนามทดสอบ',status:'confirmed'}];" +
             "localStorage.setItem('coachDiLocationConsent','denied');loginView.classList.add('hidden');portal.classList.remove('hidden');logoutBtn.classList.remove('hidden');renderNav();c91InstallHelp();" +
-            "logoutBtn.parentElement.insertAdjacentHTML('afterbegin','<button id=cdNativePushButton class=pill>🔔 เปิดแจ้งเตือนแอป</button>');showAthleteMenu('home');return true;})()"));
+            "var pushButton=document.getElementById('cdNativePushButton');if(pushButton)pushButton.hidden=false;showAthleteMenu('home');return true;})()"));
         awaitTrue("!!document.getElementById('c63VenueBottom') && !!document.getElementById('c95AdInquiry')");
         assertEquals("true", js("(function(){showAthleteMenu('mybookings');return true;})()"));
         awaitTrue("athletePage.lastElementChild.id==='c95AdInquiry' && document.getElementById('s40AthleteDynamic').dataset.page==='mybookings'");
@@ -107,6 +107,21 @@ public class NativeUiTest {
         awaitTrue("(function(){var shell=document.querySelector('.s41LineShell').getBoundingClientRect(),footer=document.getElementById('c95AdInquiry').getBoundingClientRect(),nav=document.getElementById('mobileNav').getBoundingClientRect(),input=document.getElementById('s41LineInput').getBoundingClientRect();return shell.height>innerHeight*.35&&shell.bottom<=footer.top&&footer.bottom<=nav.top&&nav.top-footer.bottom<12&&input.top>=shell.top&&input.bottom<=shell.bottom&&document.documentElement.scrollWidth<=innerWidth;})()");
         assertEquals("true", js("auth.currentUser===null"));
         screenshot("athlete-chat-footer");
+    }
+
+    @Test public void courtWeekAndPlayerProfileFitAndroidWebView() throws Exception {
+        assertEquals("true", js("(function(){window.courtAuthReady=false;auth.onAuthStateChanged(function(){window.courtAuthReady=true;});return true;})()"));
+        awaitTrue("window.courtAuthReady && auth.currentUser===null");
+        assertEquals("true", js("(function(){db.ref=function(){const snapshot={val:()=>null,exists:()=>false};const ref={child:()=>ref,once:async()=>snapshot,on:(event,cb)=>cb(snapshot),off:()=>{},orderByChild:()=>ref,equalTo:()=>ref,limitToLast:()=>ref};['set','update','remove','push','transaction'].forEach(key=>ref[key]=()=>{throw Error('Native court fixture forbids writes');});return ref;};" +
+            "state.role='athlete';state.user={uid:'native-court-fixture'};state.userProfile={role:'athlete',displayName:'มะลิ นักกีฬาทดสอบ'};state.coaches=[{uid:'fixture-coach',displayName:'โค้ชทดสอบ'}];state.availability={start:8,end:20};state.weekStart=TODAY;state.venues=[{id:'court',name:'สนามเทนนิสทดสอบ',openStart:8,openEnd:22}];state.coachLocations=[{date:TODAY,start:9,end:11,venueId:'court'}];state.cdPublicBookings=[{date:TODAY,start:12,end:13,venueName:'VISDA Premium Tennis Club',active:true}];" +
+            "localStorage.setItem('coachDiLocationConsent','denied');loginView.classList.add('hidden');portal.classList.remove('hidden');logoutBtn.classList.remove('hidden');renderNav();c91InstallHelp();showAthleteMenu('home');cd392ApplyFlow('profile');state.coachId='fixture-coach';" +
+            "for(const child of athletePage.children)child.style.display='none';document.querySelector('#athletePage>.athleteTabs').style.display='flex';document.getElementById('coachBookingTab').style.display='block';document.querySelector('#athletePage .scheduleShell').style.display='block';renderSchedule();c95InstallAdInquiry();window.scrollTo(0,0);return true;})()"));
+        awaitTrue("(function(){var table=document.getElementById('scheduleTable'),box=table.getBoundingClientRect();return table.querySelectorAll('.dayHead').length===7&&box.width>0&&box.right<=innerWidth&&document.documentElement.scrollWidth<=innerWidth&&document.getElementById('cdWeekVenues').textContent.includes('VISDA Premium Tennis Club');})()");
+        screenshot("court-seven-days");
+        assertEquals("true", js("(function(){showAthleteMenu('profile');window.scrollTo(0,0);return true;})()"));
+        awaitTrue("(function(){var photo=document.querySelector('.cdPlayerAvatar'),box=photo.getBoundingClientRect();return document.querySelector('.cdPlayerHero h1').textContent==='มะลิ นักกีฬาทดสอบ'&&box.width===box.height&&getComputedStyle(photo).borderRadius==='50%'&&document.documentElement.scrollWidth<=innerWidth;})()");
+        screenshot("court-player-profile");
+        assertEquals("true", js("auth.currentUser===null"));
     }
 
     @Test public void packagedLoginLoadsWithoutRequestingNotificationPermission() throws Exception {

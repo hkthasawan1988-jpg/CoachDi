@@ -93,7 +93,8 @@ test('public booked slots show venue in blue while private booking data stays ab
     renderSchedule();return dayCellStatus(TODAY,10);
   });
   expect(result.type).toBe('booked');expect(result.label).toBe('สนามของการจองอื่น');
-  await expect(page.locator('.daySlot.booked').first()).toContainText('สนามของการจองอื่น');
+  await expect(page.locator('.daySlot.booked').first()).toHaveAttribute('title','สนามของการจองอื่น');
+  await expect(page.locator('#cdWeekVenues')).toContainText('สนามของการจองอื่น');
   expect(await page.evaluate(()=>testWrites.length)).toBe(0);
 });
 
@@ -161,7 +162,8 @@ for(const width of [320,360,390,412]) test(`native notification, guide and logou
   const writesBefore = await page.evaluate(() => testWrites.length);
   await page.evaluate(()=>c91InstallHelp());
   await expect(page.locator('#cdNativePushButton')).toBeVisible();
-  await expect(page.locator('#cdNativePushButton')).toContainText('เปิดแจ้งเตือนแอป');
+  await expect(page.locator('#cdNativePushButton')).toContainText('ปิด');
+  await expect(page.locator('#cdNativePushButton')).toHaveAttribute('role','switch');
   const metrics=await page.evaluate(()=>({width:document.documentElement.scrollWidth,buttons:[...document.querySelectorAll('.topbar button')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,bottom:r.bottom};}),header:document.querySelector('.topbar').getBoundingClientRect().bottom}));
   expect(metrics.width).toBeLessThanOrEqual(width); for(const b of metrics.buttons){expect(b.left).toBeGreaterThanOrEqual(0);expect(b.right).toBeLessThanOrEqual(width);expect(b.bottom).toBeLessThanOrEqual(metrics.header);}
   await expect.poll(()=>page.locator('#c43input').evaluate(e=>e.getBoundingClientRect().bottom)).toBeLessThanOrEqual(740);

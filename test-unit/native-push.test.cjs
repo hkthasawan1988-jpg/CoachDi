@@ -10,7 +10,8 @@ async function setup(options={}) {
   const events={},calls=[],elements={},writes=[],timers=new Map(),surfaceEvents={},reads=[];
   let authChanged,timerId=0,permission=options.permission || 'prompt',status={appEnabled:true,channelEnabled:true,...options.status};
   let nativeSession={uid:'',deviceId:'',...options.nativeSession};
-  const element=()=>({hidden:false,disabled:false,textContent:'',className:''});
+  const element=()=>({hidden:false,disabled:false,textContent:'',className:'',attributes:{},setAttribute(key,value){this.attributes[key]=value;}});
+  const stored=options.storage||new Map();
   const push={
     addListener:async(name,cb)=>{events[name]=cb;},
     checkPermissions:async()=>({receive:permission}),
@@ -24,7 +25,7 @@ async function setup(options={}) {
     openSettings:async data=>calls.push(data.channel?'channel-settings':'app-settings'),
     unregister:async()=>{calls.push('unregister');if(options.reset)await options.reset();calls.push('unregistered');}
   };
-  const sandbox={console,crypto:webcrypto,TextEncoder,
+  const sandbox={console,crypto:webcrypto,TextEncoder,localStorage:{getItem:key=>stored.get(key)||null,setItem:(key,value)=>stored.set(key,value)},
     setTimeout:(fn,ms)=>{const id=++timerId;timers.set(id,{fn,ms});return id;},clearTimeout:id=>timers.delete(id),
     state:{role:'athlete'},firebase:{database:{ServerValue:{TIMESTAMP:1}}},
     auth:{currentUser:null,onAuthStateChanged:cb=>{authChanged=cb;}},
@@ -39,7 +40,7 @@ async function setup(options={}) {
     showAthleteMenu:page=>calls.push('navigate-'+page),showCoach:page=>calls.push('navigate-'+page),s41ShowAdmin:page=>calls.push('navigate-'+page)};
   sandbox.window=sandbox;vm.runInNewContext(readFileSync('native-push.js','utf8'),sandbox);
   await until(()=>authChanged);
-  return {sandbox,calls,writes,elements,events,reads,timers,
+  return {sandbox,calls,writes,elements,events,reads,timers,stored,
     get nativeSession(){return nativeSession;},
     login:async(uid='athlete')=>{sandbox.auth.currentUser={uid};await authChanged(sandbox.auth.currentUser);},
     changeUser:user=>{sandbox.auth.currentUser=user;return authChanged(user);},
@@ -67,7 +68,7 @@ test('denied permission offers system settings without registering',async()=>{
 
 test('blocked channel is detected and returning from settings automatically registers',async()=>{
   const t=await setup({permission:'granted',status:{channelEnabled:false}});await t.login();
-  assert.equal(t.calls.includes('register'),false);assert.match(t.elements.cdNativePushButton.textContent,/ตั้งค่า/);
+  assert.equal(t.calls.includes('register'),false);assert.match(t.elements.cdNativePushButton.title,/ตั้งค่า/);
   await t.elements.cdNativePushButton.onclick();assert.ok(t.calls.includes('channel-settings'));
   t.setStatus({channelEnabled:true});await t.dispatch('visibilitychange');await until(()=>t.calls.includes('native-on'));
   assert.equal(t.calls.includes('permission'),false);
@@ -114,7 +115,7 @@ test('logout after app restart cleans up the persisted device registration befor
 test('an aborted database transaction never reports notifications enabled',async()=>{
   const t=await setup({permission:'granted',transaction:async()=>({committed:false})});await t.login();
   await until(()=>[...t.timers.values()].some(x=>x.ms===2000));
-  assert.equal(t.calls.includes('native-on'),false);assert.match(t.elements.cdNativePushButton.textContent,/อีกครั้ง/);
+  assert.equal(t.calls.includes('native-on'),false);assert.match(t.elements.cdNativePushButton.title,/อีกครั้ง/);
 });
 
 test('notification taps validate recipient and database ownership and clear pending intents',async()=>{
@@ -145,7 +146,7 @@ test('an offline token-disable write has a bounded wait before logout',async()=>
 
 test('missing native registration callback times out and leaves a retry action',async()=>{
   const t=await setup({permission:'granted',emit:false});await t.login();await t.runTimer(12000);
-  assert.equal(t.elements.cdNativePushButton.disabled,false);assert.match(t.elements.cdNativePushButton.textContent,/อีกครั้ง/);
+  assert.equal(t.elements.cdNativePushButton.disabled,false);assert.match(t.elements.cdNativePushButton.title,/อีกครั้ง/);
   await t.runTimer(2000);assert.equal(t.calls.filter(x=>x==='register').length,2);
 });
 
@@ -156,4 +157,23 @@ test('payout verification taps open the verified account section for coach and a
     t.events.pushNotificationActionPerformed({notification:{data:{userId:role,notificationId:'verification-notice'}}});
     await until(()=>t.calls.includes('navigate-'+target));
   }
+});
+
+test('turning notifications off persists per account and stays off after resume and app restart',async()=>{
+  const storage=new Map(),t=await setup({permission:'granted',storage});await t.login();await until(()=>t.nativeSession.enabled);
+  await t.elements.cdNativePushButton.onclick();assert.equal(t.nativeSession.enabled,false);assert.equal(t.elements.cdNativePushButton.attributes['aria-checked'],'false');
+  const registrations=t.calls.filter(x=>x==='register').length;
+  await t.dispatch('focus');await t.dispatch('online');await t.dispatch('visibilitychange');assert.equal(t.calls.filter(x=>x==='register').length,registrations);
+  const restarted=await setup({permission:'granted',storage});await restarted.login();assert.equal(restarted.calls.includes('register'),false);
+  await restarted.elements.cdNativePushButton.onclick();await until(()=>restarted.nativeSession.enabled);assert.equal(restarted.elements.cdNativePushButton.attributes['aria-checked'],'true');
+  assert.equal(restarted.calls.includes('permission'),false);
+});
+test('a saved off preference does not disable a different account',async()=>{
+  const storage=new Map([['coachdi-push-preference:v1:athlete','off']]);const t=await setup({permission:'granted',storage});
+  await t.login();assert.equal(t.calls.includes('register'),false);await t.login('coach');await until(()=>t.nativeSession.enabled);assert.equal(t.nativeSession.uid,'coach');
+});
+test('a token callback arriving after an explicit off choice cannot enable the native session',async()=>{
+  const t=await setup({permission:'granted'});await t.login();await until(()=>t.nativeSession.enabled);await t.elements.cdNativePushButton.onclick();
+  const enabled=t.calls.filter(x=>x==='native-on').length;t.events.registration({value:'late-token'});await t.dispatch('focus');
+  assert.equal(t.nativeSession.enabled,false);assert.equal(t.calls.filter(x=>x==='native-on').length,enabled);
 });

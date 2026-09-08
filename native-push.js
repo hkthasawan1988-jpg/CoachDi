@@ -8,16 +8,44 @@
   let owner = '', deviceId = '', pending = null, opening = false;
   let generation = 0, attempt = null, bindingVersion = 0, authWork = Promise.resolve();
   let resetNeeded = false, resetting = null, retryTimer, registrationTimer, retryCount = 0;
+  let viewStatus = 'off';
+  const preferences = new Map();
+  const bell = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4M12 2V1"/></svg>';
+  function wantsPush(uid) {
+    if (preferences.has(uid)) return preferences.get(uid);
+    try { return localStorage.getItem('coachdi-push-preference:v1:'+uid) !== 'off'; } catch (_) { return true; }
+  }
+  function savePreference(uid, enabled) {
+    preferences.set(uid,enabled);
+    try { localStorage.setItem('coachdi-push-preference:v1:'+uid,enabled?'on':'off'); } catch (_) { /* Session choice remains effective if storage is unavailable. */ }
+  }
   const buttonId = 'cdNativePushButton';
   function button() {
     let element = document.getElementById(buttonId);
     if (!element) {
       element = document.createElement('button'); element.id = buttonId; element.type = 'button'; element.className = 'pill';
-      element.textContent = '🔔 เปิดแจ้งเตือนแอป'; element.onclick = () => enable(true);
+      element.innerHTML = bell+'<span>ปิด</span>'; element.onclick = toggle;
+      element.setAttribute('role','switch'); element.setAttribute('aria-label','การแจ้งเตือนแอป'); element.setAttribute('aria-checked','false');
       document.getElementById('logoutBtn')?.insertAdjacentElement('beforebegin', element);
     }
     element.hidden = !auth.currentUser;
     return element;
+  }
+  function paint(status, detail = '') {
+    viewStatus=status;
+    const control=button();
+    control.innerHTML=bell+'<span>'+(status==='on'?'เปิด':status==='busy'?'กำลังเปิด…':'ปิด')+'</span>';
+    control.setAttribute('aria-checked',String(status==='on')); control.setAttribute('aria-busy',String(status==='busy'));
+    control.title=detail||(status==='on'?'แตะเพื่อปิดการแจ้งเตือน':'แตะเพื่อเปิดการแจ้งเตือน');
+    control.disabled=status==='busy';
+  }
+  async function toggle() {
+    const uid=auth.currentUser?.uid;if(!uid)return;
+    if(viewStatus==='on'||viewStatus==='busy') {
+      savePreference(uid,false);
+      try { await stop(); paint('off'); }
+      catch (_) { savePreference(uid,true); paint('on','ปิดแจ้งเตือนไม่สำเร็จ กรุณาลองอีกครั้ง'); }
+    } else { savePreference(uid,true); await enable(true); }
   }
   function current(context) { return attempt === context && context.generation === generation && auth.currentUser?.uid === context.uid; }
   function cancelAttempt() {
@@ -55,12 +83,13 @@
     resetNeeded = true;
     resetToken().catch(() => {});
     await bounded(disableRecord(oldOwner, oldId), 750).catch(() => {});
+    paint('off');
   }
   function failed(context) {
     if (!current(context)) return;
     clearTimeout(registrationTimer); bindingVersion++;
     context.busy = false;
-    const control = button(); control.disabled = false; control.textContent = '🔔 เชื่อมต่อแจ้งเตือนอีกครั้ง';
+    paint('off','เชื่อมต่อไม่สำเร็จ แตะเพื่อลองอีกครั้ง');
     clearTimeout(retryTimer);
     if (retryCount < 3) retryTimer = setTimeout(() => enable(false), [2000,5000,15000][retryCount++]);
   }
@@ -86,23 +115,24 @@
       if (!valid()) return;
       if (oldId && oldId !== id) disableRecord(oldOwner,oldId).catch(() => {});
       retryCount = 0; context.busy = false;
-      const control = button(); control.disabled = false; control.textContent = '🔔 แจ้งเตือนแอปเปิดอยู่';
+      paint('on');
     } catch (_) { if (valid()) failed(context); }
   }
   async function enable(interactive = false) {
     const user = auth.currentUser;
     if (!user || (attempt?.busy && current(attempt))) return;
+    if (!wantsPush(user.uid)) { paint('off'); return; }
     clearTimeout(retryTimer); clearTimeout(registrationTimer);
     if (interactive) retryCount = 0;
     const context = {uid:user.uid,generation,busy:true}; attempt = context;
-    const control = button(); control.disabled = true;
+    const control = button(); paint('busy');
     try {
       let permission = await push.checkPermissions();
       if (!current(context)) return;
       if (interactive && ['prompt','prompt-with-rationale'].includes(permission.receive)) permission = await push.requestPermissions();
       if (!current(context)) return;
       if (permission.receive !== 'granted') {
-        await stop(); control.textContent = permission.receive === 'denied' ? '🔔 เปิดสิทธิ์แจ้งเตือนในตั้งค่า' : '🔔 เปิดแจ้งเตือนแอป';
+        await stop(); paint('off',permission.receive === 'denied' ? 'เปิดสิทธิ์แจ้งเตือนในตั้งค่า' : 'แตะเพื่อเปิดการแจ้งเตือน');
         if (interactive && permission.receive === 'denied') await session.openSettings({channel:false});
         return;
       }
@@ -110,13 +140,13 @@
       const status = await session.getStatus();
       if (!current(context)) return;
       if (!status.appEnabled || !status.channelEnabled) {
-        await stop(); control.textContent = '🔔 เปิดสิทธิ์แจ้งเตือนในตั้งค่า';
+        await stop(); paint('off','เปิดสิทธิ์แจ้งเตือนในตั้งค่า');
         if (interactive) await session.openSettings({channel:status.appEnabled && !status.channelEnabled});
         return;
       }
       await bounded(resetToken());
       if (!current(context)) return;
-      control.textContent = '🔔 กำลังเชื่อมต่อแจ้งเตือน';
+      paint('busy');
       registrationTimer = setTimeout(() => failed(context), 12000);
       await push.register();
     } catch (_) { failed(context); }
@@ -176,8 +206,10 @@
         }
         if (owner && owner !== user.uid) await stop();
         if (auth.currentUser?.uid !== user.uid) return;
-        retryCount = 0; await enable(false); openPending();
-      }).catch(() => { button().textContent = '🔔 เชื่อมต่อแจ้งเตือนอีกครั้ง'; button().disabled = false; });
+        if (!wantsPush(user.uid)) await stop();
+        else { retryCount = 0; await enable(false); }
+        openPending();
+      }).catch(() => paint('off','เชื่อมต่อไม่สำเร็จ แตะเพื่อลองอีกครั้ง'));
       return authWork;
     });
     window.addEventListener('online', refresh);
@@ -185,5 +217,5 @@
     document.addEventListener('visibilitychange', refresh);
     button();
   }
-  initialize().catch(() => { button().textContent = '🔔 เปิดแจ้งเตือนไม่สำเร็จ กรุณาเปิดแอปใหม่'; });
+  initialize().catch(() => paint('off','เปิดแจ้งเตือนไม่สำเร็จ กรุณาเปิดแอปใหม่'));
 })();
