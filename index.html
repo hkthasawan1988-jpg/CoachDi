@@ -209,6 +209,7 @@ body{background-image:linear-gradient(rgba(246,247,245,.91),rgba(246,247,245,.91
 
 <div id="sheetWrap" class="bottomSheet hidden" onclick="if(event.target===this)closeSheet()"><div class="sheet"><div class="sheetHandle"></div><div id="sheetContent"></div></div></div>
 </div>
+<script src="account-session.js"></script>
 <script src="auth-session.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -247,6 +248,7 @@ const state={
  coachLocations:[],bookings:[],availability:{start:6,end:24,travelBufferMin:45,maxClassesPerDay:8,advanceDays:30},
  timeOff:[],auditLogs:[],pricing:{p60:90000,p90:130000,p120:170000},paymentAccount:{bank:"",masked:"",accountName:"",deadlineMin:15},notifications:[]
 };
+const accountSession=CoachDiAccountSession.install(db,auth,state);
 const travelMinutes={visda:{visda:0,skyline:35,citypark:45,other:45},skyline:{visda:35,skyline:0,citypark:30,other:45},citypark:{visda:45,skyline:30,citypark:0,other:45},other:{visda:45,skyline:45,citypark:45,other:45}};
 function baht(s){return "฿"+(s/100).toLocaleString("th-TH",{maximumFractionDigits:0})}
 function fmt(h){return String(h).padStart(2,"0")+":00"} function isoAdd(date,n){let d=new Date(date+"T12:00:00");d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
@@ -272,7 +274,7 @@ async function login(){
 async function registerAthlete(){try{let email=loginId.value.trim(),pass=loginPass.value;if(!email||pass.length<6)throw new Error("กรุณากรอก Email และ Password อย่างน้อย 6 ตัวอักษร");let c=await auth.createUserWithEmailAndPassword(email,pass);await db.ref(`users/${c.user.uid}`).set({role:"athlete",email,createdAt:firebase.database.ServerValue.TIMESTAMP});authMessage.textContent="สร้างบัญชีนักกีฬาแล้ว"}catch(e){authMessage.textContent=thaiAuthError(e)}}
 async function resetPassword(){const email=loginId.value.trim().toLowerCase(),btn=document.getElementById('resetPasswordBtn');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){authMessage.textContent='กรุณากรอก Email ที่ถูกต้องก่อนกดลืมรหัสผ่าน';return}try{btn.disabled=true;authMessage.textContent='กำลังส่งลิงก์ตั้งรหัสผ่านใหม่...';await auth.sendPasswordResetEmail(email);authMessage.textContent='ส่งคำขอแล้วจาก Firebase • กรุณาตรวจ Inbox และ Spam/Junk ของ Email นี้'}catch(e){console.error('password reset',e);authMessage.textContent=thaiAuthError(e)}finally{btn.disabled=false}}
 function thaiAuthError(e){let m={"auth/invalid-credential":"Email หรือ Password ไม่ถูกต้อง","auth/user-not-found":"ไม่พบบัญชีผู้ใช้","auth/wrong-password":"Password ไม่ถูกต้อง","auth/email-already-in-use":"Email นี้มีบัญชีแล้ว","auth/too-many-requests":"ลองเข้าสู่ระบบหลายครั้งเกินไป กรุณารอสักครู่","auth/invalid-email":"รูปแบบ Email ไม่ถูกต้อง"};return m[e.code]||e.message||"เกิดข้อผิดพลาด"}
-async function logout(){await auth.signOut();CoachDiSession.forget(firebasePortalScope)}
+async function logout(){accountSession.begin(null);await auth.signOut();CoachDiSession.forget(firebasePortalScope)}
 function enterPortal(){loginView.classList.add("hidden");portal.classList.remove("hidden");logoutBtn.classList.remove("hidden");roleBadge.textContent=state.role==="coach"?"Coach Portal":state.role==="admin"?"Admin":"Athlete";renderNav();state.role==="coach"?showCoach("dashboard"):showAthlete()}
 async function loadFirebaseData(){let uid=state.user.uid;if(state.role==="coach"){state.coachId=uid;await ensureCoachDiId(uid)}else{await refreshCoachList(false);let cfg=await db.ref("appConfig/pilotCoachId").once("value");state.pilotCoachId=cfg.val();state.coachId=[state.coachId,state.pilotCoachId,state.coaches[0]?.uid].find(id=>state.coaches.some(p=>p.uid===id||p.aliasUids?.includes(id)))||''}if(!state.coachId&&state.role==="athlete"){authMessage.textContent="ยังไม่ได้ตั้ง Pilot Coach ใน appConfig/pilotCoachId";return}
  const cid=state.coachId;if(state.role==="coach")db.ref(`coachProfiles/${cid}`).on("value",x=>{state.coachProfile=x.val()||{};});db.ref(`coachVenues/${cid}`).on("value",x=>{let v=x.val();if(v)state.venues=Object.entries(v).map(([id,a])=>({id,...a})).concat([{id:"other",name:"สนามอื่น",icon:"🏢",maps:"",openStart:6,openEnd:24}]);if(state.role==="athlete")renderSchedule()});
@@ -310,6 +312,7 @@ async function ensureCoachApprovalRequest(user,userRef,record){
  return(await userRef.once("value")).val()||record
 }
 async function restoreCoachDiSession(user,loginIntent=null){
+ accountSession.begin(user,true);
  const revision=++sessionBootstrapRevision;
  const current=()=>revision===sessionBootstrapRevision&&auth.currentUser?.uid===user?.uid;
  sessionBootstrapBusy=Boolean(user);state.authBootstrapError=null;
@@ -3272,3 +3275,5 @@ if(typeof window.COACH_DI_OMISE_LOADED==='undefined'){
 <link rel="stylesheet" href="coach-time-off.css">
 <script src="coach-time-off-core.js"></script>
 <script src="coach-time-off.js"></script>
+<link rel="stylesheet" href="account-views.css">
+<script src="account-views.js"></script>

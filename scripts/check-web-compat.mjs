@@ -6,6 +6,15 @@ const root = new URL('../', import.meta.url);
 const hash = data => createHash('sha256').update(data).digest('hex');
 const baseline = JSON.parse(await readFile(new URL('docs/web-compatibility-baseline.json', root), 'utf8'));
 let html = (await readFile(new URL('index.html', root), 'utf8')).replace(/\r\n/g, '\n');
+const accountIncludes = '<link rel=\"stylesheet\" href=\"account-views.css\">\n<script src=\"account-views.js\"></script>\n';
+assert.ok(html.endsWith(accountIncludes), 'Expected reviewed account view includes');
+html = html.slice(0, -accountIncludes.length);
+const accountChanges = JSON.parse(await readFile(new URL('docs/account-compatibility-changes.json', root), 'utf8'));
+assert.equal(accountChanges.length, 4);
+for (const {before, after} of accountChanges) {
+  assert.equal(html.split(after).length, 2, 'Account boundary adaptation must match once');
+  html = html.replace(after, before);
+}
 const timeOffIncludes = '<link rel="stylesheet" href="coach-time-off.css">\n<script src="coach-time-off-core.js"></script>\n<script src="coach-time-off.js"></script>\n';
 assert.ok(html.endsWith(timeOffIncludes), 'Expected reviewed coach time off includes');
 html = html.slice(0, -timeOffIncludes.length);

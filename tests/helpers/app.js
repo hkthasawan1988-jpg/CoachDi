@@ -21,17 +21,19 @@ async function openIsolatedApp(page, native = false, entry = '/', nativePush = f
     window.testWrites = [];
     window.testAuthCalls = [];
     window.testData = {};
+    window.testSubscriptions = [];
     const snapshot = value => ({ val: () => value, exists: () => value != null, forEach: () => false });
     const ref = path => ({
       key: 'test-key',
       child: name => ref(`${path}/${name}`),
       once: async () => { if (window.testReadErrors?.[path]) throw Error('Read failed'); return snapshot(Object.hasOwn(window.testData, path) ? window.testData[path] : path.startsWith('users/') ? { displayName: 'Test Athlete', phone: '0800000000' } : null); },
       on: (event, callback) => {
+        window.testSubscriptions.push({path,event,callback,active:true});
         if (Object.hasOwn(window.testRealtimeValues || {}, path)) {
           queueMicrotask(() => callback(snapshot(window.testRealtimeValues[path])));
         }
         return callback;
-      }, off: () => {},
+      }, off: (event,callback) => { window.testSubscriptions.filter(s=>s.path===path&&(!event||s.event===event)&&(!callback||s.callback===callback)).forEach(s=>s.active=false); },
       orderByChild() { return this; }, equalTo() { return this; }, limitToLast() { return this; },
       push: () => ref(`${path}/test-key`),
       set: async value => { if (window.testWriteError) throw Error('Write failed'); window.testWrites.push({ path, value }); window.testData[path] = value; },

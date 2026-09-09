@@ -196,6 +196,18 @@ public class NativeUiTest {
         assertEquals("true", js("auth.currentUser===null"));
     }
 
+    @Test public void knockerProfileLinkAndNotificationOwnershipSurviveRotation() throws Exception {
+        assertEquals("true", js("(function(){window.shareAuthReady=false;auth.onAuthStateChanged(()=>window.shareAuthReady=true);return true;})()"));
+        awaitTrue("window.shareAuthReady && auth.currentUser===null");
+        assertEquals("true",js("(function(){db.ref=function(path){var value=String(path)==='coachProfiles/native-knocker'?{displayName:'Knocker Fixture',providerKind:'knocker',status:'active'}:null;var s={val:()=>value,exists:()=>value!==null};var r={once:async()=>s,on:(e,c)=>c(s),off:()=>{},child:()=>r,orderByChild:()=>r,equalTo:()=>r,limitToLast:()=>r};['set','update','remove','push','transaction'].forEach(k=>r[k]=()=>{throw Error('Read-only native fixture');});return r;};state.role='coach';state.user={uid:'native-knocker'};state.coachProfile={displayName:'Knocker Fixture',providerKind:'knocker',status:'active'};loginView.classList.add('hidden');portal.classList.remove('hidden');showCoach('overview');return true;})()"));
+        awaitTrue("!!document.querySelector('#cdProviderShare [data-provider-copy]') && document.querySelector('#cdProviderShare input').value==='https://coach-di.netlify.app/?portal=athlete&knocker=native-knocker' && document.documentElement.scrollWidth<=innerWidth");
+        screenshot("knocker-share-portrait");
+        activity.getScenario().onActivity(a -> a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
+        awaitTrue("innerWidth>innerHeight && document.documentElement.scrollWidth<=innerWidth");
+        screenshot("knocker-share-landscape");
+        assertEquals("true",js("(function(){var old={id:'old-athlete',athleteId:'native-knocker',coachId:'other',coach:'PRIVATE ATHLETE',date:TODAY,start:8,status:'confirmed'},own={id:'own-provider',coachId:'native-knocker',athleteId:'customer',athlete:'Correct customer',date:TODAY,start:10,status:'confirmed'};state.allAthleteBookings=[old];state.bookings=[old,own];state.s42CoachBookings=[];c95OpenNotifications();return document.querySelectorAll('#coachContent .c88StatusRow').length===1&&coachContent.textContent.includes('Correct customer')&&!coachContent.textContent.includes('PRIVATE ATHLETE')&&auth.currentUser===null;})()"));
+    }
+
     @Test public void coachHolidayCalendarFitsRotationAndKeepsSavedDaysVisible() throws Exception {
         assertEquals("true", js("(function(){window.offAuthReady=false;auth.onAuthStateChanged(function(){window.offAuthReady=true;});return true;})()"));
         awaitTrue("window.offAuthReady && auth.currentUser===null");

@@ -35,6 +35,24 @@ test('refund profile account is private to athlete and admin', async () => {
   for (const uid of ['other','coach','stranger']) await assertFails(db(uid).ref('users/athlete/refundAccount').once('value'));
   await assertFails(env.unauthenticatedContext().database().ref('users/athlete/refundAccount').once('value'));
 });
+
+test('account read boundary works with the Firebase compat SDK and preserves booking query restrictions',async()=>{
+  const database=db('athlete'),auth={currentUser:{uid:'athlete'}},state={user:null,role:null,bookings:[]};
+  const session=require('../account-session.js').install(database,auth,state);session.begin(auth.currentUser);state.user=auth.currentUser;state.role='athlete';
+  const query=database.ref('bookings').orderByChild('athleteId').equalTo('athlete');
+  assert.equal(Object.keys((await assertSucceeds(query.once('value'))).val()).length,2);
+  await assertFails(database.ref('bookings').orderByChild('athleteId').equalTo('other').once('value'));
+  await new Promise((resolve,reject)=>query.on('value',snapshot=>{state.bookings=Object.values(snapshot.val());resolve();},reject));
+  assert.equal(state.bookings.length,2);auth.currentUser={uid:'different-account'};session.begin(auth.currentUser);
+  assert.deepEqual(state.bookings,[]);assert.equal(session.subscriptionCount(),0);
+  await assertSucceeds(database.ref('users/athlete/refundAccount').once('value'));
+});
+
+test('unrelated accounts cannot read another account notification feed',async()=>{
+  await env.withSecurityRulesDisabled(context=>context.database().ref('notifications/athlete/n').set({type:'booking_confirmed',message:'Private fixture',read:false}));
+  await assertSucceeds(db('athlete').ref('notifications/athlete').once('value'));
+  for(const uid of ['other','coach','stranger'])await assertFails(db(uid).ref('notifications/athlete').once('value'));
+});
 test('account requires complete bounded strings and preserves leading zeros', async () => {
   const ref = db('athlete').ref('users/athlete/refundAccount');
   await assertSucceeds(ref.set(bank)); assert.equal((await ref.once('value')).val().accountNumber, '0012345678');
