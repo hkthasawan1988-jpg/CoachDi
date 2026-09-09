@@ -50,6 +50,7 @@ test('recommendation excludes original aliases, suspended profiles, stale dates,
   assert.equal(C.candidate(b, coach, { ...data, failed: true }, now), null);
   assert.equal(C.candidate(b, coach, data, now + 10 * 864e5), null);
   assert.equal(C.candidate(b, coach, { ...data, timeOff: { a: { date: b.date, fullDay: true } } }, now), null);
+  assert.equal(C.candidate(b, coach, { ...data, timeOff: { a: { start: b.date, end: b.date } } }, now), null);
 });
 test('recommendations reject partial overlaps, group lessons, known bookings and insufficient travel gaps', () => {
   for (const key of ['schedule', 'groups', 'ownBookings']) assert.equal(C.candidate(b, coach, { ...data, [key]: { a: { date: b.date, start: '11:30', end: '12:30' } } }, now), null);

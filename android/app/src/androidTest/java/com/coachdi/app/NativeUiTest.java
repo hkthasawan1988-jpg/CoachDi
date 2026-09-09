@@ -196,6 +196,20 @@ public class NativeUiTest {
         assertEquals("true", js("auth.currentUser===null"));
     }
 
+    @Test public void coachHolidayCalendarFitsRotationAndKeepsSavedDaysVisible() throws Exception {
+        assertEquals("true", js("(function(){window.offAuthReady=false;auth.onAuthStateChanged(function(){window.offAuthReady=true;});return true;})()"));
+        awaitTrue("window.offAuthReady && auth.currentUser===null");
+        assertEquals("true", js("(function(){db.ref=function(path){const value=String(path).startsWith('coachTimeOff/')?{holiday:{coachId:'native-off-coach',startDate:TODAY,endDate:isoAdd(TODAY,2),fullDay:true}}:null;const snapshot={val:()=>value,exists:()=>value!==null};const ref={child:()=>ref,once:async()=>snapshot,on:(event,cb)=>cb(snapshot),off:()=>{},orderByChild:()=>ref,equalTo:()=>ref,limitToLast:()=>ref};['set','update','remove','push','transaction'].forEach(key=>ref[key]=()=>{throw Error('Native holiday fixture forbids writes');});return ref;};state.role='coach';state.user={uid:'native-off-coach'};state.coachProfile={displayName:'โค้ชทดสอบ'};state.bookings=[];state.s42CoachBookings=[];state.c71CoachAppointments=[];state.c76GroupClasses=[];state.s42Date=TODAY;state.s42View='timeoff';loginView.classList.add('hidden');portal.classList.remove('hidden');renderNav();showCoach('schedule');return true;})()"));
+        awaitTrue("!!document.getElementById('cdOffForm') && !!document.querySelector('[data-off-remove]') && document.documentElement.scrollWidth<=innerWidth");
+        assertEquals("true",js("CoachDiTimeOff.matches(TODAY,9,10)"));
+        screenshot("coach-holidays-portrait");
+        activity.getScenario().onActivity(a -> a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
+        awaitTrue("innerWidth>innerHeight && document.documentElement.scrollWidth<=innerWidth && !!document.getElementById('cdOffSave')");
+        screenshot("coach-holidays-landscape");
+        assertEquals("true",js("(function(){state.s42View='today';showCoach('schedule');return !!document.querySelector('.cdOffGridEvent')&&!document.querySelector('.cdGridCell[data-free=true]');})()"));
+        assertEquals("true",js("CoachDiCourtCore.venueLabel('VISDA Premium Tennis Club')==='Visda' && CoachDiCourtCore.venueLabel('Tropp Tennis Club')==='Tro' && auth.currentUser===null"));
+    }
+
     private void assertTourFits() throws Exception {
         awaitTrue("(function(){var panel=document.querySelector('.cdTourPanel').getBoundingClientRect(),buttons=Array.from(document.querySelectorAll('.cdTourPanel button'));return panel.left>=0&&panel.right<=innerWidth&&panel.top>=0&&panel.bottom<=innerHeight&&buttons.every(b=>{var r=b.getBoundingClientRect();return r.top>=panel.top&&r.bottom<=panel.bottom&&r.height>=44;})&&document.documentElement.scrollWidth<=innerWidth;})()");
     }

@@ -6,5 +6,11 @@
     date.setUTCDate(date.getUTCDate()-(date.getUTCDay()+6)%7);return date.toISOString().slice(0,10);
   }
   function days(value){const start=new Date(monday(value)+'T12:00:00Z');return Array.from({length:7},(_,i)=>{const date=new Date(start);date.setUTCDate(date.getUTCDate()+i);return date.toISOString().slice(0,10);});}
-  return Object.freeze({monday,days});
+  function venueLabel(value){
+    const name=String(value||'').trim().replace(/\s+/g,' ');
+    if(/\bvisda\b/i.test(name))return 'Visda';
+    if(/\btropp\b/i.test(name))return 'Tro';
+    return name||'สนาม';
+  }
+  return Object.freeze({monday,days,venueLabel});
 });

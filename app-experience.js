@@ -132,8 +132,9 @@
     return `<p class="cdScheduleHint">แตะช่องว่างเพื่อเพิ่มนัด หรือลากลงเพื่อเลือกหลายช่วงเวลา แล้วกดบันทึก • เลื่อนตารางด้วยแถบเวลา</p><div class="cdTimeGridScroll"><div class="cdTimeGrid" data-days="${days.length}" style="--cd-days:${days.length}"><div class="cdGridHead">เวลา</div>${days.map(date => `<div class="cdGridHead">${esc(shortThaiDate(date))}</div>`).join('')}${Array.from({length:36},(_,i) => i / 2 + 6).map(start => `<div class="cdGridTime">${time(start)}</div>${days.map(date => {
       const cell = { date, start, end: start + .5 };
       const present = blocks.filter(row => core.overlaps(row, cell));
-      const free = !present.length && date >= TODAY;
-      return `<div class="cdGridCell" data-date="${date}" data-start="${start}" data-free="${free}" ${free ? `tabindex="0" role="button" aria-label="เพิ่มนัด ${date} ${time(start)}"` : ''}>${present.map(row => eventCard(row, appointments.includes(row), (state.c76GroupClasses || []).includes(row))).join('')}</div>`;
+      const holiday=window.CoachDiTimeOff?.matches(date,start,start+.5);
+      const free = !present.length && !holiday && date >= TODAY;
+      return `<div class="cdGridCell" data-date="${date}" data-start="${start}" data-free="${free}" ${free ? `tabindex="0" role="button" aria-label="เพิ่มนัด ${date} ${time(start)}"` : ''}>${present.map(row => eventCard(row, appointments.includes(row), (state.c76GroupClasses || []).includes(row))).join('')}${holiday&&!present.length?'<button type="button" class="cdGridEvent cdOffGridEvent" data-off-open>วันหยุด</button>':''}</div>`;
     }).join('')}`).join('')}</div></div>`;
   }
   c58DayCalendar = date => grid([date || TODAY]);
@@ -154,7 +155,9 @@
         const booking = c43books().find(row => row.id === match?.[1]);
         if (booking) { button.textContent += ` · ${booking.venue || 'สนามรอยืนยัน'}`; button.removeAttribute('onclick'); button.dataset.booking = booking.id; }
       }
-      if (fullDate >= TODAY) {
+      const holiday=window.CoachDiTimeOff?.matches(fullDate,0,24);
+      if(holiday)cell.insertAdjacentHTML('beforeend','<button type="button" class="c71MonthTag cdOffGridEvent" data-off-open>วันหยุด</button>');
+      if (fullDate >= TODAY && !holiday) {
         const add = document.createElement('button'); add.type = 'button'; add.className = 'c71MonthTag';
         add.dataset.addDate = fullDate; add.textContent = '＋ เพิ่มนัด'; cell.append(add);
       }
@@ -163,6 +166,7 @@
   };
   function openRange(range) {
     if (!range || state.role !== 'coach') return;
+    if(window.CoachDiTimeOff?.matches(range.date,range.start,range.end))return alert('ช่วงนี้เป็นวันหยุด กรุณาแก้ไขวันหยุดก่อนเพิ่มนัด');
     c71OpenAppointment();
     byId('c71Date').value = range.date; byId('c71Start').value = time(range.start); byId('c71End').value = time(range.end);
     resize();
@@ -225,14 +229,15 @@
         if (!until || until < date) throw Error('กรุณาระบุวันสิ้นสุดตารางประจำ');
         for (let day = isoAdd(date,7); day <= until; day = isoAdd(day,7)) { if (dates.length >= 52) throw Error('ตารางประจำสร้างได้ไม่เกิน 52 สัปดาห์'); dates.push(day); }
       }
-      const [liveBookings, liveAppointments, liveGroups] = await Promise.all([
+      const [liveBookings, liveAppointments, liveGroups,liveTimeOff] = await Promise.all([
         db.ref('bookings').orderByChild('coachId').equalTo(uid).once('value'),
-        db.ref(`coachPublicSchedule/${uid}`).once('value'), db.ref(`coachGroupClasses/${uid}`).once('value')]);
+        db.ref(`coachPublicSchedule/${uid}`).once('value'), db.ref(`coachGroupClasses/${uid}`).once('value'),db.ref(`coachTimeOff/${uid}`).once('value')]);
       if (state.user?.uid !== uid || state.role !== 'coach') throw Error('บัญชีเปลี่ยนแล้ว กรุณาเปิดตารางใหม่');
       const appointments = Object.entries(liveAppointments.val() || {}).map(([key,row]) => ({...row,id:key}));
       if (id && !appointments.some(row => row.id === id)) throw Error('นัดนี้ถูกลบหรือเปลี่ยนแล้ว กรุณาโหลดตารางใหม่');
       const conflicts = [...Object.values(liveBookings.val() || {}), ...appointments.filter(row => row.id !== id), ...Object.values(liveGroups.val() || {})].filter(core.active);
       for (const day of dates) if (conflicts.some(row => core.overlaps(row,{date:day,start,end}))) throw Error(`เวลาชนกับตารางเดิม: ${day}`);
+      for(const day of dates)if(Object.values(liveTimeOff.val()||{}).some(row=>window.CoachDiTimeOffCore?.matches(row,day,start,end)))throw Error(`ช่วงนี้เป็นวันหยุด: ${day}`);
       const updates = {}, original = appointments.find(row => row.id === id);
       for (const day of dates) {
         const key = id && day === date ? id : db.ref(`coachPublicSchedule/${uid}`).push().key;

@@ -8,6 +8,7 @@ async function athlete(page,section='home'){
     state.coachId='fixture-coach';state.coaches=[{uid:'fixture-coach',displayName:'โค้ชทดสอบ',status:'active'}];
     state.venues=[{id:'venue-one',name:'สนามเทนนิสชื่อภาษาไทยยาวสำหรับทดสอบจอกาง',openStart:8,openEnd:22}];
     state.coachLocations=[{id:'location',date:isoAdd(TODAY,1),start:9,end:11,venueId:'venue-one'}];
+    state.venues.push({id:'tropp',name:'Tropp Tennis Club',openStart:8,openEnd:22});state.coachLocations.push({id:'tropp-location',date:isoAdd(TODAY,3),start:9,end:10,venueId:'tropp'});
     state.cdPublicBookings=[{date:isoAdd(TODAY,2),start:10,end:11,venueName:'VISDA Premium Tennis Club',venueId:'visda',active:true}];
     loginView.classList.add('hidden');portal.classList.remove('hidden');logoutBtn.classList.remove('hidden');renderNav();c91InstallHelp();showAthleteMenu(section);
   },section);
@@ -28,7 +29,8 @@ for(const width of [320,360,390,412,656])test(`seven Monday–Sunday columns and
   const metrics=await page.locator('#scheduleTable').evaluate(el=>({width:el.getBoundingClientRect().width,scroll:el.closest('.tableScroller').scrollWidth,client:el.closest('.tableScroller').clientWidth}));
   expect(metrics.width).toBeLessThanOrEqual(width);expect(metrics.scroll).toBeLessThanOrEqual(metrics.client);expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   await expect(page.locator('#cdWeekVenues')).toContainText('VISDA Premium Tennis Club');await expect(page.locator('#cdWeekVenues')).toContainText('สนามเทนนิสชื่อภาษาไทยยาว');
-  const booked=page.locator('#scheduleTable .daySlot.booked').first();await booked.click();await expect(page.locator('#sheetContent')).toContainText('VISDA Premium Tennis Club');
+  const tropp=page.locator('#scheduleTable .daySlot[title="Tropp Tennis Club"]').first();await expect(tropp.locator('.venue')).toHaveText('Tro');await tropp.click();await expect(page.locator('#sheetContent')).toContainText('Tropp Tennis Club');await page.evaluate(()=>closeSheet());
+  const booked=page.locator('#scheduleTable .daySlot.booked').first();await expect(booked.locator('.venue')).toHaveText('Visda');await booked.click();await expect(page.locator('#sheetContent')).toContainText('VISDA Premium Tennis Club');
   expect(await page.evaluate(()=>testWrites)).toEqual([]);expect(pageErrors).toEqual([]);
 });
 test('calendar moves by full weeks, retains Monday alignment and never books a past date',async({page})=>{

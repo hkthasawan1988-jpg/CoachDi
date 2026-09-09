@@ -3,6 +3,7 @@ const { readFileSync } = require('node:fs');
 const assert = require('node:assert/strict');
 const { initializeTestEnvironment, assertSucceeds, assertFails } = require('@firebase/rules-unit-testing');
 const C = require('../athlete-refunds-core.js');
+const TimeOff = require('../coach-time-off-core.js');
 let env;
 const bank = { bank: 'ธนาคารทดสอบ', accountName: 'นักกีฬา ทดสอบ', accountNumber: '0012345678', updatedAt: 1 };
 const original = { athleteId: 'athlete', coachId: 'coach', date: '2026-10-10', start: 10, end: 11, status: 'declined', paymentStatus: 'payment_verified' };
@@ -12,6 +13,15 @@ before(async () => {
   env = await initializeTestEnvironment({ projectId: 'demo-coach-di-refunds', database: { host: '127.0.0.1', port: 9000, rules: readFileSync('database.rules.json','utf8') } });
 });
 after(async () => { if (env) await env.cleanup(); });
+test('coach holiday transactions retain existing ranges, reject overlap and deny other users',async()=>{
+  const ref=db('coach').ref('coachTimeOff/coach'),off=TimeOff.range('2026-10-01','2026-10-03');
+  await assertSucceeds(ref.set({original:{coachId:'coach',...TimeOff.range('2026-11-01','2026-11-02')}}));
+  const submit=id=>ref.transaction(value=>Object.values(value||{}).some(row=>TimeOff.intersects(off,row))?undefined:{...value,[id]:{coachId:'coach',...off}});
+  const outcomes=await Promise.all([submit('one'),submit('two')]);assert.equal(outcomes.filter(row=>row.committed).length,1);
+  assert.ok((await ref.once('value')).val().original);assert.equal(Object.keys((await ref.once('value')).val()).length,2);
+  await assertSucceeds(db('athlete').ref('coachTimeOff/coach').once('value'));
+  for(const user of ['athlete','stranger'])await assertFails(db(user).ref('coachTimeOff/coach/other').set(off));
+});
 beforeEach(async () => {
   await env.clearDatabase();
   await env.withSecurityRulesDisabled(async context => context.database().ref().set({

@@ -86,7 +86,7 @@
     const availability = data.availability || { start: 6, end: 24, advanceDays: 30, travelBufferMin: 45 };
     if (start < hour(availability.start ?? 6) || end > hour(availability.end ?? 24) ||
       at - now > Number(availability.advanceDays ?? 30) * 864e5) return null;
-    if (rows(data.timeOff).some(x => date >= (x.startDate || x.date) && date <= (x.endDate || x.date) &&
+    if (rows(data.timeOff).some(x => date >= (x.startDate || x.date || x.start) && date <= (x.endDate || x.date || x.end || x.start) &&
       (x.fullDay !== false || overlaps(start, end, hour(x.startHour ?? 0), hour(x.endHour ?? 24))))) return null;
     const busy = [...rows(data.schedule), ...rows(data.groups).filter(x => !/cancel|reject|declin/i.test(x.status || '')),
       ...rows(data.ownBookings).filter(x => !/cancel|reject|declin|refund/i.test(x.status || ''))].filter(x => x.date === date);
