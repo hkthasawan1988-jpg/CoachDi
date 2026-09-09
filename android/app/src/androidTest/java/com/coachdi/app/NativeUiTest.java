@@ -178,6 +178,28 @@ public class NativeUiTest {
         }
     }
 
+    @Test public void guidedAthleteNavigationFitsRotationAndAndroidBack() throws Exception {
+        assertEquals("true", js("(function(){window.tourAuthReady=false;auth.onAuthStateChanged(function(){window.tourAuthReady=true;});return true;})()"));
+        awaitTrue("window.tourAuthReady && auth.currentUser===null");
+        assertEquals("true", js("(function(){db.ref=function(){const snapshot={val:()=>null,exists:()=>false};const ref={child:()=>ref,once:async()=>snapshot,on:(event,cb)=>cb(snapshot),off:()=>{},orderByChild:()=>ref,equalTo:()=>ref,limitToLast:()=>ref};['set','update','remove','push','transaction'].forEach(key=>ref[key]=()=>{throw Error('Native tour fixture forbids writes');});return ref;};" +
+            "state.role='athlete';state.user={uid:'native-tour-fixture'};state.userProfile={role:'athlete',displayName:'มะลิ นักกีฬาทดสอบ'};localStorage.setItem('coachDiLocationConsent','denied');loginView.classList.add('hidden');portal.classList.remove('hidden');logoutBtn.classList.remove('hidden');renderNav();c91InstallHelp();showAthleteMenu('home');c91ShowGuide(true);return true;})()"));
+        awaitTrue("!!document.querySelector('#c91Guide .cdTourPanel') && portal.inert");
+        assertTourFits();screenshot("athlete-guide-portrait");
+        assertEquals("true", js("(function(){document.querySelector('[data-tour=next]').click();return true;})()"));
+        awaitTrue("document.getElementById('cdTourTitle').textContent==='การจองของฉัน' && document.getElementById('s40AthleteDynamic').dataset.page==='mybookings'");
+        activity.getScenario().onActivity(a -> a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
+        awaitTrue("innerWidth>innerHeight");assertTourFits();screenshot("athlete-guide-landscape");
+        Espresso.pressBackUnconditionally();awaitTrue("!document.getElementById('c91Guide') && !portal.inert");
+        assertEquals(Lifecycle.State.RESUMED, activity.getScenario().getState());
+        assertEquals("true", js("(function(){document.querySelector('#mobileNav .c92More').click();return true;})()"));
+        awaitTrue("!!document.getElementById('athletePhotoFile') && !!document.getElementById('cdRefundSettings') && document.querySelector('#mobileNav .c92More').textContent==='ตั้งค่า'");
+        assertEquals("true", js("auth.currentUser===null"));
+    }
+
+    private void assertTourFits() throws Exception {
+        awaitTrue("(function(){var panel=document.querySelector('.cdTourPanel').getBoundingClientRect(),buttons=Array.from(document.querySelectorAll('.cdTourPanel button'));return panel.left>=0&&panel.right<=innerWidth&&panel.top>=0&&panel.bottom<=innerHeight&&buttons.every(b=>{var r=b.getBoundingClientRect();return r.top>=panel.top&&r.bottom<=panel.bottom&&r.height>=44;})&&document.documentElement.scrollWidth<=innerWidth;})()");
+    }
+
     @Test public void groupClassAnnouncementSurvivesRotationAndBackMarksItRead() throws Exception {
         assertEquals("true", js("(function(){window.classAuthReady=false;auth.onAuthStateChanged(function(){window.classAuthReady=true;});return true;})()"));
         awaitTrue("window.classAuthReady && auth.currentUser===null");

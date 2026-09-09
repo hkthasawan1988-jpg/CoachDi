@@ -47,7 +47,7 @@ test('bottom navigation has text only and keeps notification counts and routes',
   await page.evaluate(()=>{state.s40NotifCount=3;c110PaintMobileNotification();c92SyncMobileNav();});
   await expect(page.locator('#mobileNav>button>span')).toHaveCount(0);await expect(page.locator('#mobileNav .c95SideBadge')).toHaveText('3');
   await page.locator('#mobileNav [data-athlete-mobile="mybookings"]').click();await expect(page.locator('#s40AthleteDynamic')).toHaveAttribute('data-page','mybookings');
-  await page.locator('#mobileNav .c92More').click();await expect(page.locator('#c92MenuOverlay')).toBeVisible();expect(pageErrors).toEqual([]);
+  await page.locator('#mobileNav .c92More').click();await expect(page.locator('#athleteProfilePanel')).toBeVisible();await expect(page.locator('#mobileNav .c92More')).toHaveAccessibleName('ตั้งค่า');expect(pageErrors).toEqual([]);
 });
 for(const native of [false,true])test(`athlete profile shows the saved photo and name in a round portrait (${native?'app':'web'})`,async({page})=>{
   await page.setViewportSize({width:320,height:740});const {pageErrors}=await openIsolatedApp(page,native);await athlete(page,'profile');

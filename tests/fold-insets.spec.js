@@ -65,7 +65,8 @@ async function assertBounds(page, insets) {
     expect(button.left).toBeGreaterThanOrEqual(insets.left);
     expect(button.right).toBeLessThanOrEqual(metrics.width - insets.right);
   }
-  expect(metrics.glow).toBe('cdNavNotice');
+  expect(metrics.glow).toBe('none');
+  await expect(page.locator('#athletePage>.athleteTabs [data-c76-groupclasses]')).toHaveClass(/c94Pulse/);
 }
 
 for (const [width,height] of [[320,740],[360,800],[390,844],[412,915],[656,728],[768,852],[840,932],[1024,900]]) {
@@ -90,10 +91,10 @@ for (const [width,height] of [[320,740],[360,800],[390,844],[412,915],[656,728],
     const stickyTop=await page.locator('.topbar').evaluate(el=>el.getBoundingClientRect().top);
     expect(stickyTop).toBeGreaterThanOrEqual(insets.top);
     await page.locator('#mobileNav .c92More').click();
-    await expect(page.getByRole('heading',{name:'เมนูทั้งหมด',exact:true})).toBeVisible();
-    const menu=await page.locator('.c92MenuPanel').boundingBox();
-    expect(menu.y).toBeGreaterThanOrEqual(insets.top);
-    expect(menu.y+menu.height).toBeLessThanOrEqual(height-insets.bottom);
+    await expect(page.getByRole('heading',{name:'ตั้งค่า',exact:true})).toBeVisible();
+    const settings=await page.locator('#athleteProfilePanel').boundingBox();
+    expect(settings.x).toBeGreaterThanOrEqual(insets.left);
+    expect(settings.x+settings.width).toBeLessThanOrEqual(width-insets.right);
     expect(pageErrors).toEqual([]); expect(await page.evaluate(()=>testWrites.length)).toBe(0);
   });
 }

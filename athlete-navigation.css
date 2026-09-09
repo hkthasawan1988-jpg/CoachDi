@@ -1,0 +1,28 @@
+html.cd-athlete-nav #athletePage>.athleteTabs [data-c60-group]{display:none!important}
+html.cd-athlete-nav #mobileNav [data-athlete-mobile="mybookings"] small{white-space:normal!important;text-overflow:clip;overflow:visible;max-width:100%;line-height:1.35!important}
+html.cd-athlete-nav #mobileNav .c92More{animation:none!important}
+.cdSettingsTitle{font-size:24px;color:var(--cd-forest);margin:0 0 14px}
+#cdRefundSettings{overflow-wrap:anywhere}
+#cdRefundSettings h2{font-size:22px;color:var(--cd-forest)}
+#cdRefundSettings p{font-size:15px;line-height:1.7;color:#485d4e}
+#cdRefundSettings dl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:10px 14px;font-size:16px;line-height:1.5}
+#cdRefundSettings dd{margin:0;font-weight:700;min-width:0}
+#cdRefundSettings dt{color:#596e5c}
+#cdRefundSettings button{min-height:48px}
+.cdAccountEmpty{padding:12px;border-radius:12px;background:var(--cd-ivory)}
+html #c91Guide.cdTour{display:block;padding:0;background:#153c3055;backdrop-filter:none;z-index:9500!important}
+.cdTourSpot{position:fixed;border:3px solid #dbc5ef;border-radius:16px;box-shadow:0 0 0 3px #65418a;pointer-events:none}
+.cdTourPanel{position:fixed;right:max(12px,var(--safe-area-inset-right,env(safe-area-inset-right)));bottom:calc(12px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom)));width:min(430px,calc(100% - 24px));max-height:calc(100vh - 24px - var(--safe-area-inset-top,0px) - var(--safe-area-inset-bottom,0px));max-height:calc(100dvh - 24px - var(--safe-area-inset-top,0px) - var(--safe-area-inset-bottom,0px));display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:#fff;border:1px solid #dce5d9;border-radius:22px;box-shadow:0 12px 40px #123e3133;color:#123e31;overflow:hidden}
+.cdTourPanel.cdTourTop{top:calc(12px + var(--safe-area-inset-top,env(safe-area-inset-top)));bottom:auto}
+.cdTourPanel header,.cdTourPanel footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;background:#f5f5ef}
+.cdTourPanel header{border-bottom:1px solid #dce5d9}
+.cdTourPanel footer{border-top:1px solid #dce5d9}
+.cdTourCount{font-size:14px;font-weight:800;letter-spacing:.08em;color:#65418a}
+.cdTourBody{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 20px}
+.cdTourBody h2{font-size:24px;line-height:1.4;color:#123e31;margin:0 0 8px}
+.cdTourBody p{font-size:16px;line-height:1.7;margin:0;color:#405b48;overflow-wrap:anywhere}
+.cdTourPanel button{min-height:44px;padding:8px 14px;border:1px solid #dce5d9;border-radius:12px;background:#fff;color:#123e31;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.cdTourPanel button.primary{background:#24664b;border-color:#24664b;color:#fff}
+.cdTourPanel button:disabled{opacity:.45;cursor:default}
+.cdTourPanel button:focus-visible{outline:2px solid #65418a;outline-offset:2px}
+@media(max-width:360px){.cdTourPanel header,.cdTourPanel footer{padding:10px 12px}.cdTourBody{padding:12px 16px}.cdTourBody h2{font-size:22px}}

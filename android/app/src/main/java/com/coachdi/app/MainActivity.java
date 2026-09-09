@@ -15,7 +15,7 @@ public class MainActivity extends BridgeActivity {
             public void handleOnBackPressed() {
                 WebView webView = getBridge().getWebView();
                 webView.evaluateJavascript(
-                    "(function(){var launch=document.querySelector('#cdClassLaunch [data-cd-launch=\"dismiss\"]');" +
+                    "(function(){if(document.getElementById('c91Guide')&&typeof c91CloseGuide==='function'){c91CloseGuide();return true;}var launch=document.querySelector('#cdClassLaunch [data-cd-launch=\"dismiss\"]');" +
                     "if(launch){launch.click();return true;}var sheet=document.getElementById('sheetWrap');" +
                     "if(sheet&&!sheet.classList.contains('hidden')&&typeof closeSheet==='function'){closeSheet();return true;}" +
                     "if(document.getElementById('csModalRoot')&&typeof csCloseModal==='function'){csCloseModal();return true;}" +
