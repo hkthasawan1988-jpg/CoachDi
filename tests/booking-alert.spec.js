@@ -71,6 +71,7 @@ test('the existing submit handler runs once on rapid double click', async ({ pag
   await openIsolatedApp(page);
   await page.evaluate(() => {
     state.role = 'athlete'; state.user = { uid: 'test-athlete', email: 'test@example.invalid' };
+    testAuth.currentUser = state.user;
     state.coachId = 'test-coach'; state.selectedDate = '2026-10-10';
     state.selectedCell = { date: '2026-10-10', h: 10, venueId: 'visda' };
     state.venues = [{ id: 'visda', name: 'สนามทดสอบ' }]; state.pricing = { p60: 10000 };

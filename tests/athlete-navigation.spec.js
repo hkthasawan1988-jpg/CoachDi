@@ -69,6 +69,6 @@ test('guide waits for an existing dialog and releases the app on account change'
   const {pageErrors}=await openIsolatedApp(page);await seed(page);
   await page.evaluate(()=>{sheetContent.innerHTML='<h2>รายการที่กำลังตรวจ</h2>';sheetWrap.classList.remove('hidden');c91ShowGuide(true);});
   await expect(page.locator('#c91Guide')).toHaveCount(0);await page.evaluate(()=>closeSheet());await expect(page.locator('#c91Guide')).toBeVisible();
-  await page.evaluate(async()=>{testAuth.currentUser=null;await testAuthListeners.at(-1)(null);});
+  await page.evaluate(async()=>{testAuth.currentUser=null;await Promise.all([...testAuthListeners].map(listener=>listener(null)));});
   await expect(page.locator('#c91Guide')).toHaveCount(0);expect(await page.evaluate(()=>portal.inert)).toBe(false);expect(pageErrors).toEqual([]);expect(await page.evaluate(()=>testWrites)).toEqual([]);
 });
