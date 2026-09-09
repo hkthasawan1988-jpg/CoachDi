@@ -89,8 +89,10 @@
     overlay.querySelector('[data-tour="back"]').disabled=index===0;
     overlay.querySelector('[data-tour="next"]').textContent=index===steps.length-1?'เริ่มใช้งาน':'ถัดไป';
     navigating=true;try{showAthleteMenu(step.page);}finally{navigating=false;}
+    // Focus immediately so Escape/Tab work even before the first paint.
+    overlay.querySelector('[data-tour="next"]').focus({preventScroll:true});
     const revision=tour;
-    requestAnimationFrame(()=>{if(tour!==revision)return;const target=[...document.querySelectorAll(step.target)].find(node=>node.getClientRects().length);target?.scrollIntoView({block:'center',behavior:'instant'});position();overlay.querySelector('[data-tour="next"]').focus({preventScroll:true});});
+    requestAnimationFrame(()=>{if(tour!==revision)return;const target=[...document.querySelectorAll(step.target)].find(node=>node.getClientRects().length);target?.scrollIntoView({block:'center',behavior:'instant'});position();});
   }
   function closeTour(mark=true){
     clearTimeout(waitTimer);
