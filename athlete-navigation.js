@@ -24,9 +24,11 @@
     document.querySelectorAll('#c47Home .c47Hero p').forEach(p=>{
       if(['เริ่มจากเลือกเวลาของ Coach แล้วระบบจะแนะนำสนาม','พร้อมค้นหาโค้ชและสนามที่เดินทางสะดวกสำหรับคุณ'].includes(p.textContent.trim()))p.remove();
     });
-    const card=[...document.querySelectorAll('#athletePage>.cdr-saved')].findLast(node=>node.style.display!=='none');
+    const card=[...document.querySelectorAll('#athletePage .cdr-saved')].findLast(node=>node.getClientRects().length);
     if(card){
       document.querySelectorAll('#cdRefundSettings').forEach(node=>{if(node!==card)node.removeAttribute('id');});
+      const profile=document.getElementById('athleteProfilePanel');
+      if(profile?.parentElement===card.parentElement&&profile.nextElementSibling!==card)profile.insertAdjacentElement('afterend',card);
       const account=state.userProfile?.refundAccount||{},signature=JSON.stringify(account);
       if(card.dataset.cdAccount!==signature){
         card.dataset.cdAccount=signature;card.id='cdRefundSettings';
@@ -40,7 +42,14 @@
   new MutationObserver(schedule).observe(document.getElementById('portal'),{childList:true,subtree:true});
   const navBase=c92SyncMobileNav;c92SyncMobileNav=function(){const result=navBase.apply(this,arguments);refresh();return result;};
   const menuBase=c92OpenAllMenu;c92OpenAllMenu=function(){if(state.role==='athlete')return settings();return menuBase.apply(this,arguments);};
-  const paintBase=c94Paint;c94Paint=function(){const result=paintBase.apply(this,arguments);if(state.role==='athlete'){const more=document.querySelector('#mobileNav .c92More');if(more)c94SetAlert(more,0);}return result;};
+  const paintBase=c94Paint;c94Paint=function(){
+    if(state.role!=='athlete')return paintBase.apply(this,arguments);
+    const counts=state.c94Counts||{};
+    ['group','coach'].forEach(type=>c94Targets(type).forEach(button=>c94SetAlert(button,Number(counts[type]||0))));
+    // Settings is no longer a container for unread menus. Do not add an
+    // aggregate badge and then remove it: the legacy observer would repaint it.
+    const more=document.querySelector('#mobileNav .c92More');if(more)c94SetAlert(more,0);
+  };
   const profileBase=athleteProfileView;athleteProfileView=function(){return profileBase.apply(this,arguments).replace('<div id="athleteProfilePanel">','<div id="athleteProfilePanel"><h2 class="cdSettingsTitle">ตั้งค่า</h2>');};
   const routeBase=showAthleteMenu;showAthleteMenu=function(page){
     if(tour&&!navigating)closeTour(false);

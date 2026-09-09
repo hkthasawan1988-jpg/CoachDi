@@ -31,6 +31,14 @@ test('settings saves refund bank details on the same account and preserves leadi
   await expect(page.locator('#cdRefundSettings')).toContainText('ลงท้าย 4321');
   const writes=await page.evaluate(()=>testWrites);expect(writes).toHaveLength(1);expect(writes[0].path).toBe('users/settings-athlete/refundAccount');expect(writes[0].value.accountNumber).toBe('0007654321');expect(pageErrors).toEqual([]);
 });
+test('unread class counts remain on their menu without repeatedly repainting settings',async({page})=>{
+  await openIsolatedApp(page);await seed(page);
+  await page.evaluate(()=>{state.c94Counts={group:1,coach:0};c94Paint();window.settingsChanges=0;new MutationObserver(()=>settingsChanges++).observe(document.querySelector('#mobileNav .c92More'),{childList:true,subtree:true});});
+  await page.waitForTimeout(600);
+  expect(await page.evaluate(()=>settingsChanges)).toBe(0);
+  await expect(page.locator('#mobileNav .c92More .c94Badge')).toHaveCount(0);
+  await expect(page.locator('#athletePage>.athleteTabs [data-c76-groupclasses] .c94Badge')).toHaveText('1');
+});
 test('new first-entry guide navigates real pages without transactions and can be replayed',async({page})=>{
   const {pageErrors}=await openIsolatedApp(page);await seed(page);
   await page.evaluate(()=>{localStorage.setItem(c91GuideKey(),'seen');c91MaybeShowGuide(state.user.uid);});
