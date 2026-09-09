@@ -40,6 +40,11 @@
   }
   const schedule=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;refresh();});};
   new MutationObserver(schedule).observe(document.getElementById('portal'),{childList:true,subtree:true});
+  // Account saves update the shared sheet outside the portal. Refresh the
+  // summary after its success message changes and when that sheet closes.
+  const sheetContent=document.getElementById('sheetContent'),sheetWrap=document.getElementById('sheetWrap');
+  if(sheetContent)new MutationObserver(schedule).observe(sheetContent,{childList:true,subtree:true,characterData:true});
+  if(sheetWrap)new MutationObserver(schedule).observe(sheetWrap,{attributes:true,attributeFilter:['class']});
   const navBase=c92SyncMobileNav;c92SyncMobileNav=function(){const result=navBase.apply(this,arguments);refresh();return result;};
   const menuBase=c92OpenAllMenu;c92OpenAllMenu=function(){if(state.role==='athlete')return settings();return menuBase.apply(this,arguments);};
   const paintBase=c94Paint;c94Paint=function(){
