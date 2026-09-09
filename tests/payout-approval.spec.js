@@ -4,7 +4,7 @@ const pending={bank:'ธนาคารทดสอบ',accountNumber:'012345678
 
 async function admin(page,accounts={coach:pending},error=false){
   await page.evaluate(({accounts,error})=>{
-    window.testPayoutListeners={};const base=db.ref.bind(db);db.ref=path=>{const ref=base(path),on=ref.on.bind(ref);ref.on=(event,callback,cancel)=>{if(path==='coachPaymentAccounts'||path==='coachProfiles'){testPayoutListeners[path]={callback,cancel};if(error&&path==='coachPaymentAccounts'){queueMicrotask(()=>cancel(Error('Permission denied')));return callback;}}return on(event,callback,cancel);};return ref;};
+    window.testPayoutListeners={};const base=db.ref.bind(db);db.ref=path=>{const ref={...base(path)},on=ref.on.bind(ref);ref.on=(event,callback,cancel)=>{if(path==='coachPaymentAccounts'||path==='coachProfiles'){testPayoutListeners[path]={callback,cancel};if(error&&path==='coachPaymentAccounts'){queueMicrotask(()=>cancel(Error('Permission denied')));return callback;}}return on(event,callback,cancel);};return ref;};
     window.testRealtimeValues={coachPaymentAccounts:accounts,coachProfiles:{coach:{displayName:'Coach ทดสอบ',status:'active'}}};for(const [uid,value] of Object.entries(accounts))testData['coachPaymentAccounts/'+uid]=value;
     state.role='admin';state.user={uid:'test-admin'};testAuth.currentUser=state.user;loginView.classList.add('hidden');portal.classList.remove('hidden');renderNav();
     return s41ShowAdmin('overview');
@@ -33,7 +33,7 @@ test('failed admin review leaves the request actionable and rejecting requires a
 });
 test('review primes a cold Firebase ref without replacing the displayed request snapshot',async({page})=>{
   await openIsolatedApp(page);await admin(page);await page.evaluate(()=>s41ShowAdmin('verify'));
-  await page.evaluate(()=>{const original=db.ref.bind(db);db.ref=path=>{const ref=original(path);if(path==='coachPaymentAccounts/coach'){let primed=false;const once=ref.once.bind(ref),transaction=ref.transaction.bind(ref);ref.once=async()=>{const result=await once('value');primed=true;return result;};ref.transaction=callback=>primed?transaction(callback):Promise.resolve({committed:false,snapshot:{val:()=>null}});}return ref;};});
+  await page.evaluate(()=>{const original=db.ref.bind(db);db.ref=path=>{const ref={...original(path)};if(path==='coachPaymentAccounts/coach'){let primed=false;const once=ref.once.bind(ref),transaction=ref.transaction.bind(ref);ref.once=async()=>{const result=await once('value');primed=true;return result;};ref.transaction=callback=>primed?transaction(callback):Promise.resolve({committed:false,snapshot:{val:()=>null}});}return ref;};});
   await page.locator('[data-payout-action="approve"]').click();await expect(page.locator('#cdPayoutStatus')).toContainText('อนุมัติบัญชีรับเงินแล้ว');
   expect(await page.evaluate(()=>testWrites.filter(w=>w.transaction&&w.path==='coachPaymentAccounts/coach'))).toHaveLength(1);
 });
@@ -41,7 +41,7 @@ test('a slow public sync from the previous admin cannot block or mutate the next
   await openIsolatedApp(page);await admin(page);
   await page.evaluate(value=>{
     const original=db.ref.bind(db);let first=true;testData['coachPaymentAccounts/session-race']={...value,verificationStatus:'approved',verifiedAt:200};
-    db.ref=path=>{const ref=original(path);if(path==='coachPaymentAccounts/session-race'){const once=ref.once.bind(ref);ref.once=async()=>{if(first){first=false;await new Promise(resolve=>window.releasePayoutRead=resolve);}return once('value');};}return ref;};
+    db.ref=path=>{const ref={...original(path)};if(path==='coachPaymentAccounts/session-race'){const once=ref.once.bind(ref);ref.once=async()=>{if(first){first=false;await new Promise(resolve=>window.releasePayoutRead=resolve);}return once('value');};}return ref;};
     window.firstPayoutSync=cdSyncPublicPayment('session-race');
   },pending);
   await page.evaluate(async()=>{state.user={uid:'admin-second'};testAuth.currentUser=state.user;await s41ShowAdmin('overview');await cdSyncPublicPayment('session-race');});
@@ -51,7 +51,7 @@ test('a slow public sync from the previous admin cannot block or mutate the next
 });
 test('a deferred review transaction cancels when its admin session has ended',async({page})=>{
   await openIsolatedApp(page);await admin(page);await page.evaluate(()=>s41ShowAdmin('verify'));
-  await page.evaluate(()=>{const original=db.ref.bind(db);db.ref=path=>{const ref=original(path);if(path==='coachPaymentAccounts/coach'){const transaction=ref.transaction.bind(ref);ref.transaction=async callback=>{await new Promise(resolve=>window.releasePayoutReview=resolve);return transaction(callback);};}return ref;};window.oldPayoutReview=adminVerifyPayout('coach',true);});
+  await page.evaluate(()=>{const original=db.ref.bind(db);db.ref=path=>{const ref={...original(path)};if(path==='coachPaymentAccounts/coach'){const transaction=ref.transaction.bind(ref);ref.transaction=async callback=>{await new Promise(resolve=>window.releasePayoutReview=resolve);return transaction(callback);};}return ref;};window.oldPayoutReview=adminVerifyPayout('coach',true);});
   await page.waitForFunction(()=>typeof releasePayoutReview==='function');
   await page.evaluate(async()=>{state.user={uid:'admin-next'};testAuth.currentUser=state.user;await s41ShowAdmin('overview');releasePayoutReview();await oldPayoutReview;});
   expect(await page.evaluate(()=>testWrites.filter(w=>w.transaction&&w.path==='coachPaymentAccounts/coach'))).toHaveLength(0);

@@ -48,6 +48,7 @@
   });
 
   const target=new URLSearchParams(location.search).get('knocker');let directOwner='',directRevision=0;
+  const guide=c91ShowGuide;c91ShowGuide=function(force=false){if(!force&&target&&state.role==='athlete')return;return guide.apply(this,arguments);};
   async function showKnocker(){
     const uid=state.user?.uid,revision=++directRevision;if(state.role!=='athlete'||!uid)return;
     for(const child of athletePage.children)child.style.display='none';

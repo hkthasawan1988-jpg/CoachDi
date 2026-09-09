@@ -67,7 +67,20 @@ for(const active of [true,false])test(`shared Knocker link ${active?'opens appro
     testData['hittingPartnerProfiles/shared-knocker']={userId:'shared-knocker',displayName:'Shared Knocker Name',sport:'tennis',area:'Bangkok',hourlyRateSatang:30000,status:active?'active':'pending_review'};
     loginView.classList.add('hidden');portal.classList.remove('hidden');showAthleteMenu('home');
   },active);
+  await page.evaluate(()=>c91ShowGuide(false));await expect(page.locator('#c91Guide')).toHaveCount(0);
   if(active){await expect(page.locator('#cdDirectProvider')).toContainText('Shared Knocker Name');await page.locator('[data-direct-knocker-request]').click();await expect(page.locator('#c69Modal')).toContainText('Shared Knocker Name');}
   else{await expect(page.locator('#cdDirectProvider')).toContainText('ยังไม่เปิดให้จอง');await expect(page.locator('#cdDirectProvider')).not.toContainText('Shared Knocker Name');await expect(page.locator('[data-direct-knocker-request]')).toHaveCount(0);}
   expect(await page.evaluate(()=>testWrites)).toEqual([]);expect(pageErrors).toEqual([]);
+});
+
+test('session reset releases the old athlete guide focus lock',async({page})=>{
+  await openIsolatedApp(page);
+  await page.evaluate(()=>{
+    state.user={uid:'guide-athlete'};testAuth.currentUser=state.user;state.role='athlete';
+    loginView.classList.add('hidden');portal.classList.remove('hidden');showAthleteMenu('home');c91ShowGuide(true);
+  });
+  await expect(page.locator('#c91Guide')).toBeVisible();expect(await page.evaluate(()=>portal.inert)).toBe(true);
+  await page.evaluate(()=>accountSession.begin({uid:'next-knocker'},true));
+  await expect(page.locator('#c91Guide')).toHaveCount(0);expect(await page.evaluate(()=>portal.inert)).toBe(false);
+  await provider(page,'knocker');await expect(page.locator('[data-provider-copy]')).toBeEnabled();
 });

@@ -53,7 +53,7 @@
       if(typeof document==='object'){
         for(const id of ['coachContent','sidebar','mobileNav','athleteBookings','selectedCoachIdentity'])document.getElementById(id)?.replaceChildren();
         for(const id of ['s40AthleteDynamic','c47Home','c69PartnerHost','c76AthleteHost','cdDirectProvider','cdProviderShare','c69Modal','c76Modal','c91Guide','cdAthleteGuide','cdSupportFloat395'])document.getElementById(id)?.remove();
-        try{window.closeSheet?.();window.c92CloseAllMenu?.();}catch(_){}
+        try{window.closeSheet?.();window.c92CloseAllMenu?.();window.c91CloseGuide?.();}catch(_){}
         document.body.classList.remove('bo-knocker-provider');
         document.dispatchEvent(new CustomEvent('coachdi:account-reset',{detail:{uid}}));
       }
