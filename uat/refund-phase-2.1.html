@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coach Di — Refund UAT Phase 2.1</title>
+<style>
+:root{--navy:#071A3D;--teal:#0F9D98;--gold:#B08A00;--bg:#F5F6F3;--line:#E3E8E5;--muted:#667085;--ok:#14734D;--danger:#9B3440;--warn:#80520C}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--navy);font-family:"Noto Sans Thai","Prompt",Arial,sans-serif;font-size:14px}button,input,select{font:inherit}.top{height:68px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:10}.brand{font-size:22px;font-weight:900}.brand small{font-size:11px;display:block;opacity:.72}.badge{font-size:11px;background:#fff2c7;color:#735900;border-radius:999px;padding:6px 9px;font-weight:900}.wrap{max-width:1060px;margin:22px auto;padding:0 14px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 6px 20px rgba(7,26,61,.04)}h1,h2,h3{margin:0 0 6px}.muted{color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:5px;margin:10px 0}.field label{font-size:12px;font-weight:800}.field input,.field select{min-height:44px;border:1px solid #CBD5D1;border-radius:11px;padding:10px 12px;background:#fff}.btn{border:1px solid var(--line);background:#fff;border-radius:11px;padding:11px 14px;font-weight:900;cursor:pointer}.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}.btn.dark{background:var(--navy);border-color:var(--navy);color:#fff}.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}.btn:disabled{opacity:.5;cursor:not-allowed}.row{display:flex;gap:8px;flex-wrap:wrap}.hidden{display:none!important}.notice{padding:12px;border-radius:12px;background:#FFF8E8;border:1px solid #F1D79A;font-size:12px}.ok{padding:12px;border-radius:12px;background:#EFFAF5;border:1px solid #C4E7D4;font-size:12px}.err{padding:12px;border-radius:12px;background:#FFF2F3;border:1px solid #E6B9BE;color:#7F2833;font-size:12px}.status{display:inline-flex;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:900}.status.requested{background:#FFF2D8;color:#80520C}.status.processing{background:#E8F2FF;color:#275D90}.status.paid{background:#E6F6EE;color:#14734D}.metric{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}.metric b{font-size:24px;display:block}.queue{display:grid;gap:10px}.ticket{border:1px solid var(--line);border-radius:14px;padding:14px}.ticketHead{display:flex;justify-content:space-between;gap:10px}.amount{font-size:20px;font-weight:900}.bank{border:1px solid #D7E7E4;background:#F4FBF9;border-radius:14px;padding:14px}.mask{font-size:26px;font-weight:900;letter-spacing:1px}.tabs{display:flex;gap:8px;margin:14px 0}.tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font-weight:800}.tabs button.active{background:var(--navy);color:#fff}.modal{position:fixed;inset:0;background:#071a3d77;display:grid;place-items:center;padding:14px;z-index:50}.dialog{width:min(500px,100%);background:#fff;border-radius:18px;padding:18px}.login{max-width:430px;margin:40px auto}.bookingId{font-family:monospace;font-size:12px;background:#F3F5F4;padding:3px 6px;border-radius:6px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.toolbar .who{font-size:12px}.footer{font-size:11px;color:#808A85;text-align:center;margin:20px}.empty{padding:28px;text-align:center;color:#8A9390;border:1px dashed var(--line);border-radius:14px}@media(max-width:760px){.grid{grid-template-columns:1fr}.wrap{margin-top:14px}.row .btn{flex:1}.brand{font-size:19px}.toolbar{align-items:flex-start;flex-direction:column}.ticketHead{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="top"><div class="brand">Coach Di <small>Sprint 5.0 • Phase 2.1</small></div><div class="badge">UAT • FIREBASE</div></div>
+<div class="wrap">
+  <section id="loginView" class="login card">
+    <h1>Refund UAT</h1><div class="muted">เข้าสู่ระบบด้วยบัญชี Coach Di เพื่อทดสอบตาม Role จริง</div>
+    <div class="field"><label>Email</label><input id="email" type="email" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password"></div>
+    <button id="loginBtn" class="btn dark" style="width:100%">เข้าสู่ระบบ</button>
+    <div id="loginMsg" class="muted" style="margin-top:10px"></div>
+  </section>
+
+  <section id="appView" class="hidden">
+    <div class="toolbar"><div><h1 id="pageTitle">Refund Center</h1><div class="who" id="who"></div></div><button id="logoutBtn" class="btn">ออกจากระบบ</button></div>
+
+    <section id="athleteView" class="hidden">
+      <div class="grid">
+        <div>
+          <div class="card"><h2>บัญชีรับเงินคืน</h2><div class="muted">เลขบัญชีเต็มถูกเข้ารหัสและไม่แสดงในข้อมูลทั่วไป</div><div id="accountSummary" style="margin-top:12px"></div>
+            <div class="field"><label>ธนาคาร</label><select id="bankName"><option value="KBANK">กสิกรไทย</option><option value="SCB">ไทยพาณิชย์</option><option value="BBL">กรุงเทพ</option><option value="KTB">กรุงไทย</option><option value="BAY">กรุงศรี</option><option value="TTB">ทหารไทยธนชาต</option></select></div>
+            <div class="field"><label>ชื่อบัญชี</label><input id="accountName" placeholder="ชื่อ-นามสกุล ตามบัญชี"></div>
+            <div class="field"><label>เลขบัญชี</label><input id="accountNumber" inputmode="numeric" maxlength="20" placeholder="กรอกเฉพาะตัวเลข"></div>
+            <button id="saveAccountBtn" class="btn primary" style="width:100%">บันทึกบัญชีรับเงินคืน</button><div id="accountMsg" class="muted" style="margin-top:8px"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card"><h2>ขอคืนเงิน</h2><div class="muted">สำหรับ UAT ให้ใส่ Booking ID ของบัญชีนี้ที่มีสถานะ eligible</div>
+            <div class="field"><label>Booking ID</label><input id="refundBookingId" placeholder="เช่น -Oabc123..."></div>
+            <button id="requestRefundBtn" class="btn danger" style="width:100%">ส่งคำขอ Refund</button><div id="requestMsg" class="muted" style="margin-top:8px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card"><h2>ประวัติ Refund ของฉัน</h2><div id="myRefunds" class="queue" style="margin-top:12px"></div></div>
+    </section>
+
+    <section id="adminView" class="hidden">
+      <div class="grid" id="metrics"></div>
+      <div class="tabs"><button class="active" data-filter="all">ทั้งหมด</button><button data-filter="requested">รอคืนเงิน</button><button data-filter="processing">กำลังดำเนินการ</button><button data-filter="paid">คืนเงินแล้ว</button></div>
+      <div class="card"><h2>Refund Queue</h2><div class="muted">ข้อมูลเลขบัญชีเต็มจะโหลดผ่าน Server เฉพาะเมื่อ Admin กดดู และถูกบันทึก Audit Log</div><div id="refundQueue" class="queue" style="margin-top:14px"></div></div>
+    </section>
+
+    <section id="unsupportedView" class="hidden card"><h2>Role นี้ไม่ได้ใช้ Refund Center</h2><div class="muted">กรุณาใช้บัญชี Athlete หรือ Admin สำหรับ UAT Phase 2.1</div></section>
+  </section>
+</div>
+<div class="footer">Coach Di UAT • Phase 2.1 • Secure Refund Workflow</div>
+<div id="modal" class="modal hidden"><div class="dialog"><h2>ข้อมูลสำหรับโอนคืนเงิน</h2><div id="instruction"></div><div class="notice" style="margin-top:12px">การเปิดข้อมูลนี้ถูกบันทึกใน Server Audit Log</div><button class="btn dark" style="width:100%;margin-top:12px" onclick="closeModal()">ปิด</button></div></div>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js';
+import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js';
+import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-functions.js';
+
+const firebaseConfig={apiKey:'AIzaSyCKr76AFSvi6G1N_BF_IfpcsV7VWlzOcIc',authDomain:'coach-di.firebaseapp.com',databaseURL:'https://coach-di-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'coach-di',storageBucket:'coach-di.firebasestorage.app',messagingSenderId:'41680156013',appId:'1:41680156013:web:0c24e900e60495d9189664'};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app),functions=getFunctions(app,'asia-southeast1');
+const fn=n=>httpsCallable(functions,n);
+const saveRefundAccount=fn('saveRefundAccount'),getRefundAccountSummary=fn('getRefundAccountSummary'),requestRefund=fn('requestRefund'),listMyRefunds=fn('listMyRefunds'),listRefundQueue=fn('listRefundQueue'),getRefundInstruction=fn('getRefundInstruction'),setRefundProcessing=fn('setRefundProcessing'),markRefundPaid=fn('markRefundPaid');
+let currentRole='',queue=[],filter='all';
+const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const baht=s=>'฿'+(Number(s||0)/100).toLocaleString('th-TH',{maximumFractionDigits:2});
+const fmt=t=>t?new Intl.DateTimeFormat('th-TH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(t)):'-';
+const statusTH=s=>({requested:'รอคืนเงิน',processing:'กำลังดำเนินการ',paid:'คืนเงินแล้ว',rejected:'ปฏิเสธ'}[s]||s||'-');
+function showMsg(el,msg,type=''){el.textContent=msg;el.className=type||'muted'}
+async function call(callable,data={},btn){try{if(btn)btn.disabled=true;const r=await callable(data);return r.data}catch(e){throw new Error(e?.message?.replace(/^Firebase: /,'')||'เกิดข้อผิดพลาด')}finally{if(btn)btn.disabled=false}}
+
+$('loginBtn').onclick=async()=>{try{showMsg($('loginMsg'),'กำลังเข้าสู่ระบบ...');await signInWithEmailAndPassword(auth,$('email').value.trim(),$('password').value)}catch(e){showMsg($('loginMsg'),'เข้าสู่ระบบไม่สำเร็จ: '+(e.message||e),'err')}};
+$('logoutBtn').onclick=()=>signOut(auth);
+onAuthStateChanged(auth,async user=>{if(!user){$('loginView').classList.remove('hidden');$('appView').classList.add('hidden');return}try{const u=(await get(ref(db,'users/'+user.uid))).val()||{};currentRole=String(u.role||'');$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');$('who').textContent=(u.displayName||user.email||user.uid)+' • '+currentRole;$('athleteView').classList.toggle('hidden',currentRole!=='athlete');$('adminView').classList.toggle('hidden',currentRole!=='admin');$('unsupportedView').classList.toggle('hidden',!currentRole||['athlete','admin'].includes(currentRole));$('pageTitle').textContent=currentRole==='athlete'?'บัญชีรับเงินคืน & Refund':'Admin Refund Center';if(currentRole==='athlete')await loadAthlete();if(currentRole==='admin')await loadAdmin()}catch(e){alert(e.message)}});
+
+async function loadAthlete(){await Promise.all([loadAccount(),loadMyRefunds()])}
+async function loadAccount(){try{const r=await call(getRefundAccountSummary),a=r.account;$('accountSummary').innerHTML=a?`<div class="bank"><b>${esc(a.bankName||'')}</b><div>${esc(a.accountName||'')}</div><div class="mask">${esc(a.maskedAccountNumber||'')}</div><div class="muted">อัปเดต ${fmt(a.updatedAt)}</div></div>`:'<div class="notice">ยังไม่มีบัญชีรับเงินคืน กรุณาบันทึกก่อนขอ Refund</div>'}catch(e){$('accountSummary').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
+$('saveAccountBtn').onclick=async()=>{const btn=$('saveAccountBtn'),opt=$('bankName').selectedOptions[0];try{showMsg($('accountMsg'),'กำลังบันทึก...');await call(saveRefundAccount,{bankCode:$('bankName').value,bankName:opt.textContent,accountName:$('accountName').value.trim(),accountNumber:$('accountNumber').value},btn);$('accountNumber').value='';showMsg($('accountMsg'),'✓ บันทึกบัญชีรับเงินคืนแล้ว','ok');await loadAccount()}catch(e){showMsg($('accountMsg'),e.message,'err')}};
+$('requestRefundBtn').onclick=async()=>{const btn=$('requestRefundBtn');try{showMsg($('requestMsg'),'กำลังส่งคำขอ...');const r=await call(requestRefund,{bookingId:$('refundBookingId').value.trim()},btn);showMsg($('requestMsg'),'✓ ส่งคำขอแล้ว • '+r.status,'ok');await loadMyRefunds()}catch(e){showMsg($('requestMsg'),e.message,'err')}};
+async function loadMyRefunds(){try{const r=await call(listMyRefunds),rows=r.refunds||[];$('myRefunds').innerHTML=rows.length?rows.map(x=>`<div class="ticket"><div class="ticketHead"><div><span class="status ${esc(x.status)}">${esc(statusTH(x.status))}</span><h3 style="margin-top:8px">${esc(x.refundId)}</h3><span class="bookingId">${esc(x.bookingId)}</span></div><div class="amount">${baht(x.amountSatang)}</div></div><div style="margin-top:10px">${esc(x.bankName)} • ${esc(x.maskedAccountNumber)}</div><div class="muted">ขอคืนเงิน ${fmt(x.requestedAt)}${x.paidAt?' • คืนแล้ว '+fmt(x.paidAt):''}</div></div>`).join(''):'<div class="empty">ยังไม่มีรายการ Refund</div>'}catch(e){$('myRefunds').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
+
+async function loadAdmin(){try{const r=await call(listRefundQueue);queue=r.refunds||[];renderMetrics();renderQueue()}catch(e){$('refundQueue').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
+function renderMetrics(){const count=s=>queue.filter(x=>x.status===s).length;$('metrics').innerHTML=`<div class="metric"><span>รอคืนเงิน</span><b>${count('requested')}</b></div><div class="metric"><span>กำลังดำเนินการ</span><b>${count('processing')}</b></div><div class="metric"><span>คืนเงินแล้ว</span><b>${count('paid')}</b></div><div class="metric"><span>ยอด Refund</span><b>${baht(queue.reduce((a,x)=>a+Number(x.amountSatang||0),0))}</b></div>`}
+function renderQueue(){const rows=filter==='all'?queue:queue.filter(x=>x.status===filter);$('refundQueue').innerHTML=rows.length?rows.map(x=>`<div class="ticket"><div class="ticketHead"><div><span class="status ${esc(x.status)}">${esc(statusTH(x.status))}</span><h3 style="margin-top:8px">${esc(x.refundId)}</h3><span class="bookingId">${esc(x.bookingId)}</span></div><div class="amount">${baht(x.amountSatang)}</div></div><div style="margin-top:10px"><b>${esc(x.accountName||'-')}</b><div>${esc(x.bankName||'')} • ${esc(x.maskedAccountNumber||'')}</div></div><div class="muted">ร้องขอ ${fmt(x.requestedAt)}</div><div class="row" style="margin-top:12px">${x.status==='requested'?`<button class="btn" onclick="processing('${esc(x.refundId)}',this)">เริ่มดำเนินการ</button>`:''}<button class="btn" onclick="instructionFor('${esc(x.refundId)}',this)">ดูข้อมูลสำหรับโอน</button>${x.status!=='paid'?`<button class="btn dark" onclick="paid('${esc(x.refundId)}',this)">ยืนยันคืนเงินแล้ว</button>`:''}</div></div>`).join(''):'<div class="empty">ไม่มีรายการในสถานะนี้</div>'}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;renderQueue()});
+window.processing=async(id,btn)=>{try{await call(setRefundProcessing,{refundId:id},btn);await loadAdmin()}catch(e){alert(e.message)}};
+window.instructionFor=async(id,btn)=>{try{const r=await call(getRefundInstruction,{refundId:id},btn);$('instruction').innerHTML=`<div class="amount">${baht(r.amountSatang)}</div><div style="margin-top:12px"><b>${esc(r.bankName)}</b></div><div>${esc(r.accountName)}</div><div class="mask">${esc(r.accountNumber)}</div><div class="muted">Booking ${esc(r.bookingId)}</div>`;$('modal').classList.remove('hidden')}catch(e){alert(e.message)}};
+window.paid=async(id,btn)=>{if(!confirm('ยืนยันว่าโอนเงินคืนให้นักกีฬาแล้ว?'))return;try{await call(markRefundPaid,{refundId:id},btn);await loadAdmin()}catch(e){alert(e.message)}};
+window.closeModal=()=>$('modal').classList.add('hidden');
+</script>
+</body></html>
