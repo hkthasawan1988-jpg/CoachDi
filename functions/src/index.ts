@@ -220,4 +220,11 @@ export const declineBooking = onCall({ region: 'asia-southeast1' }, async (reque
   return { ok: true, status: 'declined' };
 });
 
-export { getRefundAccountSummary, getRefundInstruction, markRefundPaid } from './refund-admin.js';
+export {
+  getRefundAccountSummary,
+  listMyRefunds,
+  listRefundQueue,
+  getRefundInstruction,
+  setRefundProcessing,
+  markRefundPaid,
+} from './refund-admin.js';
