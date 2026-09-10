@@ -14,16 +14,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
       - name: Install app dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
       - name: Typecheck app-v2
         run: npm run typecheck
       - name: Run unit tests
         run: npm test
       - name: Install Functions dependencies
         working-directory: functions
-        run: npm install
+        run: npm install --no-audit --no-fund
       - name: Typecheck Functions
         working-directory: functions
         run: npm run typecheck
