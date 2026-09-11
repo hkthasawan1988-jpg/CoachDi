@@ -12,7 +12,7 @@
     "check": "node scripts/check-source.mjs && node scripts/check-web-compat.mjs",
     "test": "playwright test",
     "typecheck:v2": "tsc -p app-v2/tsconfig.json --noEmit",
-    "test:domain": "vitest run app-v2/src/domain",
+    "test:domain": "vitest run app-v2/src/domain --pool=threads --maxWorkers=1",
     "android:sync": "npm run build && cap sync android",
     "android:open": "cap open android",
     "test:unit": "node --test test-unit/*.test.cjs",

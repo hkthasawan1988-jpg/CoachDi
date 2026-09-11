@@ -17,3 +17,6 @@ database-debug.log
 .auth-test-sdk/
 auth-test-results/
 auth-test-report/
+.p0-recovery/
+.codex-npm-cache/
+functions-production-recovered/
