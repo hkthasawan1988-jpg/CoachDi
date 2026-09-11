@@ -8,6 +8,7 @@ html.cd-court-theme{
   --c47-navy:#123e31;--c47-teal:#24664b;--c47-green:#24664b;--c47-orange:#65418a;--c47-bg:#f7f8f2;--c47-line:#dce5d9;--c47-text:#153c30;--c47-muted:#637267;
 }
 html.cd-court-theme,html.cd-court-theme body{background:var(--cd-ivory)!important;color:var(--cd-forest)}
+.cd-court-theme #sidebar .bo-nav-section{color:var(--cd-purple)}
 .cd-court-theme :is(.topbar,.sidebar){background:#fff!important;border-color:var(--cd-line)!important}
 .cd-court-theme .topbar{box-shadow:0 3px 18px #123e3107!important;border-bottom:3px solid var(--cd-forest)!important}
 .cd-court-theme .brand{color:var(--cd-forest)!important;letter-spacing:-.03em}

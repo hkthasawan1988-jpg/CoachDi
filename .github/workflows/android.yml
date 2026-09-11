@@ -38,7 +38,7 @@ jobs:
       - name: Install Android SDK
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - run: npm ci
-      - run: npm run build
+      - run: npm run build:netlify
       - run: npm run check
       - run: npm run test:unit
       - name: Validate isolated public schedule function
@@ -54,6 +54,15 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:auth
       - run: npm test
+      - name: Upload verified Netlify website
+        uses: actions/upload-artifact@v4
+        with:
+          name: coach-di-website-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Prepare app assets without website UAT routes
+        run: npm run build
       - run: npx cap sync android
       - name: Clean and build Debug APK; lint Android
         working-directory: android

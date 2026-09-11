@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "node scripts/build-web.mjs",
+    "build:netlify": "node scripts/build-netlify.mjs",
     "check": "node scripts/check-source.mjs && node scripts/check-web-compat.mjs",
     "test": "playwright test",
     "android:sync": "npm run build && cap sync android",
