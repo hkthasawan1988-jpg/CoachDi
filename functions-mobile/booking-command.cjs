@@ -1,4 +1,5 @@
 'use strict';
+const {createHash}=require('node:crypto');
 
 const IDENTIFIER = /^[A-Za-z0-9_-]{8,80}$/;
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
@@ -12,6 +13,10 @@ function text(value, max = 160) {
 function commandKey(uid, requestId) {
   const actorUid = text(uid, 80), id = text(requestId, 80);
   return IDENTIFIER.test(actorUid) && IDENTIFIER.test(id) ? `${actorUid}_${id}` : null;
+}
+function requestFingerprint(actorUid,input={}){
+  const canonical={actorUid:text(actorUid,80),bookingId:text(input.bookingId,100),action:text(input.action,40),reason:text(input.reason,160),note:text(input.note,500)};
+  return createHash('sha256').update(JSON.stringify(canonical)).digest('hex');
 }
 
 function coachEligible(user, now) {
@@ -129,4 +134,4 @@ function sameLedger(current, expected) {
     .every(field => current[field] === expected[field]);
 }
 
-module.exports = { amounts, bookingPatch, coachEligible, commandKey, evaluate, paymentLedger, sameLedger, text };
+module.exports = { amounts, bookingPatch, coachEligible, commandKey, evaluate, paymentLedger, requestFingerprint, sameLedger, text };

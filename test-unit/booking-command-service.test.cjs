@@ -69,3 +69,6 @@ test('time off and inactive subscription fail before changing the booking',async
   const inactiveDb=new FakeDb(seed());write(inactiveDb.data,'users/coach_12345678/status','suspended');
   await assert.rejects(()=>service.execute(inactiveDb,request()),error=>error.code==='COACH_INACTIVE');
 });
+test('same request cannot change decline details',async()=>{
+  const declined=booking();declined.status='payment_submitted';const db=new FakeDb(seed({BOOKING_123:declined})),first={...request(),input:{...request().input,action:'coach_decline',reason:'ติดภารกิจ'}};await service.execute(db,first);await assert.rejects(()=>service.execute(db,{...first,input:{...first.input,reason:'เปลี่ยนเหตุผล'}}),error=>error.code==='REQUEST_CONFLICT');
+});

@@ -31,14 +31,14 @@ async function execute(db,{actorUid,input,now=Date.now()}){
   const bookingId=String(input&&input.bookingId||'').trim(),requestId=String(input&&input.requestId||'').trim();
   if(!BOOKING_ID.test(bookingId))throw new BookingCommandError('BOOKING_NOT_FOUND');
   const key=command.commandKey(actorUid,requestId);if(!key)throw new BookingCommandError('INVALID_REQUEST_ID');
-  const action=String(input&&input.action||'').trim();
+  const action=String(input&&input.action||'').trim(),fingerprint=command.requestFingerprint(actorUid,input);
   const commandRef=db.ref(`bookingCommandResults/${actorUid}/${requestId}`);let requestConflict=false;
   const commandClaim=await transaction(commandRef,current=>{
     if(current){
-      if(current.bookingId!==bookingId||current.action!==action){requestConflict=true;return;}
+      if(current.bookingId!==bookingId||current.action!==action||current.fingerprint!==fingerprint){requestConflict=true;return;}
       return current;
     }
-    return{actorUid,requestId,bookingId,action,status:'processing',createdAt:now,updatedAt:now};
+    return{actorUid,requestId,bookingId,action,fingerprint,status:'processing',createdAt:now,updatedAt:now};
   });
   if(!commandClaim.committed)throw new BookingCommandError(requestConflict?'REQUEST_CONFLICT':'COMMAND_CLAIM_FAILED');
 
@@ -101,7 +101,7 @@ async function execute(db,{actorUid,input,now=Date.now()}){
     [`notifications/${saved.athleteId}/${notificationId}`]:{type:`booking_${action}`,bookingId,senderId:actorUid,recipientId:saved.athleteId,message:message(finalDecision,saved),read:false,createdAt:now},
     [`bookingChats/${bookingId}/messages/${chatId}`]:{senderId:actorUid,senderRole:'coach',type:'system',text:message(finalDecision,saved),createdAt:now},
     [`auditLogs/${actorUid}/${auditId}`]:{userId:actorUid,actor:'coach',action,target:bookingId,requestId,at:now},
-    [`bookingCommandResults/${actorUid}/${requestId}`]:{actorUid,requestId,bookingId,action,status:'completed',resultStatus:saved.status,resultPaymentStatus:saved.paymentStatus,completedAt:now,updatedAt:now},
+    [`bookingCommandResults/${actorUid}/${requestId}`]:{actorUid,requestId,bookingId,action,fingerprint,status:'completed',resultStatus:saved.status,resultPaymentStatus:saved.paymentStatus,completedAt:now,updatedAt:now},
   };
   if(['coach_confirm_paid','coach_confirm_venue'].includes(action))updates[`coachCalendar/${actorUid}/${bookingId}`]={bookingId,date:saved.date,start:Number(saved.start),end:Number(saved.end),venue:String(saved.venue||''),venueId:String(saved.venueId||''),athleteId:saved.athleteId,athlete:String(saved.athlete||saved.athleteName||''),status:'confirmed',updatedAt:now};
   await db.ref().update(updates);

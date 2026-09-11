@@ -51,6 +51,8 @@ jobs:
           node --check functions-mobile/index.js
           node --check functions-mobile/backfill.cjs
           node --check functions-mobile/booking-command.cjs
+          node --check functions-mobile/booking-create.cjs
+          node --check functions-mobile/booking-create-service.cjs
           node --check functions-mobile/booking-command-service.cjs
           node --check functions-mobile/booking-availability.cjs
           node --check functions-mobile/booking-slot-lock.cjs
