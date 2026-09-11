@@ -1,0 +1,18 @@
+[
+  {
+    "before": "<script src=\"auth-session.js\"></script>",
+    "after": "<script src=\"account-session.js\"></script>\n<script src=\"auth-session.js\"></script>"
+  },
+  {
+    "before": "const travelMinutes=",
+    "after": "const accountSession=CoachDiAccountSession.install(db,auth,state);\nconst travelMinutes="
+  },
+  {
+    "before": "async function logout(){await auth.signOut();",
+    "after": "async function logout(){accountSession.begin(null);await auth.signOut();"
+  },
+  {
+    "before": "async function restoreCoachDiSession(user,loginIntent=null){\n",
+    "after": "async function restoreCoachDiSession(user,loginIntent=null){\n accountSession.begin(user,true);\n"
+  }
+]

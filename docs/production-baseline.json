@@ -1,0 +1,9 @@
+{
+  "source_url": "https://coach-di.netlify.app/",
+  "recorded_at_utc": "2026-09-07T04:11:47.218053+00:00",
+  "github_base_commit": "120abd1feab7359015a07751df2c1127dcceb880",
+  "github_index_sha256": "26a4b74e40b064e627a84c76b110f370cae41a7114e24dd503bc870984ae141d",
+  "production_index_sha256": "a0e06aa9db2181ffc195e16610794e419d7fda17b939528b5237638933d9cbf0",
+  "production_bytes": 1173430,
+  "scope": "Public index.html snapshot only; deployment commit and server-side Firebase rules could not be independently identified. No deployment or database changes were made."
+}

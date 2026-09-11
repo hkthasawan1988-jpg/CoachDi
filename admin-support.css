@@ -1,0 +1,25 @@
+/* Bound the message track so long conversations cannot push the composer out. */
+.c70Chat{grid-template-rows:minmax(0,1fr)}
+.c70Thread{grid-template-rows:auto minmax(0,1fr) auto;min-height:0;overflow:hidden}
+.c70Messages{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.c70Composer{min-height:0;flex-shrink:0;align-items:center}
+.cd-support-page .c70Chat{height:min(690px,calc(100dvh - 170px));min-height:360px}
+.cd-support-page .c70Inbox{min-height:0}
+.cd-support-page .c70InboxItem{width:100%;border:0;border-bottom:1px solid #eef2f5;text-align:left;background:#fff;color:#12304a;cursor:pointer;font:inherit}
+.cd-support-page .c70InboxItem.active{background:#edf8f6}
+.cd-support-page .c70InboxItem>span:nth-child(2){min-width:0}
+.cd-support-page .c70InboxHead button{border:0;background:transparent;color:#087c73;padding:8px 0 0;cursor:pointer}
+.cd-support-page .c70Composer{padding:12px 14px;grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;margin:0;background:#fff}
+.cd-support-input-label{font-size:13px;color:#52687a;grid-column:1/-1}
+.cd-support-page .c70Composer textarea{width:100%;min-width:0;min-height:54px;max-height:140px;resize:vertical;border:1px solid #bacbd6;border-radius:12px;padding:10px 12px;font:inherit;font-size:16px;line-height:1.4;color:#12304a;background:#fff}
+.cd-support-page .c70Composer button{width:46px;height:46px;margin:0;cursor:pointer}
+.cd-support-page .c70Composer button:disabled{opacity:.5;cursor:wait}
+.cd-support-feedback{grid-column:1/-1;font-size:13px;color:#53687a;line-height:1.5}
+.cd-support-feedback:empty{display:none}
+.cd-support-person{min-width:0;flex:1;overflow-wrap:anywhere}
+.cd-name-history-button{border:1px solid #7896ad;border-radius:8px;background:transparent;color:#fff;padding:8px 10px;font:inherit;font-size:13px;white-space:nowrap;cursor:pointer}
+.cd-support-page .c70ThreadHead{flex-wrap:wrap;min-width:0}
+.cd-support-page .c70Bubble{font-size:14px;line-height:1.6}
+.cd-support-page .c70MsgTime{font-size:11px}
+.cd-support-page textarea:focus-visible,.cd-support-page button:focus-visible{outline:3px solid #e9b05b;outline-offset:2px}
+@media(max-width:720px){.cd-support-page .c70Chat{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);height:calc(100dvh - 110px);min-height:540px}.cd-support-page .c70Inbox{max-height:185px}.cd-support-page .c70Thread{min-height:0;height:100%}.cd-support-page .c70InboxHead{padding:10px 12px}.cd-support-page .c70InboxHead h2{margin-bottom:7px}.cd-support-page .c70InboxItem{padding:8px 12px}.cd-support-page .c70Messages{padding:10px}.cd-support-page .c70Composer{padding:10px}.c70SupportModal .c70Thread{min-height:0}}

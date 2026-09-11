@@ -1,0 +1,5 @@
+.cdProviderShare{min-width:0;max-width:100%;margin:14px 0 20px;padding:18px;border:1px solid #d6e1d2;border-radius:18px;background:#fffef9;color:#173f32;overflow-wrap:anywhere}
+.cdProviderShare h1,.cdProviderShare h2{margin:4px 0 8px;font-size:22px;line-height:1.35}.cdProviderShare p{font-size:14px;line-height:1.6;margin:6px 0 12px}.cdProviderShare small{font-weight:800;letter-spacing:.08em;font-size:11px;color:#664089}
+.cdProviderShareRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;min-width:0}.cdProviderShare input{box-sizing:border-box;min-width:0;width:100%;font-size:14px;padding:12px;border:1px solid #b6cbbc;border-radius:10px;background:white;color:#173f32}
+.cdProviderShare button{min-height:46px;max-width:100%;border:0;border-radius:10px;padding:10px 16px;font-size:15px;font-weight:700;background:#173f32;color:white;white-space:normal}.cdProviderShare button:disabled{opacity:.6}.cdProviderShare [role=status]{display:block;font-size:14px;line-height:1.5;margin-top:8px}
+@media(max-width:600px){.cdProviderShare{padding:14px}.cdProviderShareRow{grid-template-columns:minmax(0,1fr)}.cdProviderShareRow button{width:100%}}

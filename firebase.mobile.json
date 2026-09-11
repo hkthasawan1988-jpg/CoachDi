@@ -1,0 +1,3 @@
+{
+  "functions": [{ "source":"functions-mobile", "codebase":"coach-di-mobile", "ignore":["node_modules", ".git", "firebase-debug.log", "firebase-debug.*.log"] }]
+}

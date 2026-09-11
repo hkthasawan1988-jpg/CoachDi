@@ -1,0 +1,9 @@
+{
+  "sourceCommit": "7e25792548ecd8f8096932fb9ee295da8c5ff927",
+  "assets": [
+    { "path": "uat/admin-master-v2.html", "gitBlobSha": "270a8c27b076606a9e7a9bf27161cccf99ecb977" },
+    { "path": "uat/admin-reference.html", "gitBlobSha": "498cd8cf9c4761580ea175529218661004e2e885" },
+    { "path": "uat/refund-center.html", "gitBlobSha": "d9fe447aad35bb8949ba63d856f69f0239eb485d" },
+    { "path": "uat/refund-phase-2.1.html", "gitBlobSha": "b5bcf5b76d2e3bda1b70519751a9159b96e14f54" }
+  ]
+}

@@ -1,0 +1,3 @@
+{
+  "functions": [{"source":"functions-push","codebase":"default","ignore":["node_modules",".git","*-debug.log"]}]
+}

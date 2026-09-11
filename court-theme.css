@@ -1,0 +1,104 @@
+/* Coach Di's own court graphics with a grass-green, purple and ivory palette. */
+html.cd-court-theme{
+  --cd-forest:#123e31;--cd-grass:#24664b;--cd-purple:#65418a;--cd-lilac:#f0eaf5;--cd-ivory:#f7f8f2;--cd-line:#dce5d9;
+  --navy:#153c30;--teal:#24664b;--orange:#65418a;--bg:#f7f8f2;--muted:#637267;--grid:#dce5d9;--green:#24664b;
+  --oura-bg:#f7f8f2;--oura-ink:#153c30;--oura-soft:#eef1e8;--oura-line:#dce5d9;--oura-green:#24664b;
+  --s41-line:#dce5d9;
+  --color-primary:#123e31;--color-primary-soft:#24664b;--color-background:#f7f8f2;--color-text:#153c30;--color-text-secondary:#637267;--color-accent:#65418a;--color-accent-soft:#f0eaf5;--color-border:#dce5d9;
+  --c47-navy:#123e31;--c47-teal:#24664b;--c47-green:#24664b;--c47-orange:#65418a;--c47-bg:#f7f8f2;--c47-line:#dce5d9;--c47-text:#153c30;--c47-muted:#637267;
+}
+html.cd-court-theme,html.cd-court-theme body{background:var(--cd-ivory)!important;color:var(--cd-forest)}
+.cd-court-theme #sidebar .bo-nav-section{color:var(--cd-purple)}
+.cd-court-theme :is(.topbar,.sidebar){background:#fff!important;border-color:var(--cd-line)!important}
+.cd-court-theme .topbar{box-shadow:0 3px 18px #123e3107!important;border-bottom:3px solid var(--cd-forest)!important}
+.cd-court-theme .brand{color:var(--cd-forest)!important;letter-spacing:-.03em}
+.cd-court-theme .brand small{color:var(--cd-grass)}
+.cd-court-theme :is(.card,.metric,.c43card,.c43view,.s41CustomerDetail,.cph-history,.c69PartnerCard,.c76ClassCard){border-color:var(--cd-line)!important;box-shadow:0 5px 22px #123e3106;border-radius:18px}
+.cd-court-theme :is(.pageTitle,.c43head h1,.c69SectionHead h2,.s41LineInboxHead h2){color:var(--cd-forest)!important;letter-spacing:-.025em}
+.cd-court-theme :is(.pill,.c59Btn,.c69Btn,.c76Btn,.c43btn,.field){border-color:var(--cd-line);border-radius:12px}
+.cd-court-theme :is(.pill.primary,.c59Btn.primary,.c69Btn.primary,.c76Btn.primary,.c43btn.primary,.cdClassLaunch button.primary,.cdGridButton.primary){background:var(--cd-grass)!important;color:#fff!important;border-color:var(--cd-grass)!important}
+.cd-court-theme :is(.navbtn.active,.athleteTab.active,.c43tab.active){background:var(--cd-forest)!important;color:#fff!important;border-color:var(--cd-forest)!important}
+.cd-court-theme :is(.navbtn:hover,.athleteTab:hover){box-shadow:inset 0 0 0 1px #24664b40}
+.cd-court-theme :is(.field,input,select,textarea):focus-visible{outline:2px solid var(--cd-purple);outline-offset:2px}
+.cd-court-theme :is(button,a):focus-visible{outline:2px solid var(--cd-purple);outline-offset:3px}
+.cd-court-theme :is(.c47Hero,.athleteHero){position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(120deg,#123e31,#2f6951)!important;border:0!important;color:#fff!important;box-shadow:0 12px 30px #123e3112}
+.cd-court-theme :is(.c47Hero,.athleteHero)::after{content:"";position:absolute;inset:auto -20px -60px auto;width:260px;height:230px;z-index:-1;pointer-events:none;opacity:.4;transform:rotate(-16deg);background:linear-gradient(90deg,transparent 49.6%,#e3edcb 49.6%,#e3edcb 50.4%,transparent 50.4%),linear-gradient(transparent 49.6%,#e3edcb 49.6%,#e3edcb 50.4%,transparent 50.4%);border:2px solid #e3edcb;box-shadow:inset 0 0 0 26px #21513d,inset 0 0 0 28px #e3edcb}
+.cd-court-theme :is(.c47Hero,.athleteHero) :is(h1,h2,.pageTitle){color:#fff!important}
+.cd-court-theme :is(.c47Hero,.athleteHero) :is(p,.muted){color:#e1ecdd!important}
+.cd-court-theme .c47Hero :is(button,.pill){background:#fff!important;color:var(--cd-forest)!important;border-color:#e3edcb!important}
+.cd-court-theme :is(.sportCat,.sportCard){border-color:var(--cd-line)!important;background:#fff!important;color:var(--cd-forest)!important;box-shadow:0 3px 15px #123e3106}
+.cd-court-theme :is(.sportCat.active,.sportCat.selected){background:var(--cd-lilac)!important;border-color:var(--cd-purple)!important;color:var(--cd-purple)!important}
+.cd-court-theme :is(.c43chathead,.s41LineHead,.c70ThreadHead){background:var(--cd-forest)!important;color:#fff!important}
+.cd-court-theme :is(.c43msgs,.s41LineMessages,.c70Messages){background:#f1f5ed!important}
+.cd-court-theme :is(.c43bubble,.s41LineBubble){background:#fff!important;color:var(--cd-forest)!important;border:1px solid #dbe5d5;box-shadow:0 2px 5px #123e3105}
+.cd-court-theme :is(.c43row.me .c43bubble,.s41MsgRow.me .s41LineBubble){background:#e5eed4!important;border-color:#cbdcb8}
+.cd-court-theme :is(.c43conv.active,.s41LineConv.active){background:var(--cd-lilac)!important;border-left:3px solid var(--cd-purple)}
+.cd-court-theme :is(.c43composer .send,.s41Composer .s41Send,.s41Composer button:last-child){background:var(--cd-grass)!important;color:#fff!important}
+.cd-court-theme :is(.cdClassLaunch header,#cdCustomerSummary){background:#edf3e6!important;border-color:var(--cd-line)!important}
+.cd-court-theme #cdCustomerSummary strong{color:var(--cd-purple)}
+.cd-court-theme #c95AdInquiry.cdAdFooter{color:#687768}
+.cd-court-theme #c95AdInquiry.cdAdFooter :is(a,button){color:var(--cd-purple)}
+
+/* Preserve the original buttons, handlers, read badges and menu order. */
+html.cd-court-theme #mobileNav{background:#fff!important;border-top:1px solid var(--cd-line)!important;box-shadow:0 -4px 20px #123e3108;padding-top:8px!important}
+html.cd-court-theme #mobileNav>button{min-width:0!important;min-height:48px!important;gap:0!important;padding:8px 3px!important;color:var(--cd-forest)!important;border-radius:10px!important;line-height:1.3!important}
+html.cd-court-theme #mobileNav>button>small{font-size:12px!important;line-height:1.45!important;font-weight:700;white-space:normal}
+html.cd-court-theme #mobileNav>button.active{background:var(--cd-lilac)!important;color:var(--cd-purple)!important;box-shadow:inset 0 -3px 0 var(--cd-purple)}
+html.cd-court-theme #mobileNav :is(.c94Badge,.c80MobileBadge,.c110MobileCount){font-style:normal;background:var(--cd-purple)!important;color:#fff!important}
+html.cd-court-theme #mobileNav .c95SideBadge{font-style:normal;background:var(--cd-purple)!important;color:#fff!important}
+
+/* Compact, accessible native notification preference. No emoji or system prompt on load. */
+html.cd-court-theme #cdNativePushButton{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:70px!important;min-height:44px!important;white-space:nowrap!important;padding:7px 10px!important;color:var(--cd-forest)!important;background:#f3f6ee!important;border:1px solid var(--cd-line)!important}
+html.cd-court-theme #cdNativePushButton[hidden]{display:none!important}
+#cdNativePushButton svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#cdNativePushButton[aria-checked="true"]{box-shadow:inset 0 0 0 1px #24664b60}
+#cdNativePushButton span{font-size:14px!important;line-height:1.3}
+
+/* One full Monday–Sunday week; venue codes remain legible on folded phones. */
+html.cd-court-theme #athletePage .scheduleTop{background:var(--cd-forest)!important;color:#fff!important;border-top:0!important;padding:12px!important}
+html.cd-court-theme #athletePage .scheduleTop .legendOura{display:none!important}
+html.cd-court-theme #athletePage .weekNav{display:grid!important;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:6px;width:100%;min-width:0}
+html.cd-court-theme #athletePage .weekRange{min-width:0!important;white-space:normal!important;text-align:center;font-size:15px!important;line-height:1.5;color:#fff!important}
+html.cd-court-theme .weekNav button{min-width:44px;min-height:44px;background:#fff;color:var(--cd-forest);padding:4px}
+html.cd-court-theme .weekNav button:disabled{opacity:.45}
+html.cd-court-theme #athletePage .tableScroller{max-width:100%;width:100%;overflow-x:hidden!important;overflow-y:auto;max-height:65dvh}
+html.cd-court-theme #athletePage #scheduleTable{width:100%!important;max-width:100%!important;min-width:0!important;table-layout:fixed!important;border-collapse:collapse;background:#fff}
+html.cd-court-theme #athletePage #scheduleTable :is(th,td){padding:2px!important;border-color:#dce5d9!important;height:auto!important;min-width:0!important;background:#fff}
+html.cd-court-theme #athletePage #scheduleTable :is(.timeHead,.timeCell){width:40px!important;min-width:0!important;max-width:40px!important;font-size:10px!important;line-height:1.25!important;background:#f0f3e9!important;color:var(--cd-forest)!important;text-align:center}
+html.cd-court-theme #athletePage #scheduleTable :is(th,td):not(.timeHead):not(.timeCell){width:calc((100% - 40px)/7)!important;min-width:0!important;max-width:none!important}
+html.cd-court-theme #athletePage #scheduleTable .dayHead{height:66px!important;background:#f5f5ef;border-top:0!important}
+html.cd-court-theme #athletePage #scheduleTable .dayHead.today{background:var(--cd-lilac)!important;box-shadow:inset 0 3px 0 var(--cd-purple)}
+html.cd-court-theme #athletePage #scheduleTable .dayHead :is(.dow,.monthLabel){font-size:11px!important;line-height:1.35!important;white-space:nowrap;color:var(--cd-forest)}
+html.cd-court-theme #athletePage #scheduleTable .dayHead .dom{font-size:18px!important;line-height:1.4!important}
+html.cd-court-theme #athletePage #scheduleTable .daySlot{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-width:0!important;min-height:54px!important;height:100%;padding:3px 0!important;border-radius:7px!important;font-size:11px!important;line-height:1.3!important;overflow:hidden}
+html.cd-court-theme #athletePage #scheduleTable .daySlot .venue{font-size:12px!important;font-weight:800;line-height:1.4!important;white-space:nowrap}
+html.cd-court-theme #athletePage #scheduleTable .cdSlotStatus{font-size:9px!important;line-height:1.3;white-space:nowrap}
+html.cd-court-theme #scheduleTable .daySlot.available{background:#f2f7ed!important;color:#24543d!important;border:1px solid #d6e4c8!important}
+html.cd-court-theme #scheduleTable .daySlot.coach_location{background:#dcebd6!important;color:#19462f!important;border:1px solid #9fbf8c!important}
+html.cd-court-theme #scheduleTable .daySlot.booked{background:#e0ebf8!important;color:#214e7a!important;border:1px solid #abc5e3!important}
+html.cd-court-theme #scheduleTable .daySlot.cdPastSlot,html.cd-court-theme #scheduleTable .daySlot:is(.unavailable,.timeoff){background:#f2f2ef!important;color:#788077!important;border-color:#e5e6df!important}
+html.cd-court-theme #scheduleTable .daySlot.selected{box-shadow:inset 0 0 0 2px var(--cd-purple)!important;background:var(--cd-lilac)!important}
+#cdWeekVenues{padding:14px;background:#fff;border-top:1px solid var(--cd-line);border-radius:0 0 18px 18px;color:var(--cd-forest);overflow-wrap:anywhere}
+#cdWeekVenues p{font-size:12px!important;color:#64735f;margin:6px 0}
+.cdWeekKey{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12px;line-height:1.5}
+.cdWeekKey>span{display:inline-flex;align-items:center;gap:5px}
+.cdWeekKey i{display:inline-block;width:10px;height:10px;border-radius:3px}
+.cdKeyCoach{background:#a9c993}.cdKeyBooked{background:#a9c5e5}.cdKeyFree{background:#edf4e6;border:1px solid #b9c8ac}
+#cdWeekVenues ul{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px 20px}
+#cdWeekVenues li{display:flex;align-items:baseline;gap:8px;min-width:0;font-size:14px;line-height:1.65}
+#cdWeekVenues li b{background:var(--cd-lilac);color:var(--cd-purple);border-radius:5px;padding:1px 6px;flex:none;font-size:12px}
+.cdSlotVenue{font-size:20px!important;font-weight:800;color:var(--cd-forest);overflow-wrap:anywhere}
+
+.cdPlayerHero{position:relative;display:flex;align-items:center;gap:20px;padding:26px 22px;margin:0 0 18px;background:linear-gradient(120deg,#123e31,#2d654a);border:1px solid #315f43;border-radius:22px;color:#fff;overflow:hidden;isolation:isolate}
+.cdPlayerHero::after{content:"";position:absolute;z-index:-1;right:-25px;bottom:-55px;width:180px;height:180px;border:1px solid #c3d4a366;border-radius:50%;box-shadow:0 0 0 20px #c3d4a312,0 0 0 40px #c3d4a310}
+.cdPlayerHero>div{min-width:0}
+.cdPlayerHero h1{font-size:26px;line-height:1.4;margin:4px 0 10px;overflow-wrap:anywhere;color:#fff}
+.cdPlayerHero p{font-size:13px!important;line-height:1.4;margin:0;color:#d4e2c9}
+.cdMemberLabel{font-size:10px;letter-spacing:.16em;color:#e2d4ed}
+.cdPlayerAvatar{position:relative;display:grid;place-items:center;flex:0 0 88px;width:88px;height:88px;border-radius:50%;background:#f3efdf;color:var(--cd-purple);border:3px solid #fff;box-shadow:0 0 0 4px #ffffff25;overflow:hidden;font-size:32px;font-weight:800}
+.cdPlayerAvatar img{position:absolute;width:100%;height:100%;object-fit:cover}
+.cdPlayerHero+.athleteHero{display:none!important}
+.cd-court-theme #athleteProfilePanel .profilePreview{border-radius:50%!important;overflow:hidden}
+.cd-court-theme #athleteProfilePanel .profilePreview img{width:100%;height:100%;object-fit:cover}
+@media(max-width:380px){.cdPlayerHero{gap:14px;padding:22px 16px}.cdPlayerAvatar{width:72px;height:72px;flex-basis:72px}.cdPlayerHero h1{font-size:22px}html.cd-court-theme #mobileNav>button>small{font-size:11px!important}}
+@media(prefers-reduced-motion:reduce){.cd-court-theme *{scroll-behavior:auto!important}}

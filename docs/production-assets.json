@@ -1,0 +1,152 @@
+[
+  {
+    "path": "admin-backoffice-core.js",
+    "url": "https://coach-di.netlify.app/admin-backoffice-core.js?v=coach-summary-1",
+    "bytes": 6927,
+    "sha256": "d90fb1cd02ce233539c4bf74f28dd1c4dbe7056213d7d719fb717a27aba303d3"
+  },
+  {
+    "path": "admin-excel.js",
+    "url": "https://coach-di.netlify.app/admin-excel.js?v=trial-knocker-1",
+    "bytes": 5771,
+    "sha256": "8a1f039be2ddcde7c13a4e1a26f564d503dd8f2074335f5ce065bb4201ed864e"
+  },
+  {
+    "path": "admin-management.css",
+    "url": "https://coach-di.netlify.app/admin-management.css?v=trial-knocker-1",
+    "bytes": 3153,
+    "sha256": "80cf91c82504a4a728fff4f1a2e44a90bb84f9cf3b92ed58793495ed89f17700"
+  },
+  {
+    "path": "admin-management.js",
+    "url": "https://coach-di.netlify.app/admin-management.js?v=coach-summary-1",
+    "bytes": 31422,
+    "sha256": "651ee07f95019cd3b5a6ace5fe44f6c3b9d4f17afad2bed516bc5cc99d574278"
+  },
+  {
+    "path": "admin-support.css",
+    "url": "https://coach-di.netlify.app/admin-support.css?v=support-history-1",
+    "bytes": 2674,
+    "sha256": "2c69fb6ce92f1163e20a0237a4594659778489987ef2c8185a4630fb146dfbd9"
+  },
+  {
+    "path": "admin-support.js",
+    "url": "https://coach-di.netlify.app/admin-support.js?v=support-history-1",
+    "bytes": 10610,
+    "sha256": "96ab3b678cd43ece933c1544183efdb3e64ade267bd04da8d6b6742b64cb59d4"
+  },
+  {
+    "path": "admin-transactions.css",
+    "url": "https://coach-di.netlify.app/admin-transactions.css?v=trial-knocker-1",
+    "bytes": 4998,
+    "sha256": "0f61ce0d2466eb7ecb5eda391631ea1c1b65fa0dc089dfe019a2a1bab0ee677f"
+  },
+  {
+    "path": "admin-transactions.js",
+    "url": "https://coach-di.netlify.app/admin-transactions.js?v=trial-knocker-1",
+    "bytes": 34338,
+    "sha256": "47a15d9b37ee68e92df58156873db1254baf3f0fcb7da16484424db60657eaa1"
+  },
+  {
+    "path": "admin-trial.js",
+    "url": "https://coach-di.netlify.app/admin-trial.js?v=trial-knocker-1",
+    "bytes": 11977,
+    "sha256": "02bd4ac20e229b293ebafdc4b9ae4ed32fc1556320f6e77b4a5c20a76566813e"
+  },
+  {
+    "path": "app-config.js",
+    "url": "https://coach-di.netlify.app/app-config.js",
+    "bytes": 847,
+    "sha256": "08eac00558e2fe3813e275955059fdbd1f6e14232981e0f558b9c9d6cb283101"
+  },
+  {
+    "path": "athlete-profile-history.js",
+    "url": "https://coach-di.netlify.app/athlete-profile-history.js?v=support-history-1",
+    "bytes": 8832,
+    "sha256": "aa70e30be8562e4bb70e58b8b9d22d37a9abd46f569c574cc08c1d9c42e50ef3"
+  },
+  {
+    "path": "coach-summary-core.js",
+    "url": "https://coach-di.netlify.app/coach-summary-core.js?v=coach-summary-1",
+    "bytes": 6268,
+    "sha256": "079d6de517d0ef9908babb300818f9b5bbb20fcb6a3c225229b1f70c27ca24dd"
+  },
+  {
+    "path": "coach-summary.css",
+    "url": "https://coach-di.netlify.app/coach-summary.css?v=coach-summary-1",
+    "bytes": 2756,
+    "sha256": "7c0b90cd801406bba4023e6abe67986dc409d3ca447c3eddd96d34d7f93e1cca"
+  },
+  {
+    "path": "coach-summary.js",
+    "url": "https://coach-di.netlify.app/coach-summary.js?v=coach-summary-1",
+    "bytes": 26360,
+    "sha256": "071593423df3ada1d16dcc71a1875e03255cd4403b5d5cdae206b7d244b9058a"
+  },
+  {
+    "path": "icons/coach-di-192.png",
+    "url": "https://coach-di.netlify.app/icons/coach-di-192.png",
+    "bytes": 23129,
+    "sha256": "b7224f6fa6253bea1bdbc84b9155728c96b7cac9ac8ce79e77ff0401bfacc017"
+  },
+  {
+    "path": "manifest.webmanifest",
+    "url": "https://coach-di.netlify.app/manifest.webmanifest",
+    "bytes": 966,
+    "sha256": "64f570c99a442ea56a114ddb48e74b52b68abca028b644ab56758f9b8a7c64fa"
+  },
+  {
+    "path": "omise-payment.css",
+    "url": "https://coach-di.netlify.app/omise-payment.css?v=c109",
+    "bytes": 4219,
+    "sha256": "dcc242c9acf229bfeeb8bd5aff1c2d3e05b73484c1cf58a91685fee287fb912c"
+  },
+  {
+    "path": "omise-payment.js",
+    "url": "https://coach-di.netlify.app/omise-payment.js?v=trial-knocker-1",
+    "bytes": 20068,
+    "sha256": "d43ad01e5792f879b4fafc6d419223584397e66321e3dca35fbcb45f874cb930"
+  },
+  {
+    "path": "profile-history.css",
+    "url": "https://coach-di.netlify.app/profile-history.css?v=support-history-1",
+    "bytes": 1460,
+    "sha256": "b37e90e1b6bac243e386938c326ff244b74d204881637bdf2cfa4f760d97b921"
+  },
+  {
+    "path": "provider-service.js",
+    "url": "https://coach-di.netlify.app/provider-service.js?v=trial-knocker-1",
+    "bytes": 4815,
+    "sha256": "cde46dcb625f9b2dbf66ef3476956c6110ecebdc3e6278950ae4528925ee9edd"
+  },
+  {
+    "path": "scaling.css",
+    "url": "https://coach-di.netlify.app/scaling.css",
+    "bytes": 1606,
+    "sha256": "beaf1bf741b3d598b06a617eb9abd4e9059ac0295ac6574766b5c68977e63b2b"
+  },
+  {
+    "path": "scaling.js",
+    "url": "https://coach-di.netlify.app/scaling.js?v=support-history-1",
+    "bytes": 27014,
+    "sha256": "7c2accbeea08a7b185cefedd2f086baddddf733519ca1a1be0ba8f9ba773fe79"
+  },
+  {
+    "path": "firebase-messaging-sw.js",
+    "url": "https://coach-di.netlify.app/firebase-messaging-sw.js",
+    "bytes": 3468,
+    "sha256": "d93304e1e012b0c8f65203b5097d425b9d4b2bd01bc96d394291df9e19b0a595"
+  },
+  {
+    "path": "icons/coach-di-512.png",
+    "url": "https://coach-di.netlify.app/icons/coach-di-512.png",
+    "bytes": 122828,
+    "sha256": "0ccff263d6289591c86a43667ff28399dd0613551e33467cb8a0db07c8893e7a"
+  },
+  {
+    "path": "icons/coach-di-maskable-512.png",
+    "url": "https://coach-di.netlify.app/icons/coach-di-maskable-512.png",
+    "bytes": 66646,
+    "sha256": "3f9f717ebc188099a294b34f74364a3b3307ebe36ef2c88ddbcfe736b58009a8"
+  }
+]
