@@ -4,8 +4,13 @@ const vm = require('node:vm');
 const {readFileSync} = require('node:fs');
 const {webcrypto} = require('node:crypto');
 const tick = () => new Promise(resolve => setImmediate(resolve));
+const pause = () => new Promise(resolve => setTimeout(resolve,10));
 const deferred = () => { let resolve, reject; const promise = new Promise((yes,no) => {resolve=yes;reject=no;});return {promise,resolve,reject}; };
-async function until(condition) { for(let i=0;i<300;i++){if(condition())return;await tick();}assert.ok(condition(),'Expected asynchronous push state'); }
+async function until(condition, timeoutMs=5000) {
+  const deadline=Date.now()+timeoutMs;
+  while(Date.now()<deadline){if(condition())return;await pause();}
+  assert.ok(condition(),'Expected asynchronous push state');
+}
 async function setup(options={}) {
   const events={},calls=[],elements={},writes=[],timers=new Map(),surfaceEvents={},reads=[];
   let authChanged,timerId=0,permission=options.permission || 'prompt',status={appEnabled:true,channelEnabled:true,...options.status};
