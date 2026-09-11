@@ -1,0 +1,23 @@
+{
+  "name": "coach-di",
+  "private": true,
+  "version": "5.0.0",
+  "type": "module",
+  "scripts": {
+    "dev:v2": "vite --config app-v2/vite.config.ts",
+    "build:v2": "vite build --config app-v2/vite.config.ts",
+    "typecheck": "tsc -p app-v2/tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "firebase": "^12.2.1",
+    "firebase-admin": "^13.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.4",
+    "vitest": "^3.2.4"
+  }
+}
