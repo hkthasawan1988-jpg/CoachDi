@@ -50,6 +50,10 @@ jobs:
           npm ci --prefix functions-mobile
           node --check functions-mobile/index.js
           node --check functions-mobile/backfill.cjs
+          node --check functions-mobile/booking-command.cjs
+          node --check functions-mobile/booking-command-service.cjs
+          node --check functions-mobile/booking-availability.cjs
+          node --check functions-mobile/booking-slot-lock.cjs
           node --check functions-mobile/payout-verification.cjs
           npm ci --prefix functions-push
           node --check functions-push/index.js
