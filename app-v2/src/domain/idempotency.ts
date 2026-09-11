@@ -31,12 +31,14 @@ export type SubscriptionChargeDecision =
 const identifier = /^[A-Za-z0-9_-]{8,80}$/;
 const terminal = new Set(['paid', 'successful', 'failed', 'cancelled', 'expired']);
 
-export function subscriptionPaymentIdentity(actorUid: string, requestId: string): string | null {
+export function commandIdentity(actorUid: string, requestId: string): string | null {
   const coachId = actorUid.trim();
   const commandId = requestId.trim();
   if (!identifier.test(coachId) || !identifier.test(commandId)) return null;
   return `${coachId}_${commandId}`;
 }
+
+export const subscriptionPaymentIdentity = commandIdentity;
 
 export function decideSubscriptionCharge(
   command: SubscriptionChargeCommand,
@@ -53,7 +55,7 @@ export function decideSubscriptionCharge(
     return { ok: false, failure: 'INVALID_INSTRUMENT' };
   }
 
-  const identity = subscriptionPaymentIdentity(actorUid, requestId)!;
+  const identity = commandIdentity(actorUid, requestId)!;
   if (!existing) return { ok: true, action: 'create', identity };
 
   const sameCommand = existing.coachId === actorUid
