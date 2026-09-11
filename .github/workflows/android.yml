@@ -38,6 +38,10 @@ jobs:
       - name: Install Android SDK
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - run: npm ci
+      - name: Typecheck the Sprint 5.0 domain boundary
+        run: npm run typecheck:v2
+      - name: Test the Sprint 5.0 booking domain
+        run: npm run test:domain
       - run: npm run build:netlify
       - run: npm run check
       - run: npm run test:unit
