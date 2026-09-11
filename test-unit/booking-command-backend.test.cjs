@@ -62,6 +62,10 @@ test('declining a submitted payment requires refund review', () => {
   });
 });
 
+test('coach approval reserves an unpaid request and asks the athlete to pay',()=>{
+  const decision=core.evaluate(context({action:'coach_approve_request'},{status:'pending_coach_approval',paymentStatus:'not_started',paymentProofDataUrl:null}));assert.equal(decision.ok,true);assert.equal(decision.nextStatus,'coach_approved');assert.equal(decision.nextPaymentStatus,'pending_payment');assert.equal(decision.paymentLedgerRequired,false);
+});
+
 test('same request replays and different action with same request is rejected', () => {
   const key='coach_12345678_request_12345678';
   const replay=core.evaluate(context({}, { status:'confirmed',paymentStatus:'payment_verified',lastCommandKey:key,lastCommandAction:'coach_confirm_paid' }));

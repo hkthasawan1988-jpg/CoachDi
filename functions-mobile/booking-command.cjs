@@ -60,6 +60,12 @@ function evaluate({ actorUid, user, input, booking, now }) {
     };
   }
 
+  if (action === 'coach_approve_request') {
+    if (booking.status !== 'pending_coach_approval' || !['not_started', 'pending_payment', ''].includes(String(booking.paymentStatus || ''))) return failure('INVALID_STATE');
+    if (booking.paymentCollectionMode === 'venue') return failure('PAYMENT_METHOD_MISMATCH');
+    return { ok:true, replay:false, action, commandKey:key, nextStatus:'coach_approved', nextPaymentStatus:'pending_payment', refundReviewRequired:false, paymentLedgerRequired:false, ...money };
+  }
+
   if (action === 'coach_confirm_paid') {
     if (!['payment_submitted', 'pending_verification'].includes(booking.status)
       || !PAID_EVIDENCE.has(booking.paymentStatus)) return failure('INVALID_STATE');
@@ -94,7 +100,9 @@ function bookingPatch(decision, actorUid, input, now) {
     lastCommandAt: now,
     lastCommandBy: actorUid,
   };
-  if (decision.action === 'coach_confirm_paid') {
+  if (decision.action === 'coach_approve_request') {
+    Object.assign(patch, { coachApprovedAt:now, coachApprovedBy:actorUid });
+  } else if (decision.action === 'coach_confirm_paid') {
     Object.assign(patch, { verifiedAt:now, verifiedBy:actorUid, paymentProofDataUrl:null, paymentProofDeletedAt:now });
   } else if (decision.action === 'coach_confirm_venue') {
     Object.assign(patch, { coachConfirmedAt:now, coachConfirmedBy:actorUid });

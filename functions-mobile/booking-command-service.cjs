@@ -20,12 +20,14 @@ function entries(snapshot){return Object.entries(value(snapshot)||{}).map(([id,r
 function route(from,to){return Number.isFinite(Number(TRAVEL?.[from]?.[to]))?Number(TRAVEL[from][to]):null;}
 function publicResult(booking,decision){return{ok:true,replay:decision.replay===true,bookingId:booking.id,status:booking.status,paymentStatus:booking.paymentStatus,refundReviewRequired:booking.refundReviewRequired===true};}
 function message(decision,booking){
+  if(decision.action==='coach_approve_request')return `Coach อนุมัติ Booking ${booking.id} แล้ว กรุณาชำระเงินและแนบหลักฐาน`;
   if(decision.action==='coach_decline')return `Booking ${booking.id} ถูกปฏิเสธ กรุณาตรวจสอบรายละเอียดในแอป`;
   if(decision.action==='record_venue_payment')return `Coach ยืนยันรับเงินที่สนามสำหรับ Booking ${booking.id} แล้ว`;
   if(decision.action==='coach_confirm_venue')return `Coach ยืนยัน Booking ${booking.id} แล้ว กรุณาชำระที่สนาม`;
   return `Coach ยืนยัน Booking ${booking.id} แล้ว`;
 }
 function transaction(ref,updater){return ref.transaction(updater,undefined,false);}
+async function writeOnce(ref,record){const result=await transaction(ref,current=>current||record);if(!result.committed)throw new BookingCommandError('SIDE_EFFECT_WRITE_FAILED');}
 
 async function execute(db,{actorUid,input,now=Date.now()}){
   const bookingId=String(input&&input.bookingId||'').trim(),requestId=String(input&&input.requestId||'').trim();
@@ -49,7 +51,7 @@ async function execute(db,{actorUid,input,now=Date.now()}){
   if(!decision.ok)throw new BookingCommandError(decision.code);
 
   let dayRef=null,lockAcquired=false;
-  if(!decision.replay&&['coach_confirm_paid','coach_confirm_venue'].includes(action)){
+  if(!decision.replay&&['coach_approve_request','coach_confirm_paid','coach_confirm_venue'].includes(action)){
     const [bookingsSnapshot,appointmentsSnapshot,groupsSnapshot,timeOffSnapshot,policySnapshot]=await Promise.all([
       db.ref('bookings').orderByChild('coachId').equalTo(actorUid).get(),
       db.ref(`coachPublicSchedule/${actorUid}`).get(),db.ref(`coachGroupClasses/${actorUid}`).get(),
@@ -97,15 +99,14 @@ async function execute(db,{actorUid,input,now=Date.now()}){
   }
 
   const notificationId=`booking_${key}`,chatId=`system_${key}`,auditId=`booking_${requestId}`;
-  const updates={
-    [`notifications/${saved.athleteId}/${notificationId}`]:{type:`booking_${action}`,bookingId,senderId:actorUid,recipientId:saved.athleteId,message:message(finalDecision,saved),read:false,createdAt:now},
-    [`bookingChats/${bookingId}/messages/${chatId}`]:{senderId:actorUid,senderRole:'coach',type:'system',text:message(finalDecision,saved),createdAt:now},
-    [`auditLogs/${actorUid}/${auditId}`]:{userId:actorUid,actor:'coach',action,target:bookingId,requestId,at:now},
-    [`bookingCommandResults/${actorUid}/${requestId}`]:{actorUid,requestId,bookingId,action,fingerprint,status:'completed',resultStatus:saved.status,resultPaymentStatus:saved.paymentStatus,completedAt:now,updatedAt:now},
-  };
-  if(['coach_confirm_paid','coach_confirm_venue'].includes(action))updates[`coachCalendar/${actorUid}/${bookingId}`]={bookingId,date:saved.date,start:Number(saved.start),end:Number(saved.end),venue:String(saved.venue||''),venueId:String(saved.venueId||''),athleteId:saved.athleteId,athlete:String(saved.athlete||saved.athleteName||''),status:'confirmed',updatedAt:now};
+  await writeOnce(db.ref(`notifications/${saved.athleteId}/${notificationId}`),{type:`booking_${action}`,bookingId,senderId:actorUid,recipientId:saved.athleteId,message:message(finalDecision,saved),read:false,createdAt:now});
+  await writeOnce(db.ref(`bookingChats/${bookingId}/messages/${chatId}`),{senderId:actorUid,senderRole:'coach',type:'system',text:message(finalDecision,saved),createdAt:now});
+  await writeOnce(db.ref(`auditLogs/${actorUid}/${auditId}`),{userId:actorUid,actor:'coach',action,target:bookingId,requestId,at:now});
+  const updates={};
+  updates[`bookingCommandResults/${actorUid}/${requestId}`]={actorUid,requestId,bookingId,action,fingerprint,status:'completed',resultStatus:saved.status,resultPaymentStatus:saved.paymentStatus,completedAt:now,updatedAt:now};
+  if(['coach_approve_request','coach_confirm_paid','coach_confirm_venue'].includes(action))updates[`coachCalendar/${actorUid}/${bookingId}`]={bookingId,date:saved.date,start:Number(saved.start),end:Number(saved.end),venue:String(saved.venue||''),venueId:String(saved.venueId||''),athleteId:saved.athleteId,athlete:String(saved.athlete||saved.athleteName||''),status:action==='coach_approve_request'?'reserved':'confirmed',updatedAt:now};
   await db.ref().update(updates);
   return publicResult(saved,{...finalDecision,replay:transitionWasReplay});
 }
 
-module.exports={BookingCommandError,execute,message,publicResult,route};
+module.exports={BookingCommandError,execute,message,publicResult,route,writeOnce};

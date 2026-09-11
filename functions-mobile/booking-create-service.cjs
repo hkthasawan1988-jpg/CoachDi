@@ -8,14 +8,13 @@ function entries(snapshot){return Object.entries(value(snapshot)||{}).map(([id,r
 function transaction(ref,updater){return ref.transaction(updater,undefined,false)}
 function message(mode,id){return mode==='paid_transfer'?`มีคำขอจองใหม่ ${id} พร้อมหลักฐานการชำระเงิน`:mode==='venue'?`มีคำขอจองใหม่ ${id} เลือกชำระที่สนาม`:`มีคำขอจองใหม่ ${id} รอ Coach อนุมัติ`}
 function modeOf(booking){return booking.paymentCollectionMode==='venue'?'venue':booking.paymentStatus==='payment_submitted'?'paid_transfer':'request'}
+async function writeOnce(ref,record){const result=await transaction(ref,current=>current||record);if(!result.committed)throw new BookingCreateError('SIDE_EFFECT_WRITE_FAILED')}
 async function finish(db,{actorUid,requestId,coachId,action,fingerprint,saved,replay,now}){
   const mode=modeOf(saved),key=saved.createCommandKey,notificationId=`booking_${key}`,chatId=`system_${key}`,auditId=`booking_${requestId}`,notice=message(mode,saved.id);
-  await db.ref().update({
-    [`notifications/${coachId}/${notificationId}`]:{type:mode==='paid_transfer'?'new_paid_booking':mode==='venue'?'new_booking_pay_at_venue':'new_booking',bookingId:saved.id,senderId:actorUid,recipientId:coachId,athleteId:actorUid,coachId,message:notice,read:false,createdAt:now},
-    [`userChats/${coachId}/${actorUid}/messages/${chatId}`]:{senderId:actorUid,senderRole:'system',type:'system',bookingId:saved.id,text:`${notice} • ${saved.date} ${saved.start}–${saved.end} • ${saved.venue}`,createdAt:now},
-    [`auditLogs/${actorUid}/${auditId}`]:{userId:actorUid,actor:'athlete',action,target:saved.id,requestId,at:now},
-    [`bookingCommandResults/${actorUid}/${requestId}`]:{actorUid,requestId,bookingId:saved.id,coachId,action,fingerprint,status:'completed',resultStatus:saved.status,resultPaymentStatus:saved.paymentStatus,completedAt:now,updatedAt:now},
-  });
+  await writeOnce(db.ref(`notifications/${coachId}/${notificationId}`),{type:mode==='paid_transfer'?'new_paid_booking':mode==='venue'?'new_booking_pay_at_venue':'new_booking',bookingId:saved.id,senderId:actorUid,recipientId:coachId,athleteId:actorUid,coachId,message:notice,read:false,createdAt:now});
+  await writeOnce(db.ref(`userChats/${coachId}/${actorUid}/messages/${chatId}`),{senderId:actorUid,senderRole:'system',type:'system',bookingId:saved.id,text:`${notice} • ${saved.date} ${saved.start}–${saved.end} • ${saved.venue}`,createdAt:now});
+  await writeOnce(db.ref(`auditLogs/${actorUid}/${auditId}`),{userId:actorUid,actor:'athlete',action,target:saved.id,requestId,at:now});
+  await db.ref(`bookingCommandResults/${actorUid}/${requestId}`).update({status:'completed',resultStatus:saved.status,resultPaymentStatus:saved.paymentStatus,completedAt:now,updatedAt:now});
   return{ok:true,replay,bookingId:saved.id,status:saved.status,paymentStatus:saved.paymentStatus}
 }
 
@@ -53,4 +52,4 @@ async function execute(db,{actorUid,input,now=Date.now()}){
   const saved={id,...(value(written.snapshot)||{})};
   return finish(db,{actorUid,requestId,coachId,action,fingerprint,saved,replay:commandReplay||bookingReplay,now});
 }
-module.exports={BookingCreateError,execute,finish,message,modeOf};
+module.exports={BookingCreateError,execute,finish,message,modeOf,writeOnce};

@@ -38,6 +38,7 @@ test('same request replays without duplicate ledger, chat or notification',async
   assert.equal(again.replay,true);assert.equal(Object.keys(read(db.data,'paymentTransactions')).length,1);
   assert.equal(Object.keys(read(db.data,'notifications/athlete_12345678')).length,1);
   assert.equal(Object.keys(read(db.data,'bookingChats/BOOKING_123/messages')).length,1);
+  const notificationId='booking_coach_12345678_request_12345678';write(db.data,`notifications/athlete_12345678/${notificationId}/read`,true);await service.execute(db,request());assert.equal(read(db.data,`notifications/athlete_12345678/${notificationId}/read`),true);
 });
 
 test('request id cannot be reused for another booking',async()=>{
@@ -71,4 +72,7 @@ test('time off and inactive subscription fail before changing the booking',async
 });
 test('same request cannot change decline details',async()=>{
   const declined=booking();declined.status='payment_submitted';const db=new FakeDb(seed({BOOKING_123:declined})),first={...request(),input:{...request().input,action:'coach_decline',reason:'ติดภารกิจ'}};await service.execute(db,first);await assert.rejects(()=>service.execute(db,{...first,input:{...first.input,reason:'เปลี่ยนเหตุผล'}}),error=>error.code==='REQUEST_CONFLICT');
+});
+test('approval of an unpaid request reserves the slot without recording revenue',async()=>{
+  const pending=booking();pending.status='pending_coach_approval';pending.paymentStatus='not_started';delete pending.paymentProofDataUrl;const db=new FakeDb(seed({BOOKING_123:pending})),result=await service.execute(db,{...request(),input:{...request().input,action:'coach_approve_request'}});assert.equal(result.status,'coach_approved');assert.equal(result.paymentStatus,'pending_payment');assert.equal(read(db.data,'paymentTransactions'),null);assert.equal(read(db.data,'coachCalendar/coach_12345678/BOOKING_123/status'),'reserved');assert.equal(read(db.data,'coachSlotLocks/coach_12345678/2026-10-10/booking_BOOKING_123/bookingId'),'BOOKING_123');
 });

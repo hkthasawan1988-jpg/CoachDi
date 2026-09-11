@@ -53,6 +53,10 @@ jobs:
           node --check functions-mobile/booking-command.cjs
           node --check functions-mobile/booking-create.cjs
           node --check functions-mobile/booking-create-service.cjs
+          node --check functions-mobile/booking-athlete.cjs
+          node --check functions-mobile/booking-athlete-service.cjs
+          node --check functions-mobile/booking-refund.cjs
+          node --check functions-mobile/booking-refund-service.cjs
           node --check functions-mobile/booking-command-service.cjs
           node --check functions-mobile/booking-availability.cjs
           node --check functions-mobile/booking-slot-lock.cjs
