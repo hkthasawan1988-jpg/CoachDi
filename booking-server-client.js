@@ -25,7 +25,7 @@
   }
   async function upload(kind, file, requestId) {
     const current = user(), metadata = Core.proof(file, maxBytes);
-    const folder = kind === 'refund' ? 'refund-slip' : 'booking-slip';
+    const folder = kind === 'refund' ? 'refund-slip' : kind === 'group' ? 'group-class-slip' : 'booking-slip';
     const path = `private/${folder}/${current.uid}/${requestId}/${metadata.name}`;
     await app.storage().ref(path).put(file, { contentType: metadata.contentType, cacheControl: 'private,max-age=0,no-store', customMetadata: { ownerUid: current.uid } });
     return { path, ...metadata, uploadedAt: Date.now() };
@@ -175,3 +175,4 @@
   root.s38RefundCoin = async (id, button) => { try { await refundAction(id, 'coach_select_coin_refund', button); root.csCloseModal?.(); root.alert('ส่งรายการคืนเครดิตให้ Admin แล้ว'); } catch (error) { root.alert(Core.errorText(error)); } };
   root.s38ViewSlip = id => viewProof(id);
 })(window);
+

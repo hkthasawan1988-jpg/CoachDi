@@ -24,3 +24,8 @@ test('callable errors prefer the server detail code and produce Thai guidance', 
   assert.match(Core.errorText({ details: { code: 'REFUND_ACCOUNT_REQUIRED' } }), /บัญชีรับเงินคืน/);
   assert.match(Core.errorText({ code: 'functions/unauthenticated' }), /เข้าสู่ระบบ/);
 });
+
+test('Group Class server errors have clear Thai recovery messages',()=>{
+  for(const code of ['INVALID_GROUP_CLASS','INVALID_GROUP_SCHEDULE','INVALID_GROUP_STATE','GROUP_CLASS_UNAVAILABLE','GROUP_REQUEST_EXISTS']) assert.notEqual(Core.errorText({details:{code}}),code);
+});
+

@@ -73,7 +73,7 @@ async function openIsolatedApp(page, native = false, entry = '/', nativePush = f
         window.testData[path] = value; window.testWrites.push({ path, value, transaction: true });
         return { data: { ok: true, bookingId: data.bookingId } };
       }
-      return { data: name === 'getBookingProofUrl' ? { url: 'https://example.invalid/private-proof' } : { ok: true, bookingId: data.bookingId } };
+      return { data: name === 'getBookingProofUrl' || name === 'getGroupClassProofUrl' ? { url: 'https://example.invalid/private-proof' } : { ok: true, bookingId: data.bookingId, classId: data.classId, status: data.decision || data.status || 'open', notified: 0 } };
     };
     const functions = () => ({ httpsCallable: name => data => callFunction(name, data) });
     const storage = () => ({ ref: path => ({ put: async (file, metadata) => { window.testWrites.push({ path, file, metadata, storage: true }); } }) });
@@ -90,3 +90,4 @@ async function openIsolatedApp(page, native = false, entry = '/', nativePush = f
 }
 
 module.exports = { openIsolatedApp };
+

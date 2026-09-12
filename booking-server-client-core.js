@@ -24,6 +24,13 @@
     REQUEST_CONFLICT: 'คำขอนี้ถูกเปลี่ยนแปลง กรุณาปิดหน้าต่างแล้วเริ่มใหม่',
     PRICE_UNAVAILABLE: 'ยังไม่พบราคาของช่วงเวลานี้ กรุณาติดต่อโค้ช',
     PAYMENT_ACCOUNT_UNAVAILABLE: 'บัญชีรับเงินของโค้ชยังไม่ผ่านการอนุมัติ',
+    INVALID_GROUP_COMMAND: 'ข้อมูลคำสั่ง Group Class ไม่ถูกต้อง กรุณาลองใหม่',
+    INVALID_GROUP_CLASS: 'กรุณาตรวจสอบชื่อ ราคา จำนวนคน วัน เวลา และสนามของ Group Class',
+    INVALID_GROUP_SCHEDULE: 'กรุณาตรวจสอบวัน เวลา และสนามใหม่',
+    INVALID_GROUP_STATE: 'สถานะ Group Class เปลี่ยนแล้ว กรุณารีเฟรช',
+    GROUP_CLASS_UNAVAILABLE: 'Group Class นี้เต็ม ปิดรับ หรือเลยเวลาแล้ว',
+    GROUP_REQUEST_EXISTS: 'คุณส่งคำขอ Group Class นี้แล้ว',
+    GROUP_CLASS_ID_CONFLICT: 'ไม่สามารถสร้าง Group Class ซ้ำได้ กรุณาปิดหน้าต่างแล้วเริ่มใหม่',
   });
 
   function requestId() {
@@ -78,3 +85,4 @@
 
   return Object.freeze({ IMAGE_TYPES, ERROR_MESSAGES, errorCode, errorText, intentKey, proof, requestId, tracker });
 });
+
