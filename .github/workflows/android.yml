@@ -38,6 +38,10 @@ jobs:
       - name: Install Android SDK
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - run: npm ci
+      - name: Typecheck the Sprint 5.0 domain boundary
+        run: npm run typecheck:v2
+      - name: Test the Sprint 5.0 booking domain
+        run: npm run test:domain
       - run: npm run build:netlify
       - run: npm run check
       - run: npm run test:unit
@@ -46,6 +50,20 @@ jobs:
           npm ci --prefix functions-mobile
           node --check functions-mobile/index.js
           node --check functions-mobile/backfill.cjs
+          node --check functions-mobile/booking-command.cjs
+          node --check functions-mobile/booking-create.cjs
+          node --check functions-mobile/booking-create-service.cjs
+          node --check functions-mobile/booking-athlete.cjs
+          node --check functions-mobile/booking-athlete-service.cjs
+          node --check functions-mobile/booking-refund.cjs
+          node --check functions-mobile/booking-refund-service.cjs
+          node --check functions-mobile/booking-proof-service.cjs
+          node --check functions-mobile/booking-command-service.cjs
+          node --check functions-mobile/booking-availability.cjs
+          node --check functions-mobile/booking-slot-lock.cjs
+          node --check functions-mobile/group-class.cjs
+          node --check functions-mobile/group-class-service.cjs
+          node --check functions-mobile/group-class-proof-service.cjs
           node --check functions-mobile/payout-verification.cjs
           npm ci --prefix functions-push
           node --check functions-push/index.js
@@ -204,3 +222,4 @@ jobs:
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 7
+

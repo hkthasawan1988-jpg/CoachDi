@@ -54,10 +54,24 @@ test('past class including earlier today is blocked before any writes; a future 
   await expect(page.locator('#cdClassDateError')).toContainText('เลยเวลามาแล้ว');expect(await page.evaluate(()=>testWrites)).toHaveLength(0);
   await page.locator('#c76Date').fill(future);await page.locator('#c76Start').fill('10:00');await page.locator('#c76End').fill('11:00');
   await page.evaluate(()=>Promise.all([c76CreateClass({preventDefault(){}}),c76CreateClass({preventDefault(){}})]));
-  await expect(page.locator('#c76Modal')).toHaveCount(0);expect(await page.evaluate(()=>testWrites.filter(w=>w.path.startsWith('coachGroupClasses/')))).toHaveLength(1);
+  await expect(page.locator('#c76Modal')).toHaveCount(0);expect(await page.evaluate(()=>testFunctionCalls.filter(row=>row.name==='executeGroupClassCommand'&&row.data.action==='create'))).toHaveLength(1);expect(await page.evaluate(()=>testWrites.filter(w=>w.path.startsWith('coachGroupClasses/')&&!w.backend))).toHaveLength(0);
 });
 test('rescheduling and reopening a past class cannot write',async({page})=>{
   await openIsolatedApp(page);await page.evaluate(value=>{state.role='coach';state.user={uid:'coach-one'};testAuth.currentUser=state.user;state.c76GroupClasses=[{...value,date:'2020-01-01'}];state.coachProfile={};loginView.classList.add('hidden');portal.classList.remove('hidden');c111OpenGroupClassEdit('new-class');},row);
   await page.evaluate(()=>c111SaveGroupClassEdit({preventDefault(){}},'new-class'));await expect(page.locator('#cdClassDateError')).toContainText('เลยเวลามาแล้ว');
-  page.once('dialog',dialog=>dialog.accept());await page.evaluate(()=>c76SetClassStatus('new-class','open',{}));expect(await page.evaluate(()=>testWrites)).toHaveLength(0);
+  page.once('dialog',dialog=>dialog.accept());await page.evaluate(()=>c76SetClassStatus('new-class','open',{}));expect(await page.evaluate(()=>testWrites)).toHaveLength(0);expect(await page.evaluate(()=>testFunctionCalls.filter(row=>row.name==='executeGroupClassCommand'))).toHaveLength(0);
+});
+test('paid Group Class submit and coach decision use private upload and server commands only',async({page})=>{
+  const{pageErrors}=await openIsolatedApp(page);await page.evaluate(()=>{state.role='athlete';state.user={uid:'group-athlete'};testAuth.currentUser=state.user;document.body.insertAdjacentHTML('beforeend','<input id="c90GroupConsent" type="checkbox" checked><input id="c90GroupSlip" type="file">');const transfer=new DataTransfer();transfer.items.add(new File(['proof'],'proof.jpg',{type:'image/jpeg'}));document.getElementById('c90GroupSlip').files=transfer.files;});
+  await page.evaluate(()=>c90SubmitGroupBooking('coach-one','new-class',document.createElement('button')));
+  expect(await page.evaluate(()=>testWrites.filter(row=>row.storage).map(row=>row.path))).toEqual([expect.stringMatching(/^private\/group-class-slip\/group-athlete\//)]);
+  expect(await page.evaluate(()=>testWrites.filter(row=>!row.storage&&!row.backend))).toHaveLength(0);
+  expect(await page.evaluate(()=>testFunctionCalls.filter(row=>row.name==='executeGroupClassCommand').map(row=>row.data.action))).toEqual(['submit_paid']);
+  await page.evaluate(()=>{state.role='coach';state.user={uid:'coach-one'};testAuth.currentUser=state.user;return c76Decide('new-class','group-athlete','approved',document.createElement('button'));});
+  expect(await page.evaluate(()=>testFunctionCalls.filter(row=>row.name==='executeGroupClassCommand').map(row=>row.data.action))).toEqual(['submit_paid','decide']);expect(pageErrors).toEqual([]);
+});
+test('historical Group Class income reconciliation runs on the server without client ledger writes',async({page})=>{
+  const{pageErrors}=await openIsolatedApp(page);await page.evaluate(()=>{state.role='coach';state.user={uid:'coach-one'};testAuth.currentUser=state.user;loginView.classList.add('hidden');portal.classList.remove('hidden');return c113BackfillGroupTransactions()});
+  expect(await page.evaluate(()=>testFunctionCalls.filter(row=>row.name==='executeGroupClassCommand').map(row=>row.data.action))).toEqual(['reconcile_income']);
+  expect(await page.evaluate(()=>testWrites.filter(row=>String(row.path||'').startsWith('paymentTransactions/')))).toHaveLength(0);expect(pageErrors).toEqual([]);
 });

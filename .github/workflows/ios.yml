@@ -1,0 +1,61 @@
+name: iOS build
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  simulator:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install and validate source
+        run: |
+          npm ci
+          npm run test:unit
+      - name: Build and sync web assets
+        run: npm run ios:sync
+      - name: Validate iOS source and package graph
+        run: npm run check:ios
+      - name: Resolve native packages
+        run: xcodebuild -resolvePackageDependencies -project ios/App/App.xcodeproj -scheme App
+      - name: Build unsigned iOS Simulator app
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -derivedDataPath ios/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+      - name: Upload iOS Simulator build
+        uses: actions/upload-artifact@v4
+        with:
+          name: coach-di-ios-simulator-${{ github.sha }}
+          path: ios/DerivedData/Build/Products/Debug-iphonesimulator/App.app
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload iOS build reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coach-di-ios-reports-${{ github.sha }}
+          path: |
+            ios/DerivedData/Logs/
+            ios/DerivedData/SourcePackages/checkouts/**/Package.resolved
+          if-no-files-found: ignore
+          retention-days: 14
+

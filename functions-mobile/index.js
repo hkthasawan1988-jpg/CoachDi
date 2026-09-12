@@ -1,9 +1,19 @@
 'use strict';
 const { initializeApp } = require('firebase-admin/app');
 const { getDatabase } = require('firebase-admin/database');
+const { getStorage } = require('firebase-admin/storage');
 const { onValueWritten } = require('firebase-functions/v2/database');
+const { HttpsError, onCall } = require('firebase-functions/v2/https');
+const { logger } = require('firebase-functions');
 const projection = require('./booking-projection.cjs');
 const payout = require('./payout-verification.cjs');
+const bookingCommands = require('./booking-command-service.cjs');
+const bookingCreate = require('./booking-create-service.cjs');
+const bookingAthlete = require('./booking-athlete-service.cjs');
+const bookingRefund = require('./booking-refund-service.cjs');
+const bookingProof = require('./booking-proof-service.cjs');
+const groupClass = require('./group-class-service.cjs');
+const groupClassProof = require('./group-class-proof-service.cjs');
 initializeApp();
 // Separate codebase: deploying this function must not replace existing payment or push functions.
 exports.syncCoachBookingSchedule = onValueWritten({
@@ -16,3 +26,76 @@ exports.syncCoachBookingSchedule = onValueWritten({
 exports.syncCoachPayoutVerification = onValueWritten({
   ref:'/coachPaymentAccounts/{coachId}', instance:'coach-di-default-rtdb', region:'asia-southeast1', retry:true, maxInstances:3
 }, event => payout.handle(getDatabase(), event));
+
+const invalidArgument = new Set(['INVALID_REQUEST_ID','INVALID_BOOKING_WINDOW','INVALID_BOOKING_AMOUNT','INVALID_TRAVEL_POLICY','INVALID_DAILY_LIMIT','INVALID_PAYMENT_MODE','INVALID_DURATION','INVALID_VENUE','INVALID_PARTICIPANTS','INVALID_PROOF_REQUEST','INVALID_GROUP_COMMAND','INVALID_GROUP_CLASS','INVALID_GROUP_SCHEDULE','UNKNOWN_ACTION']);
+const denied = new Set(['ATHLETE_INACTIVE','COACH_INACTIVE','NOT_ASSIGNED_COACH','NOT_BOOKING_ATHLETE','NOT_BOOKING_PARTICIPANT','NOT_GROUP_PARTICIPANT']);
+const conflict = new Set(['REQUEST_CONFLICT','INVALID_STATE','INVALID_GROUP_STATE','PAYMENT_EVIDENCE_REQUIRED','PAYMENT_METHOD_MISMATCH','PAYMENT_ACCOUNT_UNAVAILABLE','PRICE_UNAVAILABLE','REFUND_ACCOUNT_REQUIRED','REFUND_NOT_REQUIRED','REFUND_NOT_REQUESTED','REFUND_ALREADY_REQUESTED','REFUND_EVIDENCE_REQUIRED','REFUND_RECORD_CONFLICT','BOOKING_IN_PAST','COACH_TIME_OFF','TIME_CONFLICT','TRAVEL_BUFFER_INSUFFICIENT','DAILY_LIMIT_REACHED','SLOT_ALREADY_LOCKED','BOOKING_CHANGED','BOOKING_ID_CONFLICT','GROUP_CLASS_ID_CONFLICT','GROUP_CLASS_UNAVAILABLE','GROUP_REQUEST_EXISTS']);
+function callableError(error){
+  const code=String(error?.code||'INTERNAL');
+  if(code==='BOOKING_NOT_FOUND')return new HttpsError('not-found','ไม่พบ Booking');
+  if(code==='GROUP_CLASS_NOT_FOUND'||code==='GROUP_REQUEST_NOT_FOUND')return new HttpsError('not-found','ไม่พบ Group Class หรือคำขอ');
+  if(code==='PROOF_NOT_FOUND')return new HttpsError('not-found','ไม่พบหลักฐาน');
+  if(invalidArgument.has(code))return new HttpsError('invalid-argument','ข้อมูลคำสั่งไม่ถูกต้อง',{code});
+  if(denied.has(code))return new HttpsError('permission-denied','ไม่มีสิทธิ์ดำเนินการ',{code});
+  if(conflict.has(code))return new HttpsError('failed-precondition','Booking ถูกเปลี่ยนแปลงหรือเวลาไม่พร้อม',{code});
+  logger.error('Booking command failed',{code});
+  return new HttpsError('internal','ไม่สามารถดำเนินการ Booking ได้');
+}
+
+// New clients will move critical booking transitions here after App Check registration and UAT.
+exports.executeBookingCommand = onCall({
+  region:'asia-southeast1', enforceAppCheck:true, timeoutSeconds:30, maxInstances:10
+}, async request => {
+  if(!request.auth?.uid)throw new HttpsError('unauthenticated','กรุณาเข้าสู่ระบบ');
+  try{return await bookingCommands.execute(getDatabase(),{actorUid:request.auth.uid,input:request.data||{}})}
+  catch(error){throw callableError(error)}
+});
+
+exports.createBookingCommand = onCall({
+  region:'asia-southeast1', enforceAppCheck:true, timeoutSeconds:30, maxInstances:10
+}, async request => {
+  if(!request.auth?.uid)throw new HttpsError('unauthenticated','กรุณาเข้าสู่ระบบ');
+  try{return await bookingCreate.execute(getDatabase(),{actorUid:request.auth.uid,input:request.data||{}})}
+  catch(error){throw callableError(error)}
+});
+
+exports.executeAthleteBookingCommand = onCall({
+  region:'asia-southeast1', enforceAppCheck:true, timeoutSeconds:30, maxInstances:10
+}, async request => {
+  if(!request.auth?.uid)throw new HttpsError('unauthenticated','กรุณาเข้าสู่ระบบ');
+  try{return await bookingAthlete.execute(getDatabase(),{actorUid:request.auth.uid,input:request.data||{}})}
+  catch(error){throw callableError(error)}
+});
+
+exports.executeBookingRefundCommand = onCall({
+  region:'asia-southeast1', enforceAppCheck:true, timeoutSeconds:30, maxInstances:10
+}, async request => {
+  if(!request.auth?.uid)throw new HttpsError('unauthenticated','กรุณาเข้าสู่ระบบ');
+  try{return await bookingRefund.execute(getDatabase(),{actorUid:request.auth.uid,input:request.data||{}})}
+  catch(error){throw callableError(error)}
+});
+
+exports.getBookingProofUrl = onCall({
+  region:'asia-southeast1', enforceAppCheck:true, timeoutSeconds:15, maxInstances:10
+}, async request => {
+  if(!request.auth?.uid)throw new HttpsError('unauthenticated','กรุณาเข้าสู่ระบบ');
+  try{return await bookingProof.execute(getDatabase(),getStorage(),{actorUid:request.auth.uid,input:request.data||{}})}
+  catch(error){throw callableError(error)}
+});
+
+exports.executeGroupClassCommand = onCall({
+  region:'asia-southeast1', enforceAppCheck:true, timeoutSeconds:30, maxInstances:10
+}, async request => {
+  if(!request.auth?.uid)throw new HttpsError('unauthenticated','กรุณาเข้าสู่ระบบ');
+  try{return await groupClass.execute(getDatabase(),{actorUid:request.auth.uid,input:request.data||{}})}
+  catch(error){throw callableError(error)}
+});
+
+exports.getGroupClassProofUrl = onCall({
+  region:'asia-southeast1', enforceAppCheck:true, timeoutSeconds:15, maxInstances:10
+}, async request => {
+  if(!request.auth?.uid)throw new HttpsError('unauthenticated','กรุณาเข้าสู่ระบบ');
+  try{return await groupClassProof.execute(getDatabase(),getStorage(),{actorUid:request.auth.uid,input:request.data||{}})}
+  catch(error){throw callableError(error)}
+});
+

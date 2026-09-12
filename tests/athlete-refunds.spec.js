@@ -92,7 +92,9 @@ test('coach sees the submitted account and cannot start two refund methods concu
   await seed(page, { refundRequestedAt:123, refundStatus:'requested', refundBank:'ธนาคารทดสอบ', refundAccountName:'นักกีฬา ทดสอบ', refundAccountNumber:'0012345678' });
   await page.evaluate(() => {
     state.role='coach'; state.user={uid:'original-coach'}; testAuth.currentUser=state.user;
-    window.coinCalls=0; s38RefundCoin=async()=>{coinCalls++;await new Promise(r=>setTimeout(r,150));};
+    window.coinCalls=0; window.cashCalls=0;
+    CoachDiBookingServer.refundAction=async()=>{coinCalls++;await new Promise(r=>setTimeout(r,150));};
+    CoachDiBookingServer.cashRefund=async()=>{cashCalls++;};
     s38RefundDecision('booking-fixture');
   });
   await expect(page.locator('[data-refund-view]')).toContainText('0012345678');
@@ -101,6 +103,7 @@ test('coach sees the submitted account and cannot start two refund methods concu
     document.querySelector('[data-cdr="refund-cash"]').click();
   });
   await expect.poll(()=>page.evaluate(()=>coinCalls)).toBe(1);
+  expect(await page.evaluate(()=>cashCalls)).toBe(0);
   await expect(page.locator('#cdrError')).toBeEmpty();
   expect(await page.evaluate(()=>testWrites.length)).toBe(0);
 });

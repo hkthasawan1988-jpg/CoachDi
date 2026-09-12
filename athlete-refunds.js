@@ -129,19 +129,15 @@
       if (value && !document.getElementById('cdrConfirmAccount')?.checked) throw Error('กรุณายืนยันข้อมูลบัญชีก่อนขอคืนเงิน');
       const reason = document.getElementById('cdrCancelReason')?.value || '';
       pending.add(id); button.disabled = true; error('กำลังส่งคำขอ...');
-      const ref = db.ref('bookings/' + id);
-      const result = await C.requestRefund(ref, { uid, bank: value, reason, cancel, stamp, assertOwner: () => owner(uid) });
+      const server = root.CoachDiBookingServer;
+      if (!server) throw Error('ระบบคำสั่งการจองยังไม่พร้อม กรุณารีเฟรชแอป');
+      if (value) await db.ref('users/' + uid + '/refundAccount').set({ ...value, updatedAt: stamp() });
+      const result = await server.athleteAction(id, cancel ? 'athlete_cancel' : 'athlete_request_refund', { reason });
       owner(uid);
-      const saved = result.snapshot.val();
+      const savedSnapshot = await db.ref('bookings/' + id).once('value');
+      const saved = savedSnapshot.val();
       for (const key of ['bookings', 'allAthleteBookings']) if (Array.isArray(state[key])) state[key] = state[key].map(b => b.id === id ? { ...saved, id } : b);
-      // Notification failure must never cause a second financial request.
-      let notified = true;
-      try {
-        await db.ref('notifications/' + saved.coachId + '/refund-request-' + id).set({ type: 'cancellation', bookingId: id,
-          senderId: uid, recipientId: saved.coachId, message: value ? 'นักกีฬาส่งบัญชีและคำขอคืนเงิน กรุณาตรวจสอบรายการ ' + id : 'นักกีฬาขอยกเลิกการจอง ' + id,
-          createdAt: stamp(), read: false });
-      } catch (_) { notified = false; }
-      error(notified ? 'ส่งคำขอแล้ว กรุณารอโค้ชตรวจสอบ' : 'บันทึกคำขอแล้ว แต่ส่งการแจ้งเตือนไม่สำเร็จ กรุณาติดต่อโค้ชทางแชท');
+      error(result.ok ? 'ส่งคำขอแล้ว กรุณารอโค้ชตรวจสอบ' : 'ไม่สามารถส่งคำขอได้ กรุณาลองใหม่');
       button.textContent = 'ส่งคำขอแล้ว'; button.dataset.saved = 'true';
     } catch (failure) { error(errorText(failure)); }
     finally { pending.delete(id); if (!button.dataset.saved) button.disabled = false; }
@@ -254,7 +250,6 @@
     show('<h2>ตรวจคำขอคืนเงิน</h2><p>#' + E(id) + '</p><p>ธนาคาร: ' + E(b.refundBank) + '<br>ชื่อบัญชี: ' + E(b.refundAccountName) + '<br>เลขบัญชี: ' + E(b.refundAccountNumber) + '</p><p class="cdr-note">ตรวจสอบยอดรับจริงและโอนคืนก่อนแนบหลักฐาน การบันทึกนี้ไม่ใช่คำสั่งโอนเงิน</p><label>แนบสลิปคืนเงิน<input id="s38RefundSlip" type="file" accept="image/png,image/jpeg,image/webp"></label>' + errorHost,
       '<button type="button" class="pill primary" data-cdr="refund-cash" data-booking="' + E(id) + '">บันทึกหลักฐานการโอนคืน</button><button type="button" class="pill" data-cdr="refund-coin" data-booking="' + E(id) + '">คืนเป็นเหรียญตามเงื่อนไขเดิม</button>' + closeButton);
   };
-  const refundCash = s38RefundCash;
   async function completeCash(id, button, method = 'cash') {
     if (pending.has('cash:' + id)) return;
     pending.add('cash:' + id); button.disabled = true;
@@ -264,7 +259,10 @@
       C.account(accountFromBooking(b));
       if (method === 'cash' && !document.getElementById('s38RefundSlip')?.files?.length) throw Error('กรุณาแนบสลิปคืนเงิน');
       state.bookings = (state.bookings || []).map(x => x.id === id ? { ...b, id } : x);
-      if (method === 'coin') await s38RefundCoin(id); else await refundCash(id);
+      const server = root.CoachDiBookingServer;
+      if (!server) throw Error('ระบบคำสั่งการคืนเงินยังไม่พร้อม กรุณารีเฟรชแอป');
+      if (method === 'coin') await server.refundAction(id, 'coach_select_coin_refund', button);
+      else await server.cashRefund(id, button);
       const saved = (await db.ref('bookings/' + id).once('value')).val();
       if (C.terminal(saved)) closeSheet();
     } catch (failure) { error(errorText(failure)); }
