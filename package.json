@@ -15,7 +15,7 @@
     "test:domain": "vitest run app-v2/src/domain --pool=threads --maxWorkers=1",
     "android:sync": "npm run build && cap sync android",
     "android:open": "cap open android",
-    "ios:sync": "npm run build && cap sync ios",
+    "ios:sync": "npm run build && cap sync ios && node scripts/prepare-ios-spm.mjs",
     "ios:open": "cap open ios",
     "check:ios": "node scripts/check-ios-readiness.mjs",
     "test:unit": "node --test test-unit/*.test.cjs",

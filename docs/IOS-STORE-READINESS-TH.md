@@ -7,6 +7,7 @@
 - ติดตั้ง Node 22 และ dependencies จาก lockfile
 - ตรวจ Bundle ID, deployment target, App Check และ APNs bridge
 - Build Web ก่อน `cap sync ios`
+- เตรียม App Check plugin ใน path ที่ไม่ชน SwiftPM package identity ของ Google
 - Resolve Swift Package Manager dependencies
 - Build Debug สำหรับ iOS Simulator โดยปิด Code Signing
 - อัปโหลด `App.app` สำหรับ Simulator เป็น GitHub Actions Artifact

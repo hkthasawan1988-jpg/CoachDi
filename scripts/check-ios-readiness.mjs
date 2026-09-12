@@ -13,7 +13,7 @@ const required = [
   [info.includes('<string>Coach Di</string>'), 'Coach Di display name'],
   [appDelegate.includes('.capacitorDidRegisterForRemoteNotifications'), 'APNs registration bridge'],
   [notifications.includes('#if DEBUG') && notifications.includes('["debug": false]'), 'release-safe App Check selection'],
-  [packageFile.includes('CapacitorFirebaseAppCheck') && packageFile.includes('CapacitorPushNotifications'), 'native App Check and push packages']
+  [packageFile.includes('../../Vendor/CapacitorFirebaseAppCheck') && packageFile.includes('CapacitorPushNotifications'), 'collision-free native App Check and push packages']
 ];
 
 for (const [ok, label] of required) {
