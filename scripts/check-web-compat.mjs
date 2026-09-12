@@ -6,6 +6,12 @@ const root = new URL('../', import.meta.url);
 const hash = data => createHash('sha256').update(data).digest('hex');
 const baseline = JSON.parse(await readFile(new URL('docs/web-compatibility-baseline.json', root), 'utf8'));
 let html = (await readFile(new URL('index.html', root), 'utf8')).replace(/\r\n/g, '\n');
+const groupClassUiInclude = '<script src="group-class-ui.js"></script>';
+const groupClassUiSource = (await readFile(new URL('group-class-ui.js', root), 'utf8')).replace(/\r\n/g, '\n');
+assert.equal(html.split(groupClassUiInclude).length, 2, 'Expected one Group Class UI module at its legacy load position');
+assert.equal(await readFile(new URL('dist/group-class-ui.js', root), 'utf8'), await readFile(new URL('group-class-ui.js', root), 'utf8'),
+  'Group Class UI module must be copied byte-for-byte into the web build');
+html = html.replace(groupClassUiInclude, `<script id="c76-coach-group-classes">\n${groupClassUiSource}</script>`);
 const serverClientIncludes = '<script src="booking-server-client-core.js"></script>\n<script src="booking-server-client.js"></script>\n<script src="group-class-server-client.js"></script>\n';
 assert.ok(html.endsWith(serverClientIncludes), 'Expected reviewed server-owned booking client includes');
 html = html.slice(0, -serverClientIncludes.length);
@@ -67,4 +73,3 @@ for (const asset of assets) {
 }
 assert.equal(await readFile(new URL('dist/index.html', root), 'utf8'), await readFile(new URL('index.html', root), 'utf8'));
 console.log(`Web compatibility passed: Production HTML preserved except reviewed layout/chat/session adaptations; ${assets.length} client assets match in source and build.`);
-
