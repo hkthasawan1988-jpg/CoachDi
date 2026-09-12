@@ -13,10 +13,9 @@ function requestFingerprint(actorUid,input={}){
 }
 function privateProof(actorUid,proof){
   if(!proof||typeof proof!=='object')return null;
-  const path=text(proof.path,240),url=text(proof.url,2048),contentType=text(proof.contentType,80),size=Number(proof.size);
+  const path=text(proof.path,240),contentType=text(proof.contentType,80),size=Number(proof.size);
   if(!path.startsWith(`private/booking-slip/${actorUid}/`)||!/^image\/(jpeg|png|webp)$/.test(contentType)||!Number.isSafeInteger(size)||size<=0||size>10*1024*1024)return null;
-  if(!/^https:\/\/firebasestorage\.googleapis\.com\//.test(url))return null;
-  return{path,url,contentType,size,name:text(proof.name,120),uploadedAt:Number(proof.uploadedAt)||null};
+  return{path,contentType,size,name:text(proof.name,120),uploadedAt:Number(proof.uploadedAt)||null};
 }
 function priceFor(pricing,durationMinutes){const key=`p${durationMinutes}`,price=Number(pricing&&pricing[key]);return Number.isSafeInteger(price)&&price>=0&&price<=20000000?price:null}
 function evaluate({actorUid,athlete,coach,pricing,paymentAccount,input,now}){

@@ -19,6 +19,7 @@ async function openIsolatedApp(page, native = false, entry = '/', nativePush = f
     };
     window.testAuthListeners=[];
     window.testWrites = [];
+    window.testFunctionCalls = [];
     window.testAuthCalls = [];
     window.testData = {};
     window.testSubscriptions = [];
@@ -55,7 +56,28 @@ async function openIsolatedApp(page, native = false, entry = '/', nativePush = f
     authFn.Auth = { Persistence: { LOCAL: 'local', SESSION: 'session', NONE: 'none' } };
     const database = () => ({ ref: path => ref(path || '') });
     database.ServerValue = { TIMESTAMP: { '.sv': 'timestamp' } };
-    const app = { auth: authFn, database, delete: async () => {}, appCheck: () => ({ activate: () => {} }) };
+    const callFunction = async (name, data) => {
+      if (window.testWriteError) throw Error('Write failed');
+      window.testFunctionCalls.push({ name, data });
+      if (name === 'createBookingCommand') {
+        const bookingId = 'server-booking-fixture';
+        const booking = { ...data, id: bookingId, athleteId: auth.currentUser?.uid, venue: data.venueName, end: Number(data.start) + 1,
+          status: data.paymentMode === 'paid_transfer' ? 'payment_submitted' : 'pending_coach_approval', paymentStatus: data.paymentMode === 'paid_transfer' ? 'payment_submitted' : 'not_started' };
+        window.testData['bookings/' + bookingId] = booking;
+        window.testWrites.push({ path: '', value: { ['bookings/' + bookingId]: booking }, backend: true });
+        return { data: { ok: true, bookingId, status: booking.status, paymentStatus: booking.paymentStatus } };
+      }
+      if (name === 'executeAthleteBookingCommand') {
+        const path = 'bookings/' + data.bookingId, current = window.testData[path] || {};
+        const value = { ...current, refundRequestedAt: 123, refundStatus: 'requested', refundReason: data.reason || '', status: current.status || 'declined' };
+        window.testData[path] = value; window.testWrites.push({ path, value, transaction: true });
+        return { data: { ok: true, bookingId: data.bookingId } };
+      }
+      return { data: name === 'getBookingProofUrl' ? { url: 'https://example.invalid/private-proof' } : { ok: true, bookingId: data.bookingId } };
+    };
+    const functions = () => ({ httpsCallable: name => data => callFunction(name, data) });
+    const storage = () => ({ ref: path => ({ put: async (file, metadata) => { window.testWrites.push({ path, file, metadata, storage: true }); } }) });
+    const app = { auth: authFn, database, functions, storage, delete: async () => {}, appCheck: () => ({ activate: () => {} }) };
     window.firebase = { initializeApp: () => app, apps: [], auth: authFn, database };
   }, {isNative:native,nativePush});
   await page.goto(entry);

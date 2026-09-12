@@ -57,6 +57,7 @@ jobs:
           node --check functions-mobile/booking-athlete-service.cjs
           node --check functions-mobile/booking-refund.cjs
           node --check functions-mobile/booking-refund-service.cjs
+          node --check functions-mobile/booking-proof-service.cjs
           node --check functions-mobile/booking-command-service.cjs
           node --check functions-mobile/booking-availability.cjs
           node --check functions-mobile/booking-slot-lock.cjs

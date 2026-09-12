@@ -216,8 +216,10 @@ body{background-image:linear-gradient(rgba(246,247,245,.91),rgba(246,247,245,.91
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check-compat.js"></script>
 <script src="/app-config.js"></script>
+<script src="/app-check-bridge.js"></script>
 <script>
 const firebaseConfig={apiKey:"AIzaSyCKr76AFSvi6G1N_BF_IfpcsV7VWlzOcIc",authDomain:"coach-di.firebaseapp.com",databaseURL:"https://coach-di-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"coach-di",storageBucket:"coach-di.firebasestorage.app",messagingSenderId:"41680156013",appId:"1:41680156013:web:0c24e900e60495d9189664"};
 const requestedPortal=new URLSearchParams(location.search).get("portal");
@@ -225,7 +227,7 @@ const sessionEntry=CoachDiSession.entry(location.search);
 const firebasePortalScope=sessionEntry.scope;
 const coachDiFirebaseApp=firebase.apps.find(app=>app.name===`coach-di-${firebasePortalScope}`)||firebase.initializeApp(firebaseConfig,`coach-di-${firebasePortalScope}`);
 const coachDiPublicConfig=window.COACH_DI_PUBLIC_CONFIG||{};
-if(coachDiPublicConfig.appCheckSiteKey){try{coachDiFirebaseApp.appCheck().activate(coachDiPublicConfig.appCheckSiteKey,true)}catch(error){console.warn('App Check monitor client could not start',error)}}
+try{window.CoachDiAppCheck?.activate(coachDiFirebaseApp,coachDiPublicConfig.appCheckSiteKey)}catch(error){console.warn('App Check monitor client could not start',error)}
 const auth=coachDiFirebaseApp.auth(),db=coachDiFirebaseApp.database();
 let selectedLoginPortal=sessionEntry.role;
 let sessionLoginPending=false,sessionLoginIntent=null,sessionBootstrapRevision=0,sessionBootstrapBusy=false;
@@ -3277,3 +3279,5 @@ if(typeof window.COACH_DI_OMISE_LOADED==='undefined'){
 <script src="coach-time-off.js"></script>
 <link rel="stylesheet" href="account-views.css">
 <script src="account-views.js"></script>
+<script src="booking-server-client-core.js"></script>
+<script src="booking-server-client.js"></script>

@@ -2,11 +2,12 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const {readFileSync}=require('node:fs');const path=require('node:path');const vm=require('node:vm');
 
 function load(run){
-  const calls={database:[],callable:[],initialized:0,command:[],create:[],athlete:[],refund:[]};const database={name:'db'};
+  const calls={database:[],callable:[],initialized:0,command:[],create:[],athlete:[],refund:[],proof:[]};const database={name:'db'},storage={name:'storage'};
   class HttpsError extends Error{constructor(code,message,details){super(message);this.code=code;this.details=details}}
   const modules={
     'firebase-admin/app':{initializeApp:()=>{calls.initialized++}},
     'firebase-admin/database':{getDatabase:()=>database},
+    'firebase-admin/storage':{getStorage:()=>storage},
     'firebase-functions/v2/database':{onValueWritten:(options,handler)=>{calls.database.push(options);return handler}},
     'firebase-functions/v2/https':{HttpsError,onCall:(options,handler)=>{calls.callable.push(options);return handler}},
     'firebase-functions':{logger:{error(){}}},
@@ -16,6 +17,7 @@ function load(run){
     './booking-create-service.cjs':{execute:async(db,input)=>{calls.create.push([db,input]);return run?run(db,input):{ok:true}}},
     './booking-athlete-service.cjs':{execute:async(db,input)=>{calls.athlete.push([db,input]);return run?run(db,input):{ok:true}}},
     './booking-refund-service.cjs':{execute:async(db,input)=>{calls.refund.push([db,input]);return run?run(db,input):{ok:true}}},
+    './booking-proof-service.cjs':{execute:async(db,store,input)=>{calls.proof.push([db,store,input]);return run?run(db,input):{ok:true}}},
   };
   const exported={};vm.runInNewContext(readFileSync(path.join(__dirname,'../functions-mobile/index.js'),'utf8'),{exports:exported,require:name=>{assert.ok(Object.hasOwn(modules,name),`Unexpected module ${name}`);return modules[name]}});
   return{calls,database,exported,HttpsError};
@@ -23,8 +25,8 @@ function load(run){
 
 test('mobile deployment retains existing triggers and adds App Check callables',()=>{
   const {calls,exported}=load();
-  assert.deepEqual(Object.keys(exported),['syncCoachBookingSchedule','syncCoachPayoutVerification','executeBookingCommand','createBookingCommand','executeAthleteBookingCommand','executeBookingRefundCommand']);
-  assert.equal(calls.initialized,1);assert.equal(calls.database.length,2);assert.equal(calls.callable.length,4);
+  assert.deepEqual(Object.keys(exported),['syncCoachBookingSchedule','syncCoachPayoutVerification','executeBookingCommand','createBookingCommand','executeAthleteBookingCommand','executeBookingRefundCommand','getBookingProofUrl']);
+  assert.equal(calls.initialized,1);assert.equal(calls.database.length,2);assert.equal(calls.callable.length,5);
   for(const options of calls.callable){assert.equal(options.region,'asia-southeast1');assert.equal(options.enforceAppCheck,true)}
 });
 
@@ -42,6 +44,8 @@ test('callable requires Firebase Auth and forwards only verified uid plus reques
   assert.equal(JSON.stringify(calls.athlete[0][1]),JSON.stringify({actorUid:'athlete_12345678',input:data}));
   assert.deepEqual(await exported.executeBookingRefundCommand({auth:{uid:'coach_12345678'},data}),{ok:true});
   assert.equal(JSON.stringify(calls.refund[0][1]),JSON.stringify({actorUid:'coach_12345678',input:data}));
+  assert.deepEqual(await exported.getBookingProofUrl({auth:{uid:'coach_12345678'},data:{bookingId:'BOOKING_123',kind:'payment'}}),{ok:true});
+  assert.equal(calls.proof[0][0],database);assert.equal(calls.proof[0][1].name,'storage');
 });
 
 test('callable maps expected conflicts and hides unexpected server errors',async()=>{

@@ -76,6 +76,13 @@ public class CoachDiNotificationsPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void getBuildInfo(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("debug", BuildConfig.DEBUG);
+        call.resolve(result);
+    }
+
+    @PluginMethod
     public void openSettings(PluginCall call) {
         Intent intent;
         if (Build.VERSION.SDK_INT >= 26) {

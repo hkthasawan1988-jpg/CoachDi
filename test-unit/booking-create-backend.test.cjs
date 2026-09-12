@@ -18,7 +18,7 @@ test('paid transfer requires an approved account and private owned image proof',
   assert.equal(create.evaluate(context({paymentMode:'paid_transfer'})).code,'PAYMENT_EVIDENCE_REQUIRED');
   assert.equal(create.evaluate(context({paymentMode:'paid_transfer',paymentProof:proof},{paymentAccount:{verificationStatus:'pending'}})).code,'PAYMENT_ACCOUNT_UNAVAILABLE');
   assert.equal(create.evaluate(context({paymentMode:'paid_transfer',paymentProof:{...proof,path:'private/booking-slip/other/file.jpg'}})).code,'PAYMENT_EVIDENCE_REQUIRED');
-  assert.equal(create.evaluate(context({paymentMode:'paid_transfer',paymentProof:{...proof,url:'javascript:alert(1)'}})).code,'PAYMENT_EVIDENCE_REQUIRED');
+  const withoutPublicUrl={...proof};delete withoutPublicUrl.url;assert.equal(create.evaluate(context({paymentMode:'paid_transfer',paymentProof:withoutPublicUrl})).ok,true);
   assert.equal(create.evaluate(context({paymentMode:'paid_transfer',paymentProof:proof})).ok,true);
 });
 test('record contains derived values and no arbitrary client fields',()=>{
