@@ -6,7 +6,7 @@
   const appPlugin = native ? (cap.Plugins?.CoachDiNotifications || cap.registerPlugin?.('CoachDiNotifications')) : null;
   let ready;
   function nativeReady() {
-    if (!ready) ready = Promise.resolve(appPlugin?.getBuildInfo?.()).then(info => plugin.initialize({ debug: info?.debug === true, isTokenAutoRefreshEnabled: true }));
+    if (!ready) ready = Promise.resolve(appPlugin?.getBuildInfo?.()).then(info => plugin.initialize({ debugToken: info?.debug === true, isTokenAutoRefreshEnabled: true }));
     return ready;
   }
   function activate(app, webSiteKey) {
