@@ -1,0 +1,2 @@
+public let isCapacitorApp = true
+

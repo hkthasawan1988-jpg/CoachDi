@@ -2,7 +2,7 @@
   "name": "coach-di",
   "version": "1.0.0",
   "private": true,
-  "description": "Coach Di web application and Capacitor Android app",
+  "description": "Coach Di web application and Capacitor Android/iOS apps",
   "engines": {
     "node": ">=22"
   },
@@ -15,6 +15,9 @@
     "test:domain": "vitest run app-v2/src/domain --pool=threads --maxWorkers=1",
     "android:sync": "npm run build && cap sync android",
     "android:open": "cap open android",
+    "ios:sync": "npm run build && cap sync ios",
+    "ios:open": "cap open ios",
+    "check:ios": "node scripts/check-ios-readiness.mjs",
     "test:unit": "node --test test-unit/*.test.cjs",
     "test:rules": "firebase emulators:exec --only database,storage --project demo-coach-di-refunds --config firebase.emulator.json \"node --test test-rules/*.test.cjs\"",
     "test:auth": "node scripts/prepare-auth-tests.mjs && firebase emulators:exec --only auth --project demo-coach-di-session --config firebase.auth-emulator.json \"playwright test --config playwright.auth.config.js\""
@@ -23,6 +26,7 @@
     "@capacitor-firebase/app-check": "8.3.0",
     "@capacitor/android": "8.5.1",
     "@capacitor/core": "8.5.1",
+    "@capacitor/ios": "8.5.1",
     "@capacitor/push-notifications": "8.1.2"
   },
   "devDependencies": {
@@ -35,3 +39,4 @@
     "vitest": "4.1.11"
   }
 }
+

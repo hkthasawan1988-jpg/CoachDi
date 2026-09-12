@@ -20,3 +20,8 @@ auth-test-report/
 .p0-recovery/
 .codex-npm-cache/
 functions-production-recovered/
+ios/App/App/GoogleService-Info.plist
+*.p8
+*.p12
+*.mobileprovision
+

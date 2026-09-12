@@ -5,6 +5,7 @@
   const plugin = name => cap.Plugins?.[name] || cap.registerPlugin?.(name);
   const push = plugin('PushNotifications'), session = plugin('CoachDiNotifications');
   if (!push || !session) return;
+  const nativePlatform = cap.getPlatform?.() || 'android';
   let owner = '', deviceId = '', pending = null, opening = false;
   let generation = 0, attempt = null, bindingVersion = 0, authWork = Promise.resolve();
   let resetNeeded = false, resetting = null, retryTimer, registrationTimer, retryCount = 0;
@@ -104,7 +105,7 @@
       const result = await bounded(db.ref(`fcmTokens/${uid}/${id}`).transaction(existing => {
         if (!valid()) return;
         return {...(existing || {}),token:value,deviceId:id,
-          role:state.role || state.userProfile?.role || 'user',platform:'android',enabled:true,
+          role:state.role || state.userProfile?.role || 'user',platform:nativePlatform,enabled:true,
           createdAt:existing?.createdAt || firebase.database.ServerValue.TIMESTAMP,lastSeenAt:firebase.database.ServerValue.TIMESTAMP};
       }, undefined, false));
       if (!valid()) return;
@@ -219,3 +220,4 @@
   }
   initialize().catch(() => paint('off','เปิดแจ้งเตือนไม่สำเร็จ กรุณาเปิดแอปใหม่'));
 })();
+
