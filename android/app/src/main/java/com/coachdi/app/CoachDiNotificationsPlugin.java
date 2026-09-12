@@ -78,7 +78,8 @@ public class CoachDiNotificationsPlugin extends Plugin {
     @PluginMethod
     public void getBuildInfo(PluginCall call) {
         JSObject result = new JSObject();
-        result.put("debug", BuildConfig.DEBUG);
+        boolean debug = (getContext().getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        result.put("debug", debug);
         call.resolve(result);
     }
 
