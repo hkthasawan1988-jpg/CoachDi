@@ -133,7 +133,8 @@ public class NativeUiTest {
         assertTrue(Arrays.asList(info.requestedPermissions).contains("android.permission.POST_NOTIFICATIONS"));
         assertEquals(PackageManager.PERMISSION_DENIED, context.checkSelfPermission("android.permission.POST_NOTIFICATIONS"));
         awaitTrue("Capacitor.isPluginAvailable('PushNotifications') && Capacitor.isPluginAvailable('CoachDiNotifications') && Capacitor.isPluginAvailable('FirebaseAppCheck')");
-        awaitTrue("Capacitor.Plugins.CoachDiNotifications.getBuildInfo().then(info=>info.debug===true)");
+        assertEquals("true", js("(function(){window.coachDiDebugBuild=null;Capacitor.Plugins.CoachDiNotifications.getBuildInfo().then(info=>window.coachDiDebugBuild=info.debug===true).catch(()=>window.coachDiDebugBuild=false);return true;})()"));
+        awaitTrue("window.coachDiDebugBuild===true");
         awaitTrue("!document.getElementById('c105PushButton') || getComputedStyle(document.getElementById('c105PushButton')).display==='none'");
         screenshot("login-portrait");
     }
