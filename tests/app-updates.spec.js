@@ -70,4 +70,8 @@ test('paid Group Class submit and coach decision use private upload and server c
   await page.evaluate(()=>{state.role='coach';state.user={uid:'coach-one'};testAuth.currentUser=state.user;return c76Decide('new-class','group-athlete','approved',document.createElement('button'));});
   expect(await page.evaluate(()=>testFunctionCalls.filter(row=>row.name==='executeGroupClassCommand').map(row=>row.data.action))).toEqual(['submit_paid','decide']);expect(pageErrors).toEqual([]);
 });
-
+test('historical Group Class income reconciliation runs on the server without client ledger writes',async({page})=>{
+  const{pageErrors}=await openIsolatedApp(page);await page.evaluate(()=>{state.role='coach';state.user={uid:'coach-one'};testAuth.currentUser=state.user;loginView.classList.add('hidden');portal.classList.remove('hidden');return c113BackfillGroupTransactions()});
+  expect(await page.evaluate(()=>testFunctionCalls.filter(row=>row.name==='executeGroupClassCommand').map(row=>row.data.action))).toEqual(['reconcile_income']);
+  expect(await page.evaluate(()=>testWrites.filter(row=>String(row.path||'').startsWith('paymentTransactions/')))).toHaveLength(0);expect(pageErrors).toEqual([]);
+});

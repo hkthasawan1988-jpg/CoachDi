@@ -19,6 +19,19 @@ function notice(root,uid,id,record){put(root,`notifications/${uid}/${id}`,record
 function audit(root,uid,id,record){put(root,`auditLogs/${uid}/${id}`,record)}
 function commandResult(root,actorUid,requestId,record){put(root,`groupClassCommandResults/${actorUid}/${requestId}`,record)}
 function resultFor(action,classId,status,replay=false,extra={}){return{ok:true,replay,action,classId,status,...extra}}
+function receivedAt(request,now){return[request?.paymentVerifiedAt,request?.verifiedAt,request?.updatedAt,request?.paymentSubmittedAt,request?.createdAt].map(Number).find(value=>Number.isSafeInteger(value)&&value>0&&value<=now)||null}
+function sameIncome(current,expected){return current?.type==='group_class'&&current?.groupClassId===expected.groupClassId&&current?.coachId===expected.coachId&&current?.athleteId===expected.athleteId&&Number(current?.grossSatang)===expected.grossSatang&&Number(current?.netSatang)===expected.netSatang&&current?.status==='received'}
+function reconcileIncome(root,actorUid,now){
+  const requests=nested(root,`coachGroupClassRequests/${actorUid}`)||{},classes=nested(root,`coachGroupClasses/${actorUid}`)||{},summary={scanned:0,eligible:0,created:0,existing:0,conflicts:0,skipped:0};
+  for(const[classId,athletes]of Object.entries(requests))for(const[athleteId,request]of Object.entries(athletes||{})){
+    summary.scanned++;const item=classes[classId],amount=Number(request?.priceSatang),at=receivedAt(request,now),classAmount=Number(item?.priceSatang),classPriceMissing=item?.priceSatang==null||item?.priceSatang==='';
+    const valid=request?.status==='approved'&&request?.paymentStatus==='payment_verified'&&request?.livemode!==false&&group.validId(classId)&&group.validId(athleteId)&&item&&(!item.coachId||item.coachId===actorUid)&&(!request.coachId||request.coachId===actorUid)&&(!request.athleteId||request.athleteId===athleteId)&&(!request.classId||request.classId===classId)&&Number.isSafeInteger(amount)&&amount>0&&amount<=1000000&&at&&(classPriceMissing||(Number.isSafeInteger(classAmount)&&classAmount===amount));
+    if(!valid){summary.skipped++;continue}summary.eligible++;
+    const expected={type:'group_class',groupClassId:classId,reference:classId,coachId:actorUid,athleteId,grossSatang:amount,platformFeeSatang:0,netSatang:amount,status:'received',method:'bank_transfer',receivedAt:at,source:'group_class_server_reconciliation'},path=`paymentTransactions/GC-${classId}-${athleteId}`,current=nested(root,path);
+    if(current){if(sameIncome(current,expected))summary.existing++;else summary.conflicts++;continue}put(root,path,expected);summary.created++;
+  }
+  return summary;
+}
 
 async function execute(db,{actorUid,input,now=Date.now()}){
   const requestId=group.validRequestId(input?.requestId),action=group.action(input),fingerprint=group.fingerprint(actorUid,input);
@@ -29,7 +42,9 @@ async function execute(db,{actorUid,input,now=Date.now()}){
     if(command){if(command.fingerprint!==fingerprint||command.action!==action){errorCode='REQUEST_CONFLICT';return}response={...command.result,replay:true};return root}
     const actor=nested(root,`users/${actorUid}`)||{},base={actorUid,requestId,action,fingerprint,status:'completed',createdAt:now,updatedAt:now};
     let classId=group.validId(input?.classId),item=classId?nested(root,`coachGroupClasses/${action==='submit_paid'?String(input?.coachId||''):actorUid}/${classId}`):null;
-    if(action==='create'){
+    if(action==='reconcile_income'){
+      if(actor.role!=='coach'){errorCode='COACH_INACTIVE';return}const summary=reconcileIncome(root,actorUid,now);response=resultFor(action,null,'completed',false,summary);audit(root,actorUid,`group_${requestId}`,{userId:actorUid,actor:'coach',action:'group_class_income_reconciled',requestId,...summary,at:now});
+    }else if(action==='create'){
       if(!group.subscribed(actor,now)){errorCode='COACH_INACTIVE';return}
       const fields=group.createInput(input,now);if(!fields){errorCode='INVALID_GROUP_CLASS';return}
       const check=availabilityDecision(root,actorUid,fields,now);if(!check.ok){errorCode=check.code;return}
@@ -77,5 +92,4 @@ async function execute(db,{actorUid,input,now=Date.now()}){
   if(errorCode)throw new GroupClassError(errorCode);return response;
 }
 
-module.exports={GroupClassError,availabilityDecision,execute,nested,put,rows,userName};
-
+module.exports={GroupClassError,availabilityDecision,execute,nested,put,receivedAt,reconcileIncome,rows,sameIncome,userName};

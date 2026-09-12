@@ -2,7 +2,7 @@
 
 const crypto=require('node:crypto');
 const IMAGE_TYPES=new Set(['image/jpeg','image/png','image/webp']);
-const ACTIONS=new Set(['create','update_schedule','set_status','submit_paid','decide']);
+const ACTIONS=new Set(['create','update_schedule','set_status','submit_paid','decide','reconcile_income']);
 
 function text(value,max=120){const result=String(value||'').trim();return result&&result.length<=max?result:null}
 function validId(value){const result=String(value||'').trim();return /^[A-Za-z0-9_-]{4,120}$/.test(result)?result:null}
@@ -20,4 +20,3 @@ function scheduleInput(input,now){const venueName=text(input?.venueName,120),dat
 function action(input){const value=String(input?.action||'');return ACTIONS.has(value)?value:null}
 
 module.exports={ACTIONS,action,classId,createInput,fingerprint,future,legacyProof,proof,scheduleInput,subscribed,text,validDate,validId,validRequestId,validTime};
-
