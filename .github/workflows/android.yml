@@ -64,6 +64,7 @@ jobs:
           node --check functions-mobile/group-class.cjs
           node --check functions-mobile/group-class-service.cjs
           node --check functions-mobile/group-class-proof-service.cjs
+          node --check functions-mobile/chat-service.cjs
           node --check functions-mobile/payout-verification.cjs
           npm ci --prefix functions-push
           node --check functions-push/index.js
@@ -222,4 +223,3 @@ jobs:
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 7
-

@@ -43,3 +43,21 @@ test('refund request is executed by the athlete callable and stores only the pri
   const clientWrites = await page.evaluate(() => testWrites.filter(write => !write.transaction));
   expect(clientWrites.map(write => write.path)).toEqual(['users/test-athlete/refundAccount']);
 });
+
+test('booking chat uses one App Check callable and never creates client-side messages or notifications', async ({ page }) => {
+  await openIsolatedApp(page);
+  await page.evaluate(() => {
+    state.role = 'athlete'; state.user = { uid: 'test-athlete' }; testAuth.currentUser = state.user;
+    const booking = { id: 'chat-booking', athleteId: 'test-athlete', coachId: 'test-coach', athlete: 'Athlete Test', coachName: 'Coach Test' };
+    state.bookings = [booking]; state.allAthleteBookings = [booking]; s40ChatBookingId = booking.id;
+    document.body.insertAdjacentHTML('beforeend', '<div id="chat-test"><input id="s40ChatInput" value="ข้อความทดสอบ"><button onclick="s40SendMessage()">ส่ง</button></div>');
+  });
+  await page.locator('#chat-test button').dblclick();
+  await expect.poll(() => page.evaluate(() => testFunctionCalls.filter(call => call.name === 'sendBookingChatMessage').length)).toBe(1);
+  const result = await page.evaluate(() => ({
+    value: document.getElementById('s40ChatInput').value,
+    call: testFunctionCalls.find(call => call.name === 'sendBookingChatMessage'),
+    clientWrites: testWrites.filter(write => !write.backend && (/^bookingChats\//.test(write.path) || /^notifications\//.test(write.path))),
+  }));
+  expect(result.value).toBe(''); expect(result.call.data.bookingId).toBe('chat-booking'); expect(result.call.data.text).toBe('ข้อความทดสอบ'); expect(result.clientWrites).toEqual([]);
+});

@@ -18,7 +18,7 @@ for (const { id, path, label } of legacyInlineModules) {
     `${label} module must be copied byte-for-byte into the web build`);
   html = html.replace(include, `<script id="${id}">\n${source}</script>`);
 }
-const serverClientIncludes = '<script src="booking-server-client-core.js"></script>\n<script src="booking-server-client.js"></script>\n<script src="group-class-server-client.js"></script>\n';
+const serverClientIncludes = '<script src="booking-server-client-core.js"></script>\n<script src="booking-server-client.js"></script>\n<script src="group-class-server-client.js"></script>\n<script src="chat-server-client.js"></script>\n';
 assert.ok(html.endsWith(serverClientIncludes), 'Expected reviewed server-owned booking client includes');
 html = html.slice(0, -serverClientIncludes.length);
 const accountIncludes = '<link rel=\"stylesheet\" href=\"account-views.css\">\n<script src=\"account-views.js\"></script>\n';

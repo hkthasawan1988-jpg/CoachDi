@@ -31,6 +31,8 @@
     GROUP_CLASS_UNAVAILABLE: 'Group Class นี้เต็ม ปิดรับ หรือเลยเวลาแล้ว',
     GROUP_REQUEST_EXISTS: 'คุณส่งคำขอ Group Class นี้แล้ว',
     GROUP_CLASS_ID_CONFLICT: 'ไม่สามารถสร้าง Group Class ซ้ำได้ กรุณาปิดหน้าต่างแล้วเริ่มใหม่',
+    INVALID_CHAT_MESSAGE: 'กรุณาพิมพ์ข้อความไม่เกิน 2,000 ตัวอักษร',
+    CHAT_RECIPIENT_UNAVAILABLE: 'ไม่พบผู้รับข้อความ กรุณารีเฟรชรายการจอง',
   });
 
   function requestId() {
@@ -85,4 +87,3 @@
 
   return Object.freeze({ IMAGE_TYPES, ERROR_MESSAGES, errorCode, errorText, intentKey, proof, requestId, tracker });
 });
-

@@ -2,7 +2,7 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const {readFileSync}=require('node:fs');const path=require('node:path');const vm=require('node:vm');
 
 function load(run){
-  const calls={database:[],callable:[],initialized:0,command:[],create:[],athlete:[],refund:[],proof:[],group:[],groupProof:[]};const database={name:'db'},storage={name:'storage'};
+  const calls={database:[],callable:[],initialized:0,command:[],create:[],athlete:[],refund:[],proof:[],group:[],groupProof:[],chat:[]};const database={name:'db'},storage={name:'storage'};
   class HttpsError extends Error{constructor(code,message,details){super(message);this.code=code;this.details=details}}
   const modules={
     'firebase-admin/app':{initializeApp:()=>{calls.initialized++}},
@@ -20,6 +20,7 @@ function load(run){
     './booking-proof-service.cjs':{execute:async(db,store,input)=>{calls.proof.push([db,store,input]);return run?run(db,input):{ok:true}}},
     './group-class-service.cjs':{execute:async(db,input)=>{calls.group.push([db,input]);return run?run(db,input):{ok:true}}},
     './group-class-proof-service.cjs':{execute:async(db,store,input)=>{calls.groupProof.push([db,store,input]);return run?run(db,input):{ok:true}}},
+    './chat-service.cjs':{execute:async(db,input)=>{calls.chat.push([db,input]);return run?run(db,input):{ok:true}}},
   };
   const exported={};vm.runInNewContext(readFileSync(path.join(__dirname,'../functions-mobile/index.js'),'utf8'),{exports:exported,require:name=>{assert.ok(Object.hasOwn(modules,name),`Unexpected module ${name}`);return modules[name]}});
   return{calls,database,exported,HttpsError};
@@ -27,8 +28,8 @@ function load(run){
 
 test('mobile deployment retains existing triggers and adds App Check callables',()=>{
   const {calls,exported}=load();
-  assert.deepEqual(Object.keys(exported),['syncCoachBookingSchedule','syncCoachPayoutVerification','executeBookingCommand','createBookingCommand','executeAthleteBookingCommand','executeBookingRefundCommand','getBookingProofUrl','executeGroupClassCommand','getGroupClassProofUrl']);
-  assert.equal(calls.initialized,1);assert.equal(calls.database.length,2);assert.equal(calls.callable.length,7);
+  assert.deepEqual(Object.keys(exported),['syncCoachBookingSchedule','syncCoachPayoutVerification','executeBookingCommand','createBookingCommand','executeAthleteBookingCommand','executeBookingRefundCommand','getBookingProofUrl','executeGroupClassCommand','getGroupClassProofUrl','sendBookingChatMessage']);
+  assert.equal(calls.initialized,1);assert.equal(calls.database.length,2);assert.equal(calls.callable.length,8);
   for(const options of calls.callable){assert.equal(options.region,'asia-southeast1');assert.equal(options.enforceAppCheck,true)}
 });
 
@@ -50,6 +51,7 @@ test('callable requires Firebase Auth and forwards only verified uid plus reques
   assert.equal(calls.proof[0][0],database);assert.equal(calls.proof[0][1].name,'storage');
   assert.deepEqual(await exported.executeGroupClassCommand({auth:{uid:'coach_12345678'},data}),{ok:true});assert.equal(calls.group[0][0],database);
   assert.deepEqual(await exported.getGroupClassProofUrl({auth:{uid:'coach_12345678'},data}),{ok:true});assert.equal(calls.groupProof[0][1].name,'storage');
+  assert.deepEqual(await exported.sendBookingChatMessage({auth:{uid:'coach_12345678'},data}),{ok:true});assert.equal(calls.chat[0][0],database);
 });
 
 test('callable maps expected conflicts and hides unexpected server errors',async()=>{
@@ -58,4 +60,3 @@ test('callable maps expected conflicts and hides unexpected server errors',async
   const internal=load(()=>{throw Error('private database detail')});
   await assert.rejects(()=>internal.exported.executeBookingCommand({auth:{uid:'coach_12345678'},data:{}}),error=>error.code==='internal'&&!error.message.includes('private database'));
 });
-
