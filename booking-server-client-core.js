@@ -33,6 +33,9 @@
     GROUP_CLASS_ID_CONFLICT: 'ไม่สามารถสร้าง Group Class ซ้ำได้ กรุณาปิดหน้าต่างแล้วเริ่มใหม่',
     INVALID_CHAT_MESSAGE: 'กรุณาพิมพ์ข้อความไม่เกิน 2,000 ตัวอักษร',
     CHAT_RECIPIENT_UNAVAILABLE: 'ไม่พบผู้รับข้อความ กรุณารีเฟรชรายการจอง',
+    INVALID_SUPPORT_MESSAGE: 'กรุณาพิมพ์ข้อความไม่เกิน 4,000 ตัวอักษร',
+    SUPPORT_RECIPIENT_UNAVAILABLE: 'ไม่พบผู้รับข้อความ Support กรุณารีเฟรชแล้วลองใหม่',
+    SUPPORT_USER_NOT_FOUND: 'ไม่พบผู้ใช้ Support กรุณารีเฟรชรายชื่อ',
   });
 
   function requestId() {

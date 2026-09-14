@@ -61,3 +61,19 @@ test('booking chat uses one App Check callable and never creates client-side mes
   }));
   expect(result.value).toBe(''); expect(result.call.data.bookingId).toBe('chat-booking'); expect(result.call.data.text).toBe('ข้อความทดสอบ'); expect(result.clientWrites).toEqual([]);
 });
+
+test('support chat uses one App Check callable and never creates client-side messages or Admin alerts', async ({ page }) => {
+  await openIsolatedApp(page);
+  await page.evaluate(() => {
+    state.role = 'athlete'; state.user = { uid: 'test-athlete' }; testAuth.currentUser = state.user;
+    document.body.insertAdjacentHTML('beforeend', '<div id="support-test"><input id="cdSupportInput395" value="ขอความช่วยเหลือ"><button onclick="cd395SendSupport()">ส่ง</button></div>');
+  });
+  await page.locator('#support-test button').dblclick();
+  await expect.poll(() => page.evaluate(() => testFunctionCalls.filter(call => call.name === 'sendSupportChatMessage').length)).toBe(1);
+  const result = await page.evaluate(() => ({
+    value: document.getElementById('cdSupportInput395').value,
+    call: testFunctionCalls.find(call => call.name === 'sendSupportChatMessage'),
+    clientWrites: testWrites.filter(write => !write.backend && (/^supportChats\//.test(write.path) || /^adminSupportNotifications\//.test(write.path) || /^notifications\//.test(write.path))),
+  }));
+  expect(result.value).toBe(''); expect(result.call.data.threadUid).toBe('test-athlete'); expect(result.call.data.text).toBe('ขอความช่วยเหลือ'); expect(result.clientWrites).toEqual([]);
+});

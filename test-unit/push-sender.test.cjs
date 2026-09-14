@@ -38,6 +38,7 @@ test('Android data push identifies recipient and requests prompt delivery while 
   assert.equal(msg.webpush.headers.Urgency,'high');assert.equal(msg.webpush.fcmOptions.link,'https://coach-di.netlify.app/?portal=coach&notification=notice-1');
   assert.ok(Object.values(msg.data).every(value=>typeof value==='string'));
 });
+test('Support requests use an Admin-facing push title',()=>{assert.equal(require('../functions-push/sender.cjs').pushTitle('support_request'),'มีข้อความ Support ใหม่')});
 function fixture(records){const sent=[],reports=[],changes=[];const db={ref:path=>({get:async()=>({val:()=>path.startsWith('fcmTokens/')?records:'admin'}),transaction:async action=>{const id=path.split('/').at(-1),next=action(records[id]);if(next!==undefined){changes.push(path);records[id]=next;}return {committed:next!==undefined};}})};
   const event={params:{userId:'admin-A',notificationId:'n-1'},data:{val:()=>({type:'payout_verification_pending',message:'มีคำขอรอตรวจสอบ'}),ref:{child:()=>({set:async value=>reports.push(value)})}}};
   return {db,event,sent,reports,changes};}
