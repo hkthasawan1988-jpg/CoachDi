@@ -69,6 +69,7 @@ jobs:
           node --check functions-mobile/chat-service.cjs
           node --check functions-mobile/support-chat-service.cjs
           node --check functions-mobile/direct-chat-service.cjs
+          node --check functions-mobile/coach-schedule-service.cjs
           node --check functions-mobile/payout-verification.cjs
           npm ci --prefix functions-push
           node --check functions-push/index.js

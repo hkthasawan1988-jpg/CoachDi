@@ -17,6 +17,7 @@ const groupClassProof = require('./group-class-proof-service.cjs');
 const chat = require('./chat-service.cjs');
 const supportChat = require('./support-chat-service.cjs');
 const directChat = require('./direct-chat-service.cjs');
+const coachSchedule = require('./coach-schedule-service.cjs');
 initializeApp();
 // Separate codebase: deploying this function must not replace existing payment or push functions.
 exports.syncCoachBookingSchedule = onValueWritten({
@@ -30,9 +31,9 @@ exports.syncCoachPayoutVerification = onValueWritten({
   ref:'/coachPaymentAccounts/{coachId}', instance:'coach-di-default-rtdb', region:'asia-southeast1', retry:true, maxInstances:3
 }, event => payout.handle(getDatabase(), event));
 
-const invalidArgument = new Set(['INVALID_REQUEST_ID','INVALID_BOOKING_WINDOW','INVALID_BOOKING_AMOUNT','INVALID_TRAVEL_POLICY','INVALID_DAILY_LIMIT','INVALID_PAYMENT_MODE','INVALID_DURATION','INVALID_VENUE','INVALID_PARTICIPANTS','INVALID_PROOF_REQUEST','INVALID_GROUP_COMMAND','INVALID_GROUP_CLASS','INVALID_GROUP_SCHEDULE','INVALID_CHAT_MESSAGE','INVALID_SUPPORT_MESSAGE','INVALID_DIRECT_CHAT_COMMAND','INVALID_DIRECT_CHAT_MESSAGE','UNKNOWN_ACTION']);
+const invalidArgument = new Set(['INVALID_REQUEST_ID','INVALID_BOOKING_WINDOW','INVALID_BOOKING_AMOUNT','INVALID_TRAVEL_POLICY','INVALID_DAILY_LIMIT','INVALID_PAYMENT_MODE','INVALID_DURATION','INVALID_VENUE','INVALID_PARTICIPANTS','INVALID_PROOF_REQUEST','INVALID_GROUP_COMMAND','INVALID_GROUP_CLASS','INVALID_GROUP_SCHEDULE','INVALID_CHAT_MESSAGE','INVALID_SUPPORT_MESSAGE','INVALID_DIRECT_CHAT_COMMAND','INVALID_DIRECT_CHAT_MESSAGE','INVALID_SCHEDULE_COMMAND','INVALID_TIME_OFF','INVALID_APPOINTMENT','UNKNOWN_ACTION']);
 const denied = new Set(['ATHLETE_INACTIVE','COACH_INACTIVE','NOT_ASSIGNED_COACH','NOT_BOOKING_ATHLETE','NOT_BOOKING_PARTICIPANT','NOT_GROUP_PARTICIPANT','NOT_SUPPORT_PARTICIPANT','NOT_DIRECT_CHAT_PARTICIPANT','NOT_DIRECT_CHAT_MESSAGE_OWNER']);
-const conflict = new Set(['REQUEST_CONFLICT','INVALID_STATE','INVALID_GROUP_STATE','PAYMENT_EVIDENCE_REQUIRED','PAYMENT_METHOD_MISMATCH','PAYMENT_ACCOUNT_UNAVAILABLE','PRICE_UNAVAILABLE','REFUND_ACCOUNT_REQUIRED','REFUND_NOT_REQUIRED','REFUND_NOT_REQUESTED','REFUND_ALREADY_REQUESTED','REFUND_EVIDENCE_REQUIRED','REFUND_RECORD_CONFLICT','BOOKING_IN_PAST','COACH_TIME_OFF','TIME_CONFLICT','TRAVEL_BUFFER_INSUFFICIENT','DAILY_LIMIT_REACHED','SLOT_ALREADY_LOCKED','BOOKING_CHANGED','BOOKING_ID_CONFLICT','GROUP_CLASS_ID_CONFLICT','GROUP_CLASS_UNAVAILABLE','GROUP_REQUEST_EXISTS','CHAT_RECIPIENT_UNAVAILABLE','SUPPORT_RECIPIENT_UNAVAILABLE','DIRECT_CHAT_RELATIONSHIP_NOT_FOUND']);
+const conflict = new Set(['REQUEST_CONFLICT','INVALID_STATE','INVALID_GROUP_STATE','PAYMENT_EVIDENCE_REQUIRED','PAYMENT_METHOD_MISMATCH','PAYMENT_ACCOUNT_UNAVAILABLE','PRICE_UNAVAILABLE','REFUND_ACCOUNT_REQUIRED','REFUND_NOT_REQUIRED','REFUND_NOT_REQUESTED','REFUND_ALREADY_REQUESTED','REFUND_EVIDENCE_REQUIRED','REFUND_RECORD_CONFLICT','BOOKING_IN_PAST','COACH_TIME_OFF','TIME_CONFLICT','TRAVEL_BUFFER_INSUFFICIENT','DAILY_LIMIT_REACHED','SLOT_ALREADY_LOCKED','BOOKING_CHANGED','BOOKING_ID_CONFLICT','GROUP_CLASS_ID_CONFLICT','GROUP_CLASS_UNAVAILABLE','GROUP_REQUEST_EXISTS','CHAT_RECIPIENT_UNAVAILABLE','SUPPORT_RECIPIENT_UNAVAILABLE','DIRECT_CHAT_RELATIONSHIP_NOT_FOUND','TIME_OFF_OVERLAP','SCHEDULE_CHANGED','SCHEDULE_ID_CONFLICT','RECURRENCE_LIMIT']);
 function callableError(error){
   const code=String(error?.code||'INTERNAL');
   if(code==='BOOKING_NOT_FOUND')return new HttpsError('not-found','ไม่พบ Booking');
@@ -40,6 +41,7 @@ function callableError(error){
   if(code==='PROOF_NOT_FOUND')return new HttpsError('not-found','ไม่พบหลักฐาน');
   if(code==='SUPPORT_USER_NOT_FOUND')return new HttpsError('not-found','ไม่พบผู้ใช้ Support',{code});
   if(code==='DIRECT_CHAT_MESSAGE_NOT_FOUND')return new HttpsError('not-found','ไม่พบข้อความ',{code});
+  if(code==='TIME_OFF_NOT_FOUND'||code==='APPOINTMENT_NOT_FOUND')return new HttpsError('not-found','ไม่พบรายการตาราง',{code});
   if(invalidArgument.has(code))return new HttpsError('invalid-argument','ข้อมูลคำสั่งไม่ถูกต้อง',{code});
   if(denied.has(code))return new HttpsError('permission-denied','ไม่มีสิทธิ์ดำเนินการ',{code});
   if(conflict.has(code))return new HttpsError('failed-precondition','Booking ถูกเปลี่ยนแปลงหรือเวลาไม่พร้อม',{code});
@@ -125,5 +127,13 @@ exports.executeDirectChatCommand = onCall({
 }, async request => {
   if(!request.auth?.uid)throw new HttpsError('unauthenticated','กรุณาเข้าสู่ระบบ');
   try{return await directChat.execute(getDatabase(),{actorUid:request.auth.uid,input:request.data||{}})}
+  catch(error){throw callableError(error)}
+});
+
+exports.executeCoachScheduleCommand = onCall({
+  region:'asia-southeast1', enforceAppCheck:true, timeoutSeconds:20, maxInstances:10
+}, async request => {
+  if(!request.auth?.uid)throw new HttpsError('unauthenticated','กรุณาเข้าสู่ระบบ');
+  try{return await coachSchedule.execute(getDatabase(),{actorUid:request.auth.uid,input:request.data||{}})}
   catch(error){throw callableError(error)}
 });

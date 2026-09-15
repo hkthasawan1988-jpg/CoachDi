@@ -2,7 +2,7 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const {readFileSync}=require('node:fs');const path=require('node:path');const vm=require('node:vm');
 
 function load(run){
-  const calls={database:[],callable:[],initialized:0,command:[],create:[],athlete:[],refund:[],proof:[],group:[],groupProof:[],chat:[],supportChat:[],directChat:[]};const database={name:'db'},storage={name:'storage'};
+  const calls={database:[],callable:[],initialized:0,command:[],create:[],athlete:[],refund:[],proof:[],group:[],groupProof:[],chat:[],supportChat:[],directChat:[],coachSchedule:[]};const database={name:'db'},storage={name:'storage'};
   class HttpsError extends Error{constructor(code,message,details){super(message);this.code=code;this.details=details}}
   const modules={
     'firebase-admin/app':{initializeApp:()=>{calls.initialized++}},
@@ -23,6 +23,7 @@ function load(run){
     './chat-service.cjs':{execute:async(db,input)=>{calls.chat.push([db,input]);return run?run(db,input):{ok:true}}},
     './support-chat-service.cjs':{execute:async(db,input)=>{calls.supportChat.push([db,input]);return run?run(db,input):{ok:true}}},
     './direct-chat-service.cjs':{execute:async(db,input)=>{calls.directChat.push([db,input]);return run?run(db,input):{ok:true}}},
+    './coach-schedule-service.cjs':{execute:async(db,input)=>{calls.coachSchedule.push([db,input]);return run?run(db,input):{ok:true}}},
   };
   const exported={};vm.runInNewContext(readFileSync(path.join(__dirname,'../functions-mobile/index.js'),'utf8'),{exports:exported,require:name=>{assert.ok(Object.hasOwn(modules,name),`Unexpected module ${name}`);return modules[name]}});
   return{calls,database,exported,HttpsError};
@@ -30,8 +31,8 @@ function load(run){
 
 test('mobile deployment retains existing triggers and adds App Check callables',()=>{
   const {calls,exported}=load();
-  assert.deepEqual(Object.keys(exported),['syncCoachBookingSchedule','syncCoachPayoutVerification','executeBookingCommand','createBookingCommand','executeAthleteBookingCommand','executeBookingRefundCommand','getBookingProofUrl','executeGroupClassCommand','getGroupClassProofUrl','sendBookingChatMessage','sendSupportChatMessage','executeDirectChatCommand']);
-  assert.equal(calls.initialized,1);assert.equal(calls.database.length,2);assert.equal(calls.callable.length,10);
+  assert.deepEqual(Object.keys(exported),['syncCoachBookingSchedule','syncCoachPayoutVerification','executeBookingCommand','createBookingCommand','executeAthleteBookingCommand','executeBookingRefundCommand','getBookingProofUrl','executeGroupClassCommand','getGroupClassProofUrl','sendBookingChatMessage','sendSupportChatMessage','executeDirectChatCommand','executeCoachScheduleCommand']);
+  assert.equal(calls.initialized,1);assert.equal(calls.database.length,2);assert.equal(calls.callable.length,11);
   for(const options of calls.callable){assert.equal(options.region,'asia-southeast1');assert.equal(options.enforceAppCheck,true)}
 });
 
@@ -56,6 +57,7 @@ test('callable requires Firebase Auth and forwards only verified uid plus reques
   assert.deepEqual(await exported.sendBookingChatMessage({auth:{uid:'coach_12345678'},data}),{ok:true});assert.equal(calls.chat[0][0],database);
   assert.deepEqual(await exported.sendSupportChatMessage({auth:{uid:'coach_12345678'},data}),{ok:true});assert.equal(calls.supportChat[0][0],database);assert.equal(JSON.stringify(calls.supportChat[0][1]),JSON.stringify({actorUid:'coach_12345678',input:data}));
   assert.deepEqual(await exported.executeDirectChatCommand({auth:{uid:'coach_12345678'},data}),{ok:true});assert.equal(calls.directChat[0][0],database);assert.equal(JSON.stringify(calls.directChat[0][1]),JSON.stringify({actorUid:'coach_12345678',input:data}));
+  assert.deepEqual(await exported.executeCoachScheduleCommand({auth:{uid:'coach_12345678'},data}),{ok:true});assert.equal(calls.coachSchedule[0][0],database);assert.equal(JSON.stringify(calls.coachSchedule[0][1]),JSON.stringify({actorUid:'coach_12345678',input:data}));
 });
 
 test('callable maps expected conflicts and hides unexpected server errors',async()=>{

@@ -48,22 +48,14 @@
     busy=true;const button=$('cdOffSave');if(button)button.disabled=true;
     try{
       authOwner(id);
+      if(!window.CoachDiBookingServer?.scheduleCommand)throw Error('ระบบบันทึกตารางยังไม่พร้อม กรุณาเปิดแอปใหม่');
+      const existing=d.id?rows().find(row=>row.id===d.id):null;
       const snapshots=await Promise.all([db.ref('bookings').orderByChild('coachId').equalTo(id).once('value'),db.ref('coachPublicSchedule/'+id).once('value'),db.ref('coachGroupClasses/'+id).once('value'),db.ref('coachTimeOff/'+id).once('value')]);
-      authOwner(id);
-      const live=snapshots.slice(0,3).flatMap(s=>Object.values(s.val()||{})),clashes=C.conflicts(off,live);
+      authOwner(id);const live=snapshots.slice(0,3).flatMap(snapshot=>Object.values(snapshot.val()||{})),clashes=C.conflicts(off,live);
       if(clashes.length)throw Error(`พบ ${clashes.length} รายการจอง/นัด/คลาสกลุ่มที่ยังใช้งานในช่วงนี้ กรุณาจัดการรายการเดิมก่อน`);
-      const key=d.id||d.key||db.ref('coachTimeOff/'+id).push().key;current().key=key;
-      let reason='ข้อมูลวันหยุดเปลี่ยนแล้ว กรุณาเลือกใหม่';
-      const result=await db.ref('coachTimeOff/'+id).transaction(value=>{
-        authOwner(id);const old=value||{};
-        if(d.id&&JSON.stringify(old[key]||null)!==d.expected)return;
-        if(Object.entries(old).some(([other,row])=>other!==key&&C.intersects(off,row))){reason='ช่วงวันที่เลือกทับวันหยุดเดิม กรุณาแก้ไขรายการเดิม';return;}
-        const previous=old[key]||{};
-        if(!d.id&&old[key]){reason='รายการนี้บันทึกแล้ว กรุณาเปิดตารางใหม่';return;}
-        return {...old,[key]:{...previous,coachId:id,...off,type:'วันหยุด',createdAt:previous.createdAt||firebase.database.ServerValue.TIMESTAMP}};
-      },undefined,false);
-      if(!result.committed)throw Error(reason);
-      authOwner(id);offRows=Object.entries(result.snapshot.val()||{}).map(([key,row])=>({...row,id:key}));state.timeOff=offRows;newDraft();
+      if(Object.entries(snapshots[3].val()||{}).some(([key,row])=>key!==d.id&&C.intersects(off,row)))throw Error('ช่วงวันที่เลือกทับวันหยุดเดิม กรุณาแก้ไขรายการเดิม');
+      await window.CoachDiBookingServer.scheduleCommand('time_off_upsert',d.id||`${off.startDate}:${off.endDate}`,{timeOffId:d.id||'',startDate:off.startDate,endDate:off.endDate,expectedVersion:Number(existing?.revision??existing?.updatedAt??existing?.createdAt??0)});
+      authOwner(id);const snapshot=await db.ref('coachTimeOff/'+id).once('value');authOwner(id);offRows=Object.entries(snapshot.val()||{}).map(([key,row])=>({...row,id:key}));state.timeOff=offRows;newDraft();
       busy=false;showCoach('schedule');message('บันทึกวันหยุดแล้ว ลูกค้าจะไม่สามารถเลือกเวลาในวันหยุดนี้');
     }catch(error){message('บันทึกไม่ได้: '+error.message);}finally{busy=false;if(button?.isConnected)button.disabled=false;}
   }
@@ -71,11 +63,9 @@
     if(busy||state.role!=='coach')return;const item=rows().find(row=>row.id===id);if(!item||!confirm('ยกเลิกวันหยุดช่วงนี้และเปิดรับการจองตามเวลาว่างเดิม?'))return;
     const coach=state.user.uid;busy=true;
     try{
-      authOwner(coach);const ref=db.ref('coachTimeOff/'+coach+'/'+id);const original=(await ref.once('value')).val();authOwner(coach);
-      const {id:ignore,...expected}=item;if(JSON.stringify(original)!==JSON.stringify(expected))throw Error('วันหยุดนี้เปลี่ยนแล้ว กรุณาโหลดตารางใหม่');
-      const result=await ref.transaction(value=>{authOwner(coach);return JSON.stringify(value)===JSON.stringify(original)?null:undefined;},undefined,false);
-      if(!result.committed)throw Error('วันหยุดนี้เปลี่ยนแล้ว กรุณาโหลดตารางใหม่');
-      authOwner(coach);offRows=rows().filter(row=>row.id!==id);state.timeOff=offRows;if(draft?.id===id)newDraft();busy=false;showCoach('schedule');message('ยกเลิกวันหยุดแล้ว');
+      authOwner(coach);if(!window.CoachDiBookingServer?.scheduleCommand)throw Error('ระบบบันทึกตารางยังไม่พร้อม กรุณาเปิดแอปใหม่');
+      await window.CoachDiBookingServer.scheduleCommand('time_off_delete',id,{timeOffId:id,expectedVersion:Number(item.revision??item.updatedAt??item.createdAt??0)});
+      authOwner(coach);const snapshot=await db.ref('coachTimeOff/'+coach).once('value');authOwner(coach);offRows=Object.entries(snapshot.val()||{}).map(([key,row])=>({...row,id:key}));state.timeOff=offRows;if(draft?.id===id)newDraft();busy=false;showCoach('schedule');message('ยกเลิกวันหยุดแล้ว');
     }catch(error){message('ยกเลิกไม่ได้: '+error.message);}finally{busy=false;}
   }
   const scheduleBase=c43schedule;c43schedule=function(){

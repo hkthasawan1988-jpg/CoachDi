@@ -161,7 +161,34 @@
     } catch (error) { root.alert(Core.errorText(error)); }
   }
 
-  root.CoachDiBookingServer = { athleteAction, call, cashRefund, coachAction, create, errorText: Core.errorText, refundAction, submitPayment, upload, viewProof };
+  async function scheduleCommand(action, id, payload = {}) {
+    const current = user(), intent = scope(action, id || JSON.stringify(payload)), requestId = tracker.get(current.uid, intent);
+    try { const result = await call('executeCoachScheduleCommand', { requestId, action, ...payload }); tracker.complete(current.uid, intent); return result; }
+    catch (error) { throw new Error(Core.errorText(error)); }
+  }
+  async function saveAppointment(id = '', button) {
+    if (button?.disabled) return null;
+    const original = button?.textContent || '';
+    try {
+      if (button) { button.disabled = true; button.textContent = 'กำลังบันทึก...'; button.setAttribute('aria-busy', 'true'); }
+      const date = document.getElementById('c71Date')?.value || '', start = root.timeToHour(document.getElementById('c71Start')?.value || ''), end = root.timeToHour(document.getElementById('c71End')?.value || ''), venueName = document.getElementById('c71Venue')?.value?.trim() || '';
+      const recurring = !id && Boolean(document.getElementById('c71Recurring')?.checked), recurringUntil = recurring ? document.getElementById('c71Until')?.value || '' : '';
+      const row = typeof root.c71AppointmentRows === 'function' ? root.c71AppointmentRows().find(item => item.id === id) : null;
+      const venueId = typeof root.c71VenueId === 'function' ? root.c71VenueId(venueName) : 'other';
+      const result = await scheduleCommand('appointment_upsert', id || `${date}:${start}:${end}:${venueName}:${recurringUntil}`, { appointmentId: id, date, start, end, venueName, venueId, recurringUntil, expectedVersion: Number(row?.revision ?? row?.updatedAt ?? row?.createdAt ?? 0) });
+      root.csCloseModal?.(); if (typeof root.showCoach === 'function') root.showCoach('schedule'); root.s42Toast?.(id ? 'แก้ไขนัดแล้ว' : `บันทึกนัดลงตารางแล้ว${result.count > 1 ? ` ${result.count} ครั้ง` : ''}`); return result;
+    } catch (error) { root.alert('บันทึกนัดไม่ได้: ' + error.message); return null; }
+    finally { if (button?.isConnected) { button.disabled = false; button.textContent = original; button.removeAttribute('aria-busy'); } }
+  }
+  async function deleteAppointment(id, button) {
+    const row = typeof root.c71AppointmentRows === 'function' ? root.c71AppointmentRows().find(item => item.id === id) : null;
+    if (!row || !root.confirm(`ลบนัด ${root.thaiDate(row.date)} ${root.c71Time(row.start)}–${root.c71Time(row.end)} ที่ ${row.venueName}?`)) return null;
+    try { if (button) button.disabled = true; return await scheduleCommand('appointment_delete', id, { appointmentId: id, expectedVersion: Number(row.revision ?? row.updatedAt ?? row.createdAt ?? 0) }); }
+    catch (error) { root.alert('ลบนัดไม่สำเร็จ: ' + error.message); return null; }
+    finally { if (button?.isConnected) button.disabled = false; }
+  }
+
+  root.CoachDiBookingServer = { athleteAction, call, cashRefund, coachAction, create, errorText: Core.errorText, refundAction, scheduleCommand, submitPayment, upload, viewProof };
   root.createBooking = (venueId, hour) => create(venueId, hour, 'request');
   root.cdCreatePaidBooking = (venueId, hour, button) => create(venueId, hour, 'paid_transfer', button);
   root.c65CreateVenuePayBooking = (venueId, hour, button) => create(venueId, hour, 'venue', button);
@@ -174,5 +201,6 @@
   root.s38RefundCash = (id, button) => cashRefund(id, button);
   root.s38RefundCoin = async (id, button) => { try { await refundAction(id, 'coach_select_coin_refund', button); root.csCloseModal?.(); root.alert('ส่งรายการคืนเครดิตให้ Admin แล้ว'); } catch (error) { root.alert(Core.errorText(error)); } };
   root.s38ViewSlip = id => viewProof(id);
+  root.c71SaveAppointment = (id, button) => saveAppointment(id, button);
+  root.c71DeleteAppointment = (id, button) => deleteAppointment(id, button);
 })(window);
-
