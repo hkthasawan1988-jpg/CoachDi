@@ -77,3 +77,26 @@ test('support chat uses one App Check callable and never creates client-side mes
   }));
   expect(result.value).toBe(''); expect(result.call.data.threadUid).toBe('test-athlete'); expect(result.call.data.text).toBe('ขอความช่วยเหลือ'); expect(result.clientWrites).toEqual([]);
 });
+
+test('direct chat send and delete use App Check commands without client-side message writes', async ({ page }) => {
+  await openIsolatedApp(page);
+  page.on('dialog', dialog => dialog.accept());
+  await page.evaluate(() => {
+    state.role = 'athlete'; state.user = { uid: 'test-athlete' }; testAuth.currentUser = state.user;
+    state.allAthleteBookings = [{ id: 'direct-booking', athleteId: 'test-athlete', coachId: 'test-coach', coachName: 'Coach Test', createdAt: 1 }];
+    document.body.insertAdjacentHTML('beforeend', '<div class="s41LineConv active"></div><div class="s41Composer"><input id="s41LineInput" value="ข้อความถึงโค้ช"><button class="s41Send" onclick="s41SendLineMessage()">ส่ง</button></div>');
+  });
+  await page.locator('.s41Send').dblclick();
+  await expect.poll(() => page.evaluate(() => testFunctionCalls.filter(call => call.name === 'executeDirectChatCommand').length)).toBe(1);
+  await page.evaluate(() => c50DeleteMessage('test-coach', 'test-athlete', 'message-1'));
+  await expect.poll(() => page.evaluate(() => testFunctionCalls.filter(call => call.name === 'executeDirectChatCommand').length)).toBe(2);
+  const result = await page.evaluate(() => ({
+    value: document.getElementById('s41LineInput').value,
+    calls: testFunctionCalls.filter(call => call.name === 'executeDirectChatCommand'),
+    clientWrites: testWrites.filter(write => !write.backend && /^userChats\//.test(write.path)),
+  }));
+  expect(result.value).toBe('');
+  expect(result.calls[0].data).toMatchObject({ action: 'send', coachId: 'test-coach', athleteId: 'test-athlete', bookingId: 'direct-booking', text: 'ข้อความถึงโค้ช' });
+  expect(result.calls[1].data).toMatchObject({ action: 'delete', coachId: 'test-coach', athleteId: 'test-athlete', messageId: 'message-1' });
+  expect(result.clientWrites).toEqual([]);
+});

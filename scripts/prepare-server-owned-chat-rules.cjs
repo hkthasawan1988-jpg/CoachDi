@@ -11,8 +11,11 @@ function merge(current){
   protect(supportMessages,'supportChats messages',["auth.uid === $uid","child('senderId').val() === auth.uid","child('senderRole').val() === 'admin'"]);
   const supportNotices=rules.adminSupportNotifications?.$id;if(!supportNotices)throw Error('Expected existing Admin Support notification rules');
   adminOnly(supportNotices,'adminSupportNotifications',["child('userId').val() === auth.uid","child(auth.uid).child('role').val() === 'admin'"]);
+  const directMessages=rules.userChats?.$coachId?.$athleteId?.messages?.$msgId;if(!directMessages)throw Error('Expected existing Direct Chat message rules');
+  protect(directMessages,'userChats messages',["auth.uid === $coachId","auth.uid === $athleteId","child('senderId').val() === auth.uid"]);
   exact(rules,'chatCommandResults',{'$uid':{'.read':"auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",'.write':false}});
   exact(rules,'supportChatCommandResults',{'$uid':{'.read':"auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",'.write':false}});
+  exact(rules,'directChatCommandResults',{'$uid':{'.read':"auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",'.write':false}});
   return next;
 }
 if(require.main===module){const[input,output]=process.argv.slice(2);if(!input||!output||path.resolve(input)===path.resolve(output))throw Error('Usage: node scripts/prepare-server-owned-chat-rules.cjs CURRENT_EXPORT.json REVIEW_OUTPUT.json');const current=JSON.parse(fs.readFileSync(input,'utf8'));fs.writeFileSync(output,JSON.stringify(merge(current),null,2)+'\n',{flag:'wx'});console.log('Prepared server-owned Booking Chat rules for review. No Firebase changes were made.')}
