@@ -127,6 +127,8 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
       - name: Prepare packaged app
         run: |
           npm ci
@@ -198,6 +200,8 @@ jobs:
           java-version: '21'
       - uses: android-actions/setup-android@v3
         if: steps.signing.outputs.ready == 'true'
+        with:
+          packages: platform-tools
       - name: Build signed AAB
         if: steps.signing.outputs.ready == 'true'
         env:
