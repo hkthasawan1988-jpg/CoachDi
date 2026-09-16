@@ -34,6 +34,12 @@ const legacyInlineModules = [
   { id: 'c73-knocker-application-status', path: 'knocker-application-status-ui.js', label: 'Knocker application status UI' },
   { id: 'c75-knocker-admin-queue', path: 'knocker-admin-queue-ui.js', label: 'Knocker Admin queue UI' },
   { id: 'c79-open-play-production-ui-script', path: 'open-play-ui.js', label: 'Open Play UI' },
+  { id: 'c60-athlete-calendar-nav', path: 'athlete-calendar-ui.js', label: 'Athlete calendar UI' },
+  { id: 'c88-athlete-booking-status-date-safety', path: 'athlete-booking-status-ui.js', label: 'Athlete booking status UI' },
+  { id: 'c89-coach-group-class-discovery', path: 'coach-group-class-discovery-ui.js', label: 'Coach Group Class discovery UI' },
+  { id: 'c90-group-class-paid-booking', path: 'group-class-payment-ui.js', label: 'Group Class payment UI' },
+  { id: 'c91-group-class-onboarding-auto-coach', path: 'group-class-onboarding-ui.js', label: 'Group Class onboarding UI' },
+  { id: 'c111-group-class-date-edit-script', path: 'group-class-date-edit-ui.js', label: 'Group Class date editing UI' },
 ];
 for (const { id, path, label, trailingNewline = false } of legacyInlineModules) {
   const include = `<script src="${path}"></script>`;
