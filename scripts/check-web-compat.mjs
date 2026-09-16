@@ -18,6 +18,12 @@ const legacyInlineModules = [
   { id: 'c83-coach-approval-fencing-and-recovery', path: 'coach-approval-recovery-ui.js', label: 'Coach approval recovery UI' },
   { id: 'c84-coach-approval-transaction-finalizer', path: 'coach-approval-transaction-ui.js', label: 'Coach approval transaction UI' },
   { id: 'c85-coach-rejection-repair', path: 'coach-rejection-ui.js', label: 'Coach rejection UI' },
+  { id: 'sprint395-patch', path: 'legacy-sprint-3.9.5-ui.js', label: 'Sprint 3.9.5 UI' },
+  { id: 'sprint396-patch', path: 'legacy-sprint-3.9.6-ui.js', label: 'Sprint 3.9.6 UI' },
+  { id: 'sprint398-patch', path: 'legacy-sprint-3.9.8-ui.js', label: 'Sprint 3.9.8 UI' },
+  { id: 'sprint400-patch', path: 'legacy-sprint-4.0-ui.js', label: 'Sprint 4.0 UI' },
+  { id: 'sprint41-patch', path: 'legacy-sprint-4.1-ui.js', label: 'Sprint 4.1 UI' },
+  { id: 'sprint42', path: 'legacy-sprint-4.2-ui.js', label: 'Sprint 4.2 UI' },
 ];
 for (const { id, path, label } of legacyInlineModules) {
   const include = `<script src="${path}"></script>`;
