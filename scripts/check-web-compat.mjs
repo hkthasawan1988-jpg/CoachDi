@@ -28,6 +28,12 @@ const legacyInlineModules = [
   { id: 'sprint400-patch', path: 'legacy-sprint-4.0-ui.js', label: 'Sprint 4.0 UI' },
   { id: 'sprint41-patch', path: 'legacy-sprint-4.1-ui.js', label: 'Sprint 4.1 UI' },
   { id: 'sprint42', path: 'legacy-sprint-4.2-ui.js', label: 'Sprint 4.2 UI' },
+  { id: 'c59-group-play', path: 'group-play-ui.js', label: 'Group play UI' },
+  { id: 'c69-hitting-partner-consent', path: 'hitting-partner-ui.js', label: 'Hitting partner UI' },
+  { id: 'c72-knocker-direct-coach', path: 'knocker-direct-coach-ui.js', label: 'Knocker direct coach UI' },
+  { id: 'c73-knocker-application-status', path: 'knocker-application-status-ui.js', label: 'Knocker application status UI' },
+  { id: 'c75-knocker-admin-queue', path: 'knocker-admin-queue-ui.js', label: 'Knocker Admin queue UI' },
+  { id: 'c79-open-play-production-ui-script', path: 'open-play-ui.js', label: 'Open Play UI' },
 ];
 for (const { id, path, label, trailingNewline = false } of legacyInlineModules) {
   const include = `<script src="${path}"></script>`;
