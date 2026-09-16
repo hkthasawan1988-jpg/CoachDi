@@ -25,6 +25,21 @@ async function attach(context,role){
       set:async value=>sessionWrites.push({key,value}),update:async value=>sessionWrites.push({key,value}),remove:async()=>{},push:()=>ref(key+'/test-key')});
     window.sessionTestDb={ref:key=>ref(key||'')};
   },{role});
+  const patchApplicationCore=source=>{
+    source=source.replace(/const firebaseConfig=\{[^\n]+\};/,`const firebaseConfig={apiKey:'demo-key',projectId:'${project}',authDomain:'localhost'};`);
+    const marker='const auth=coachDiFirebaseApp.auth(),db=coachDiFirebaseApp.database();';
+    expect(source.includes(marker)).toBeTruthy();
+    return source.replace(marker,`firebase.database=()=>window.sessionTestDb;firebase.database.ServerValue={TIMESTAMP:{'.sv':'timestamp'}};
+      const auth=coachDiFirebaseApp.auth(),db=window.sessionTestDb;
+      auth.useEmulator('${origin}',{disableWarnings:true});
+      const sessionRealListener=auth.onAuthStateChanged.bind(auth);let sessionPrimaryListener=true;
+      auth.onAuthStateChanged=function(callback){if(!sessionPrimaryListener)return ()=>{};sessionPrimaryListener=false;return sessionRealListener(async user=>{
+        if(document.readyState==='loading')await new Promise(resolve=>document.addEventListener('DOMContentLoaded',resolve,{once:true}));
+        ensureCoachApprovalRequest=async(user,ref,record)=>record;loadFirebaseData=async()=>{};
+        enterPortal=()=>{loginView.classList.add('hidden');portal.classList.remove('hidden');};
+        window.sessionObserved=true;return callback(user);
+      });};`);
+  };
   await context.route('**/*',async route=>{
     const url=new URL(route.request().url());
     // Keep browser requests same-origin; proxy only these demo Auth endpoints to the emulator.
@@ -35,21 +50,15 @@ async function attach(context,role){
     const sdkName=url.pathname.split('/').at(-1);
     if(url.hostname==='www.gstatic.com'&&sdk[sdkName])return route.fulfill({status:200,contentType:'text/javascript',body:sdk[sdkName]});
     if(url.origin!==origin)return route.fulfill({status:200,contentType:'text/javascript',body:''});
+    if(url.pathname==='/app-core.js'){
+      const response=await route.fetch();
+      return route.fulfill({response,body:patchApplicationCore(await response.text())});
+    }
     if(url.pathname==='/'||url.pathname==='/index.html'){
       const response=await route.fetch();let html=await response.text();
-      html=html.replace(/const firebaseConfig=\{[^\n]+\};/,`const firebaseConfig={apiKey:'demo-key',projectId:'${project}',authDomain:'localhost'};`);
-      const marker='const auth=coachDiFirebaseApp.auth(),db=coachDiFirebaseApp.database();';
-      expect(html.includes(marker)).toBeTruthy();
-      html=html.replace(marker,`firebase.database=()=>window.sessionTestDb;firebase.database.ServerValue={TIMESTAMP:{'.sv':'timestamp'}};
-        const auth=coachDiFirebaseApp.auth(),db=window.sessionTestDb;
-        auth.useEmulator('${origin}',{disableWarnings:true});
-        const sessionRealListener=auth.onAuthStateChanged.bind(auth);let sessionPrimaryListener=true;
-        auth.onAuthStateChanged=function(callback){if(!sessionPrimaryListener)return ()=>{};sessionPrimaryListener=false;return sessionRealListener(async user=>{
-          if(document.readyState==='loading')await new Promise(resolve=>document.addEventListener('DOMContentLoaded',resolve,{once:true}));
-          ensureCoachApprovalRequest=async(user,ref,record)=>record;loadFirebaseData=async()=>{};
-          enterPortal=()=>{loginView.classList.add('hidden');portal.classList.remove('hidden');};
-          window.sessionObserved=true;return callback(user);
-        });};`);
+      const externalCore='<script src="app-core.js"></script>';
+      if(html.includes(externalCore))expect(html.split(externalCore)).toHaveLength(2);
+      else html=patchApplicationCore(html);
       html += `<script>ensureCoachApprovalRequest=async(user,ref,record)=>record;
         loadFirebaseData=async()=>{};
         enterPortal=()=>{loginView.classList.add('hidden');portal.classList.remove('hidden');};</script>`;
