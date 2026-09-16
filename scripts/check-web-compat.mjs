@@ -11,6 +11,7 @@ const legacyInlineModules = [
   { id: 'c76-coach-group-classes', path: 'group-class-ui.js', label: 'Group Class UI' },
   { id: 'c70-admin-live-modules', path: 'admin-live-ui.js', label: 'Admin live modules' },
   { id: 'c71-coach-existing-appointments', path: 'coach-appointments-ui.js', label: 'Coach appointments UI' },
+  { id: 'c51-logo', path: 'brand-logo-ui.js', label: 'Brand logo UI' },
 ];
 for (const { id, path, label } of legacyInlineModules) {
   const include = `<script src="${path}"></script>`;
