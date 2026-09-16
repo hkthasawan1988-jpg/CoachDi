@@ -40,6 +40,16 @@ const legacyInlineModules = [
   { id: 'c90-group-class-paid-booking', path: 'group-class-payment-ui.js', label: 'Group Class payment UI' },
   { id: 'c91-group-class-onboarding-auto-coach', path: 'group-class-onboarding-ui.js', label: 'Group Class onboarding UI' },
   { id: 'c111-group-class-date-edit-script', path: 'group-class-date-edit-ui.js', label: 'Group Class date editing UI' },
+  { id: 'c46-subscription', path: 'subscription-ui.js', label: 'Subscription UI' },
+  { id: 'c47-athlete-admin', path: 'athlete-admin-ui.js', label: 'Athlete Admin UI' },
+  { id: 'c48-admin-finance', path: 'admin-finance-ui.js', label: 'Admin finance UI' },
+  { id: 'c49-coach-ops', path: 'coach-finance-ui.js', label: 'Coach finance UI' },
+  { id: 'c50-athlete-secure', path: 'athlete-security-ui.js', label: 'Athlete security UI' },
+  { id: 'c62-subscription-legal', path: 'subscription-legal-ui.js', label: 'Subscription legal UI' },
+  { id: 'c65-coach-payment-choice', path: 'coach-payment-ui.js', label: 'Coach payment UI' },
+  { id: 'c68-coach-registration', path: 'coach-registration-ui.js', label: 'Coach registration UI' },
+  { id: 'c107-admin-coach-account-controls-script', path: 'admin-coach-account-ui.js', label: 'Admin Coach account UI' },
+  { id: 'c113-coach-transaction-income-script', path: 'coach-income-ui.js', label: 'Coach income UI' },
 ];
 for (const { id, path, label, trailingNewline = false } of legacyInlineModules) {
   const include = `<script src="${path}"></script>`;
