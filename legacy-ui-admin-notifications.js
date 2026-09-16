@@ -1,0 +1,17 @@
+/* A Coach whose account and public profile are both active is complete from
+   Admin's point of view, even when a legacy registrationComplete flag is absent. */
+c80Status=function(user={},profile={}){const userStatus=c80Norm(user.status||'pending_approval'),profileStatus=c80Norm(profile.status||'pending_approval');if(userStatus==='reviewing')return'reviewing';if(userStatus==='rejected'||profileStatus==='rejected')return'rejected';if(userStatus==='suspended'||profileStatus==='suspended')return'suspended';if(userStatus==='active'&&profileStatus==='active')return'active';if(!c80RegistrationComplete(user,profile))return'incomplete';return'pending_approval'};
+
+/* Own audit confirmations remain in history but are already read, so saving a
+   form never creates a persistent red Notification badge for the same Admin. */
+c95NotifyOwnChange=async function(action,target){if(!state.user?.uid)return;const key=`${action||'change'}:${target||''}`,now=Date.now();if(c95LastChangeNotice.key===key&&now-c95LastChangeNotice.at<1500)return;c95LastChangeNotice={key,at:now};const id=db.ref(`notifications/${state.user.uid}`).push().key;await db.ref(`notifications/${state.user.uid}/${id}`).set({type:'app_change',action:String(action||'change').slice(0,80),senderId:state.user.uid,recipientId:state.user.uid,message:c95ChangeMessage(action),read:true,createdAt:firebase.database.ServerValue.TIMESTAMP})};
+let c108CleanupBusy=false,c108CleanupUid='',c108CleanupAt=0;
+async function c108ClearLegacyOwnUnread(){const uid=state.user?.uid,now=Date.now();if(!uid||c108CleanupBusy||(c108CleanupUid===uid&&now-c108CleanupAt<30000))return;c108CleanupBusy=true;try{const snapshot=await db.ref(`notifications/${uid}`).limitToLast(250).once('value'),updates={};snapshot.forEach(child=>{const notice=child.val()||{};if(notice.type==='app_change'&&notice.read!==true&&notice.senderId===uid&&notice.recipientId===uid)updates[`${child.key}/read`]=true});if(Object.keys(updates).length)await db.ref(`notifications/${uid}`).update(updates);c108CleanupUid=uid;c108CleanupAt=Date.now()}catch(error){console.warn('Own notification cleanup unavailable',error)}finally{c108CleanupBusy=false}}
+
+/* Saving a legacy Coach profile is an explicit Admin review, so complete the
+   old registration flags only after the normal save has succeeded. */
+const c108SaveCoachBase=c54Save;c54Save=async function(uid,button){const drawer=document.getElementById('c54Drawer'),item=c107CoachItem(uid);await c108SaveCoachBase(uid,button);if(drawer&&document.body.contains(drawer))return;const uids=item?.uids?.length?item.uids:[uid],updates={};uids.forEach(aliasUid=>{updates[`users/${aliasUid}/registrationComplete`]=true;updates[`users/${aliasUid}/registrationCompletedAt`]=firebase.database.ServerValue.TIMESTAMP;updates[`coachProfiles/${aliasUid}/registrationComplete`]=true;updates[`coachProfiles/${aliasUid}/updatedAt`]=firebase.database.ServerValue.TIMESTAMP});try{await db.ref().update(updates);await c108ClearLegacyOwnUnread();if(document.getElementById('c54Grid'))await c54Load();if(document.getElementById('c80Grid'))c80Render()}catch(error){console.warn('Legacy Coach completion sync unavailable',error)}};
+
+const c108ApprovalRenderBase=c80Render;c80Render=function(){const result=c108ApprovalRenderBase();c108ClearLegacyOwnUnread();return result};
+auth.onAuthStateChanged(user=>{if(user)setTimeout(c108ClearLegacyOwnUnread,600)});
+if(document.getElementById('c80Grid'))setTimeout(()=>c80Render(),0);

@@ -1,0 +1,20 @@
+/* Public Coach cards cannot read /users. Admin stamps a non-sensitive canonical UID
+   onto every same-email profile, then Athlete pages collapse those aliases. */
+function c104CanonicalCoachId(profile,uid){return String(profile?.canonicalCoachId||uid||'').trim()}
+function c104PublicProfileScore(item,canonicalId){const p=item.profile||{},status=c80Norm(p.status||'active');return (item.uid===canonicalId?1e12:0)+(p.coachDiId?1e10:0)+(status==='active'?1e8:0)+((p.photoURL||p.photo||p.image)?1e6:0)+Object.keys(p).length*100}
+function c104MergePublicCoachProfiles(profiles={}){const groups=new Map();Object.entries(profiles).forEach(([uid,profile])=>{const key=c104CanonicalCoachId(profile,uid);if(!groups.has(key))groups.set(key,[]);groups.get(key).push({uid,profile})});return Array.from(groups.entries()).map(([canonicalId,candidates])=>{candidates.sort((a,b)=>c104PublicProfileScore(b,canonicalId)-c104PublicProfileScore(a,canonicalId)||a.uid.localeCompare(b.uid));const primary=candidates[0],merged=Object.assign({},...candidates.slice().reverse().map(item=>item.profile),primary.profile),aliasUids=candidates.map(item=>item.uid),aliases=[...new Set(candidates.flatMap(item=>[item.profile.displayName,item.profile.nameTh,item.profile.nameEn]).map(value=>String(value||'').trim()).filter(Boolean))];return {uid:primary.uid,...merged,canonicalCoachId:primary.uid,aliasUids,aliases,mergedCount:candidates.length}}).filter(profile=>!['suspended','pending_approval','rejected','merged'].includes(c80Norm(profile.status)))}
+const c104RefreshCoachListBase=refreshCoachList;
+refreshCoachList=async function(render=true){try{const snapshot=await db.ref('coachProfiles').once('value'),profiles=snapshot.val()||{},previous=String(state.coachId||'');state.coaches=c104MergePublicCoachProfiles(profiles);state.c104CoachAliasMap={};state.coaches.forEach(profile=>(profile.aliasUids||[profile.uid]).forEach(uid=>{state.c104CoachAliasMap[uid]=profile.uid}));if(previous&&state.c104CoachAliasMap[previous])state.coachId=state.c104CoachAliasMap[previous];if(render)renderCoachPicker();return state.coaches}catch(error){console.warn('Merged Coach directory unavailable',error);return c104RefreshCoachListBase(render)}};
+function c104ResolveCoachId(uid){return state.c104CoachAliasMap?.[uid]||uid}
+const c104ChangeAthleteCoachBase=changeAthleteCoach;
+changeAthleteCoach=async function(uid){return c104ChangeAthleteCoachBase(c104ResolveCoachId(uid))};
+const c104LoadCoachScopedDataBase=loadCoachScopedData;
+loadCoachScopedData=function(uid){const canonical=c104ResolveCoachId(uid);if(state.role==='athlete')state.coachId=canonical;return c104LoadCoachScopedDataBase(canonical)};
+async function c104StampCoachAliases(rows){if(state.role!=='admin'||!state.user?.uid)return 0;const updates={};(rows||[]).forEach(row=>(row.uids||[row.uid]).forEach(uid=>{const source=(row.sourceRows||[]).find(item=>item.uid===uid)?.profile||{};if(source.canonicalCoachId!==row.uid)updates[`coachProfiles/${uid}/canonicalCoachId`]=row.uid}));if(!Object.keys(updates).length)return 0;updates['appConfig/coachDirectoryVersion']=firebase.database.ServerValue.TIMESTAMP;await db.ref().update(updates);return Object.keys(updates).length-1}
+const c104AdminCoachLoadBase=c54Load;
+c54Load=async function(){await c104AdminCoachLoadBase();try{await c104StampCoachAliases(state.c54Coaches)}catch(error){console.warn('Coach alias sync unavailable',error)}};
+const c104ActivateCoachBase=c91ActivateCoachAccount;
+c91ActivateCoachAccount=async function(database,uid){const result=await c104ActivateCoachBase(database,uid);const profileRef=database.ref(`coachProfiles/${uid}`),snapshot=await profileRef.once('value');if(snapshot.val()?.canonicalCoachId!==uid)await profileRef.update({canonicalCoachId:uid});return result};
+const c104SaveCoachProfileBase=saveCoachProfile;
+saveCoachProfile=async function(){await c104SaveCoachProfileBase();if(state.role==='coach'&&state.user?.uid)await db.ref(`coachProfiles/${state.user.uid}/canonicalCoachId`).set(state.user.uid)};
+if(state.role==='athlete'&&document.getElementById('coachCards'))setTimeout(()=>refreshCoachList(true),0);
