@@ -9,6 +9,7 @@ let html = (await readFile(new URL('index.html', root), 'utf8')).replace(/\r\n/g
 const legacyInlineModules = [
   { id: 'c43-js', path: 'coach-operations-ui.js', label: 'Coach operations UI' },
   { id: 'c76-coach-group-classes', path: 'group-class-ui.js', label: 'Group Class UI' },
+  { id: 'c70-admin-live-modules', path: 'admin-live-ui.js', label: 'Admin live modules' },
 ];
 for (const { id, path, label } of legacyInlineModules) {
   const include = `<script src="${path}"></script>`;
