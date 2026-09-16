@@ -1,5 +1,13 @@
 {
   "database": {
     "rules": "database.rules.json"
-  }
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "functions": [{
+    "source": "functions-mobile",
+    "codebase": "mobile",
+    "ignore": ["node_modules", ".git", "firebase-debug.log", "firebase-debug.*.log"]
+  }]
 }

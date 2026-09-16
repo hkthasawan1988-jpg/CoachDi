@@ -6,6 +6,83 @@ const root = new URL('../', import.meta.url);
 const hash = data => createHash('sha256').update(data).digest('hex');
 const baseline = JSON.parse(await readFile(new URL('docs/web-compatibility-baseline.json', root), 'utf8'));
 let html = (await readFile(new URL('index.html', root), 'utf8')).replace(/\r\n/g, '\n');
+const legacyInlineModules = [
+  { id: null, path: 'app-core.js', label: 'Application core', trailingNewline: true },
+  { id: null, path: 'coach-schedule-ui.js', label: 'Coach schedule UI', trailingNewline: true },
+  { id: null, path: 'legacy-sprint-3.9-ui.js', label: 'Sprint 3.9 UI' },
+  { id: null, path: 'legacy-sprint-3.9.2-ui.js', label: 'Sprint 3.9.2 UI' },
+  { id: 'c43-js', path: 'coach-operations-ui.js', label: 'Coach operations UI' },
+  { id: 'c76-coach-group-classes', path: 'group-class-ui.js', label: 'Group Class UI' },
+  { id: 'c70-admin-live-modules', path: 'admin-live-ui.js', label: 'Admin live modules' },
+  { id: 'c71-coach-existing-appointments', path: 'coach-appointments-ui.js', label: 'Coach appointments UI' },
+  { id: 'c51-logo', path: 'brand-logo-ui.js', label: 'Brand logo UI' },
+  { id: 'c80-coach-approval-inbox-script', path: 'coach-approval-inbox-ui.js', label: 'Coach approval inbox UI' },
+  { id: 'c81-coach-approval-production-safety', path: 'coach-approval-safety-ui.js', label: 'Coach approval safety UI' },
+  { id: 'c82-coach-approval-final-hardening', path: 'coach-approval-hardening-ui.js', label: 'Coach approval hardening UI' },
+  { id: 'c83-coach-approval-fencing-and-recovery', path: 'coach-approval-recovery-ui.js', label: 'Coach approval recovery UI' },
+  { id: 'c84-coach-approval-transaction-finalizer', path: 'coach-approval-transaction-ui.js', label: 'Coach approval transaction UI' },
+  { id: 'c85-coach-rejection-repair', path: 'coach-rejection-ui.js', label: 'Coach rejection UI' },
+  { id: 'sprint395-patch', path: 'legacy-sprint-3.9.5-ui.js', label: 'Sprint 3.9.5 UI' },
+  { id: 'sprint396-patch', path: 'legacy-sprint-3.9.6-ui.js', label: 'Sprint 3.9.6 UI' },
+  { id: 'sprint398-patch', path: 'legacy-sprint-3.9.8-ui.js', label: 'Sprint 3.9.8 UI' },
+  { id: 'sprint400-patch', path: 'legacy-sprint-4.0-ui.js', label: 'Sprint 4.0 UI' },
+  { id: 'sprint41-patch', path: 'legacy-sprint-4.1-ui.js', label: 'Sprint 4.1 UI' },
+  { id: 'sprint42', path: 'legacy-sprint-4.2-ui.js', label: 'Sprint 4.2 UI' },
+  { id: 'c59-group-play', path: 'group-play-ui.js', label: 'Group play UI' },
+  { id: 'c69-hitting-partner-consent', path: 'hitting-partner-ui.js', label: 'Hitting partner UI' },
+  { id: 'c72-knocker-direct-coach', path: 'knocker-direct-coach-ui.js', label: 'Knocker direct coach UI' },
+  { id: 'c73-knocker-application-status', path: 'knocker-application-status-ui.js', label: 'Knocker application status UI' },
+  { id: 'c75-knocker-admin-queue', path: 'knocker-admin-queue-ui.js', label: 'Knocker Admin queue UI' },
+  { id: 'c79-open-play-production-ui-script', path: 'open-play-ui.js', label: 'Open Play UI' },
+  { id: 'c60-athlete-calendar-nav', path: 'athlete-calendar-ui.js', label: 'Athlete calendar UI' },
+  { id: 'c88-athlete-booking-status-date-safety', path: 'athlete-booking-status-ui.js', label: 'Athlete booking status UI' },
+  { id: 'c89-coach-group-class-discovery', path: 'coach-group-class-discovery-ui.js', label: 'Coach Group Class discovery UI' },
+  { id: 'c90-group-class-paid-booking', path: 'group-class-payment-ui.js', label: 'Group Class payment UI' },
+  { id: 'c91-group-class-onboarding-auto-coach', path: 'group-class-onboarding-ui.js', label: 'Group Class onboarding UI' },
+  { id: 'c111-group-class-date-edit-script', path: 'group-class-date-edit-ui.js', label: 'Group Class date editing UI' },
+  { id: 'c46-subscription', path: 'subscription-ui.js', label: 'Subscription UI' },
+  { id: 'c47-athlete-admin', path: 'athlete-admin-ui.js', label: 'Athlete Admin UI' },
+  { id: 'c48-admin-finance', path: 'admin-finance-ui.js', label: 'Admin finance UI' },
+  { id: 'c49-coach-ops', path: 'coach-finance-ui.js', label: 'Coach finance UI' },
+  { id: 'c50-athlete-secure', path: 'athlete-security-ui.js', label: 'Athlete security UI' },
+  { id: 'c62-subscription-legal', path: 'subscription-legal-ui.js', label: 'Subscription legal UI' },
+  { id: 'c65-coach-payment-choice', path: 'coach-payment-ui.js', label: 'Coach payment UI' },
+  { id: 'c68-coach-registration', path: 'coach-registration-ui.js', label: 'Coach registration UI' },
+  { id: 'c107-admin-coach-account-controls-script', path: 'admin-coach-account-ui.js', label: 'Admin Coach account UI' },
+  { id: 'c113-coach-transaction-income-script', path: 'coach-income-ui.js', label: 'Coach income UI' },
+  { id: 'c67-recommended-venues', path: 'legacy-ui-recommended-venues.js', label: 'Recommended venues UI' },
+  { id: 'c100-coach-email-profile-merge-script', path: 'legacy-ui-coach-email-profile.js', label: 'Coach email profile UI' },
+  { id: 'c103-admin-coach-card-merge-script', path: 'legacy-ui-admin-coach-card.js', label: 'Admin Coach card UI' },
+  { id: 'c53-ads', path: 'legacy-ui-ads.js', label: 'Advertising UI' },
+  { id: 'c95-advertising-notifications-script', path: 'legacy-ui-advertising-notifications.js', label: 'Advertising notifications UI' },
+  { id: 'c54-coaches', path: 'legacy-ui-coaches.js', label: 'Coach directory UI' },
+  { id: 'c101-admin-email-deduplication-script', path: 'legacy-ui-admin-email-dedupe.js', label: 'Admin email deduplication UI' },
+  { id: 'c92-real-mobile-navigation-script', path: 'legacy-ui-mobile-navigation.js', label: 'Mobile navigation UI' },
+  { id: 'c94-new-item-menu-alerts-script', path: 'legacy-ui-menu-alerts.js', label: 'Menu alert UI' },
+  { id: 'c77-coach-activation-fix', path: 'legacy-ui-coach-activation.js', label: 'Coach activation UI' },
+  { id: 'c57-layout-schedule-chat-fixes', path: 'legacy-ui-layout-schedule-chat.js', label: 'Schedule and chat layout UI' },
+  { id: 'c98-clear-venue-confirmation-script', path: 'legacy-ui-venue-confirmation.js', label: 'Venue confirmation UI' },
+  { id: 'c93-legacy-coach-login-repair', path: 'legacy-ui-coach-login.js', label: 'Coach login UI' },
+  { id: 'c78-mobile-coach-activation', path: 'legacy-ui-mobile-coach-activation.js', label: 'Mobile Coach activation UI' },
+  { id: 'c104-athlete-coach-profile-merge-script', path: 'legacy-ui-athlete-coach-profile.js', label: 'Athlete Coach profile UI' },
+  { id: 'c87-coach-hourly-pricing', path: 'legacy-ui-coach-hourly-pricing.js', label: 'Coach hourly pricing UI' },
+  { id: 'c58-coach-calendar', path: 'legacy-ui-coach-calendar.js', label: 'Coach calendar UI' },
+  { id: 'c108-clear-completed-admin-notifications-script', path: 'legacy-ui-admin-notifications.js', label: 'Admin notifications UI' },
+  { id: 'c61-group-play-polish', path: 'legacy-ui-group-play-polish.js', label: 'Group Play polish UI' },
+  { id: 'c66-bangkok-status', path: 'legacy-ui-bangkok-status.js', label: 'Bangkok status UI' },
+];
+for (const { id, path, label, trailingNewline = false } of legacyInlineModules) {
+  const include = `<script src="${path}"></script>`;
+  const source = (await readFile(new URL(path, root), 'utf8')).replace(/\r\n/g, '\n');
+  assert.equal(html.split(include).length, 2, `Expected one ${label} module at its legacy load position`);
+  assert.equal(await readFile(new URL(`dist/${path}`, root), 'utf8'), await readFile(new URL(path, root), 'utf8'),
+    `${label} module must be copied byte-for-byte into the web build`);
+  const openingTag = id ? `<script id="${id}">` : '<script>';
+  html = html.replace(include, `${openingTag}\n${source}${trailingNewline ? '\n' : ''}</script>`);
+}
+const serverClientIncludes = '<script src="booking-server-client-core.js"></script>\n<script src="booking-server-client.js"></script>\n<script src="group-class-server-client.js"></script>\n<script src="chat-server-client.js"></script>\n';
+assert.ok(html.endsWith(serverClientIncludes), 'Expected reviewed server-owned booking client includes');
+html = html.slice(0, -serverClientIncludes.length);
 const accountIncludes = '<link rel=\"stylesheet\" href=\"account-views.css\">\n<script src=\"account-views.js\"></script>\n';
 assert.ok(html.endsWith(accountIncludes), 'Expected reviewed account view includes');
 html = html.slice(0, -accountIncludes.length);
@@ -38,6 +115,16 @@ assert.equal(html.split(chatRoute).length, 2, 'Expected exactly one reviewed leg
 assert.ok(html.endsWith(mobileIncludes), 'Expected the reviewed mobile layout includes');
 html = html.slice(0, -mobileIncludes.length).replace(nativeShare, "const url=new URL(location.origin+'/');");
 html = html.replace(chatRoute, "try{showChat396=cd398ChatPage}catch(e){}");
+const functionsSdk = '<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>\n';
+assert.equal(html.split(functionsSdk).length, 2, 'Expected one reviewed Firebase Functions client SDK');
+html = html.replace(functionsSdk, '');
+const appCheckBridge = '<script src="/app-check-bridge.js"></script>\n';
+assert.equal(html.split(appCheckBridge).length, 2, 'Expected one reviewed native App Check bridge');
+html = html.replace(appCheckBridge, '');
+const appCheckActivation = "try{window.CoachDiAppCheck?.activate(coachDiFirebaseApp,coachDiPublicConfig.appCheckSiteKey)}catch(error){console.warn('App Check monitor client could not start',error)}";
+const originalAppCheckActivation = "if(coachDiPublicConfig.appCheckSiteKey){try{coachDiFirebaseApp.appCheck().activate(coachDiPublicConfig.appCheckSiteKey,true)}catch(error){console.warn('App Check monitor client could not start',error)}}";
+assert.equal(html.split(appCheckActivation).length, 2, 'Expected reviewed App Check activation');
+html = html.replace(appCheckActivation, originalAppCheckActivation);
 const sessionChanges = JSON.parse(await readFile(new URL('docs/session-compatibility-changes.json', root), 'utf8'));
 assert.equal(sessionChanges.length, 7, 'Expected seven reviewed session restoration adaptations');
 for (const {before, after} of sessionChanges) {

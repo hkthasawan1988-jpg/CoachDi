@@ -73,6 +73,8 @@ test('click and drag select a coach appointment range without writes; save happe
   await expect(page.locator('#csModalRoot')).toHaveCount(0);
   const writes=await page.evaluate(()=>testWrites.filter(w=>Object.keys(w.value||{}).some(k=>k.startsWith('coachPublicSchedule/'))));
   expect(writes).toHaveLength(1);const record=Object.values(writes[0].value)[0];expect(record.start).toBe(9);expect(record.end).toBe(10.5);
+  expect(await page.evaluate(()=>testFunctionCalls.filter(call=>call.name==='executeCoachScheduleCommand'&&call.data.action==='appointment_upsert'))).toHaveLength(1);
+  expect(await page.evaluate(()=>testWrites.filter(w=>!w.backend&&Object.keys(w.value||{}).some(k=>k.startsWith('coachPublicSchedule/'))))).toHaveLength(0);
   expect(await page.evaluate(()=>testWrites.some(w=>Object.keys(w.value||{}).some(k=>k.startsWith('bookings/'))))).toBe(false);expect(pageErrors).toEqual([]);
 });
 test('coach selection cannot drag through an existing booking and rechecks before save',async({page})=>{
@@ -128,6 +130,7 @@ test('creating recurring appointments allocates separate IDs for every date',asy
   const writes=await page.evaluate(()=>testWrites.filter(w=>Object.keys(w.value||{}).some(k=>k.startsWith('coachPublicSchedule/'))));
   expect(writes).toHaveLength(1);expect(Object.keys(writes[0].value)).toEqual(['coachPublicSchedule/test-coach/new-1','coachPublicSchedule/test-coach/new-2','coachPublicSchedule/test-coach/new-3']);
   expect(new Set(Object.values(writes[0].value).map(v=>v.date)).size).toBe(3);
+  expect(await page.evaluate(()=>testFunctionCalls.filter(call=>call.name==='executeCoachScheduleCommand'&&call.data.action==='appointment_upsert'))).toHaveLength(1);
 });
 
 test('phone calendar stays above navigation and view labels do not break into letters',async({page})=>{

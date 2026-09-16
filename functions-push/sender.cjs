@@ -6,7 +6,7 @@ function pushTitle(type){
   return ({new_booking:'มีคำขอจองใหม่',new_paid_booking:'มีคำขอจองพร้อมสลิป',new_booking_pay_at_venue:'มีคำขอจองใหม่',
     payment_submitted:'นักกีฬาส่งสลิปแล้ว',booking_confirmed:'ยืนยันการจองแล้ว',booking_rejected:'สถานะการจองเปลี่ยนแปลง',
     refund_completed:'ดำเนินการคืนเงินแล้ว',group_class_paid_booking:'มีคำขอ Group Class ใหม่',group_class_booking_approved:'ยืนยันที่นั่ง Group Class แล้ว',
-    group_class_booking_rejected:'สถานะ Group Class เปลี่ยนแปลง',chat_message:'มีข้อความใหม่',support_message:'มีข้อความจากเจ้าหน้าที่',
+    group_class_booking_rejected:'สถานะ Group Class เปลี่ยนแปลง',chat_message:'มีข้อความใหม่',support_message:'มีข้อความจากเจ้าหน้าที่',support_request:'มีข้อความ Support ใหม่',
     class_reminder_24h:'เตือนคลาสล่วงหน้า 24 ชั่วโมง',class_reminder_2h:'เตือนคลาสล่วงหน้า 2 ชั่วโมง',subscription_expiring:'Subscription ใกล้หมดอายุ',
     subscription_expired:'Subscription หมดอายุแล้ว',subscription_payment_submitted:'มีสลิป Subscription ใหม่',subscription_payment_success:'ชำระ Subscription สำเร็จ',
     payout_verification_pending:'บัญชีรับเงินรอตรวจสอบ',payout_verification_approved:'บัญชีรับเงินได้รับอนุมัติ',payout_verification_rejected:'กรุณาตรวจสอบบัญชีรับเงิน'})[type]||'Coach Di';

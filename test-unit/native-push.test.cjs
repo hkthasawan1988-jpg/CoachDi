@@ -4,8 +4,13 @@ const vm = require('node:vm');
 const {readFileSync} = require('node:fs');
 const {webcrypto} = require('node:crypto');
 const tick = () => new Promise(resolve => setImmediate(resolve));
+const pause = () => new Promise(resolve => setTimeout(resolve,10));
 const deferred = () => { let resolve, reject; const promise = new Promise((yes,no) => {resolve=yes;reject=no;});return {promise,resolve,reject}; };
-async function until(condition) { for(let i=0;i<300;i++){if(condition())return;await tick();}assert.ok(condition(),'Expected asynchronous push state'); }
+async function until(condition, timeoutMs=5000) {
+  const deadline=Date.now()+timeoutMs;
+  while(Date.now()<deadline){if(condition())return;await pause();}
+  assert.ok(condition(),'Expected asynchronous push state');
+}
 async function setup(options={}) {
   const events={},calls=[],elements={},writes=[],timers=new Map(),surfaceEvents={},reads=[];
   let authChanged,timerId=0,permission=options.permission || 'prompt',status={appEnabled:true,channelEnabled:true,...options.status};
@@ -35,7 +40,7 @@ async function setup(options={}) {
     document:{hidden:false,addEventListener:(name,cb)=>surfaceEvents[name]=cb,createElement:element,
       getElementById:id=>id==='logoutBtn'?{insertAdjacentElement:(_,el)=>{elements[el.id]=el;}}:elements[id]},
     addEventListener:(name,cb)=>surfaceEvents[name]=cb,
-    Capacitor:{isNativePlatform:()=>true,Plugins:{PushNotifications:push,CoachDiNotifications:session}},
+    Capacitor:{isNativePlatform:()=>true,getPlatform:()=>options.platform||'android',Plugins:{PushNotifications:push,CoachDiNotifications:session}},
     enterPortal:()=>{},logout:async()=>{calls.push('signed-out');sandbox.auth.currentUser=null;},
     showAthleteMenu:page=>calls.push('navigate-'+page),showCoach:page=>calls.push('navigate-'+page),s41ShowAdmin:page=>calls.push('navigate-'+page)};
   sandbox.window=sandbox;vm.runInNewContext(readFileSync('native-push.js','utf8'),sandbox);
@@ -58,6 +63,12 @@ test('native push prompts only on user action, saves an Android token and disabl
   assert.equal(t.nativeSession.deviceId,record.value.deviceId);
   await t.sandbox.logout();assert.ok(t.calls.indexOf('native-off')<t.calls.indexOf('signed-out'));
   assert.equal(t.writes.at(-1).value.enabled,false);assert.equal(t.calls.at(-1),'signed-out');
+});
+
+test('native push labels an iOS token for server-side routing',async()=>{
+  const t=await setup({platform:'ios'});await t.login();await t.elements.cdNativePushButton.onclick();await until(()=>t.calls.includes('native-on'));
+  const record=t.writes.find(x=>x.value?.enabled===true);
+  assert.equal(record.value.platform,'ios');
 });
 
 test('denied permission offers system settings without registering',async()=>{
@@ -177,3 +188,4 @@ test('a token callback arriving after an explicit off choice cannot enable the n
   const enabled=t.calls.filter(x=>x==='native-on').length;t.events.registration({value:'late-token'});await t.dispatch('focus');
   assert.equal(t.nativeSession.enabled,false);assert.equal(t.calls.filter(x=>x==='native-on').length,enabled);
 });
+

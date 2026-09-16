@@ -19,6 +19,7 @@ async function openIsolatedApp(page, native = false, entry = '/', nativePush = f
     };
     window.testAuthListeners=[];
     window.testWrites = [];
+    window.testFunctionCalls = [];
     window.testAuthCalls = [];
     window.testData = {};
     window.testSubscriptions = [];
@@ -55,7 +56,46 @@ async function openIsolatedApp(page, native = false, entry = '/', nativePush = f
     authFn.Auth = { Persistence: { LOCAL: 'local', SESSION: 'session', NONE: 'none' } };
     const database = () => ({ ref: path => ref(path || '') });
     database.ServerValue = { TIMESTAMP: { '.sv': 'timestamp' } };
-    const app = { auth: authFn, database, delete: async () => {}, appCheck: () => ({ activate: () => {} }) };
+    const callFunction = async (name, data) => {
+      if (window.testWriteError) throw Error('Write failed');
+      window.testFunctionCalls.push({ name, data });
+      if (name === 'createBookingCommand') {
+        const bookingId = 'server-booking-fixture';
+        const booking = { ...data, id: bookingId, athleteId: auth.currentUser?.uid, venue: data.venueName, end: Number(data.start) + 1,
+          status: data.paymentMode === 'paid_transfer' ? 'payment_submitted' : 'pending_coach_approval', paymentStatus: data.paymentMode === 'paid_transfer' ? 'payment_submitted' : 'not_started' };
+        window.testData['bookings/' + bookingId] = booking;
+        window.testWrites.push({ path: '', value: { ['bookings/' + bookingId]: booking }, backend: true });
+        return { data: { ok: true, bookingId, status: booking.status, paymentStatus: booking.paymentStatus } };
+      }
+      if (name === 'executeAthleteBookingCommand') {
+        const path = 'bookings/' + data.bookingId, current = window.testData[path] || {};
+        const value = { ...current, refundRequestedAt: 123, refundStatus: 'requested', refundReason: data.reason || '', status: current.status || 'declined' };
+        window.testData[path] = value; window.testWrites.push({ path, value, transaction: true });
+        return { data: { ok: true, bookingId: data.bookingId } };
+      }
+      if (name === 'executeCoachScheduleCommand') {
+        const coachId = auth.currentUser?.uid, overlaps = (row, date, start, end) => row?.date === date && Number(start) < Number(row.end) && Number(end) > Number(row.start);
+        if (data.action === 'appointment_upsert') {
+          const commitments = Object.values(window.testData.bookings || {});
+          if (commitments.some(row => overlaps(row, data.date, data.start, data.end))) throw Object.assign(Error('conflict'), { details: { code: 'TIME_CONFLICT' } });
+          const until = data.recurringUntil || '', dates = [data.date];
+          for (let next = new Date(data.date + 'T12:00:00Z'); until;) { next.setUTCDate(next.getUTCDate() + 7); const day = next.toISOString().slice(0, 10); if (day > until) break; dates.push(day); }
+          const target = window.testData['coachPublicSchedule/' + coachId] || (window.testData['coachPublicSchedule/' + coachId] = {}), updates = {};
+          dates.forEach((date, index) => { const key = data.appointmentId || 'new-' + (index + 1), previous = target[key] || {}, value = { coachId, date, start: data.start, end: data.end, venueId: data.venueId, venueName: data.venueName, source: 'coach_existing_appointment', recurrenceGroup: until ? data.date : '', revision: Number(previous.revision || 0) + 1, createdAt: previous.createdAt || 123, updatedAt: 123 }; target[key] = value; updates['coachPublicSchedule/' + coachId + '/' + key] = value; });
+          window.testWrites.push({ path: '', value: updates, backend: true }); return { data: { ok: true, count: dates.length, appointmentIds: Object.keys(updates) } };
+        }
+        if (data.action === 'appointment_delete') { delete (window.testData['coachPublicSchedule/' + coachId] || {})[data.appointmentId]; window.testWrites.push({ path: 'coachPublicSchedule/' + coachId + '/' + data.appointmentId, value: null, backend: true }); return { data: { ok: true, appointmentId: data.appointmentId } }; }
+        if (data.action === 'time_off_upsert') {
+          const target = window.testData['coachTimeOff/' + coachId] || (window.testData['coachTimeOff/' + coachId] = {}), key = data.timeOffId || 'test-key', previous = target[key] || {}, value = { ...previous, coachId, startDate: data.startDate, endDate: data.endDate, fullDay: true, type: 'วันหยุด', revision: Number(previous.revision || 0) + 1, createdAt: previous.createdAt || 123, updatedAt: 123 };
+          target[key] = value; window.testWrites.push({ path: 'coachTimeOff/' + coachId, value: { ...target }, backend: true }); return { data: { ok: true, timeOffId: key } };
+        }
+        if (data.action === 'time_off_delete') { delete (window.testData['coachTimeOff/' + coachId] || {})[data.timeOffId]; window.testWrites.push({ path: 'coachTimeOff/' + coachId + '/' + data.timeOffId, value: null, backend: true }); return { data: { ok: true, timeOffId: data.timeOffId } }; }
+      }
+      return { data: name === 'getBookingProofUrl' || name === 'getGroupClassProofUrl' ? { url: 'https://example.invalid/private-proof' } : { ok: true, bookingId: data.bookingId, classId: data.classId, status: data.decision || data.status || 'open', notified: 0 } };
+    };
+    const functions = () => ({ httpsCallable: name => data => callFunction(name, data) });
+    const storage = () => ({ ref: path => ({ put: async (file, metadata) => { window.testWrites.push({ path, file, metadata, storage: true }); } }) });
+    const app = { auth: authFn, database, functions, storage, delete: async () => {}, appCheck: () => ({ activate: () => {} }) };
     window.firebase = { initializeApp: () => app, apps: [], auth: authFn, database };
   }, {isNative:native,nativePush});
   await page.goto(entry);

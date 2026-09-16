@@ -19,6 +19,8 @@ for(const width of [320,360,390,412,656])test(`coach drags multiple holiday days
   await page.evaluate(()=>{document.getElementById('cdOffForm').requestSubmit();document.getElementById('cdOffForm').requestSubmit();});
   await expect(page.locator('#cdOffMessage')).toContainText('บันทึกวันหยุดแล้ว');
   const writes=await page.evaluate(()=>testWrites);expect(writes).toHaveLength(1);expect(writes[0].path).toBe('coachTimeOff/holiday-coach');expect(writes[0].value['test-key']).toMatchObject({coachId:'holiday-coach',startDate:'2026-09-14',endDate:'2026-09-17',fullDay:true});
+  expect(await page.evaluate(()=>testFunctionCalls.filter(call=>call.name==='executeCoachScheduleCommand'&&call.data.action==='time_off_upsert'))).toHaveLength(1);
+  expect(await page.evaluate(()=>testWrites.filter(write=>!write.backend&&write.path.startsWith('coachTimeOff/')))).toHaveLength(0);
   await page.evaluate(()=>{state.s42View='week';state.s42Date='2026-09-14';showCoach('schedule');});
   await expect(page.locator('.cdGridCell[data-date="2026-09-14"][data-start="9"]')).toHaveAttribute('data-free','false');await expect(page.locator('.cdOffGridEvent').first()).toContainText('วันหยุด');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);expect(pageErrors).toEqual([]);
