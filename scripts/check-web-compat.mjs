@@ -12,6 +12,12 @@ const legacyInlineModules = [
   { id: 'c70-admin-live-modules', path: 'admin-live-ui.js', label: 'Admin live modules' },
   { id: 'c71-coach-existing-appointments', path: 'coach-appointments-ui.js', label: 'Coach appointments UI' },
   { id: 'c51-logo', path: 'brand-logo-ui.js', label: 'Brand logo UI' },
+  { id: 'c80-coach-approval-inbox-script', path: 'coach-approval-inbox-ui.js', label: 'Coach approval inbox UI' },
+  { id: 'c81-coach-approval-production-safety', path: 'coach-approval-safety-ui.js', label: 'Coach approval safety UI' },
+  { id: 'c82-coach-approval-final-hardening', path: 'coach-approval-hardening-ui.js', label: 'Coach approval hardening UI' },
+  { id: 'c83-coach-approval-fencing-and-recovery', path: 'coach-approval-recovery-ui.js', label: 'Coach approval recovery UI' },
+  { id: 'c84-coach-approval-transaction-finalizer', path: 'coach-approval-transaction-ui.js', label: 'Coach approval transaction UI' },
+  { id: 'c85-coach-rejection-repair', path: 'coach-rejection-ui.js', label: 'Coach rejection UI' },
 ];
 for (const { id, path, label } of legacyInlineModules) {
   const include = `<script src="${path}"></script>`;
