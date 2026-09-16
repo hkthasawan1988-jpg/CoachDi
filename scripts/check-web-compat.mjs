@@ -7,6 +7,10 @@ const hash = data => createHash('sha256').update(data).digest('hex');
 const baseline = JSON.parse(await readFile(new URL('docs/web-compatibility-baseline.json', root), 'utf8'));
 let html = (await readFile(new URL('index.html', root), 'utf8')).replace(/\r\n/g, '\n');
 const legacyInlineModules = [
+  { id: null, path: 'app-core.js', label: 'Application core', trailingNewline: true },
+  { id: null, path: 'coach-schedule-ui.js', label: 'Coach schedule UI', trailingNewline: true },
+  { id: null, path: 'legacy-sprint-3.9-ui.js', label: 'Sprint 3.9 UI' },
+  { id: null, path: 'legacy-sprint-3.9.2-ui.js', label: 'Sprint 3.9.2 UI' },
   { id: 'c43-js', path: 'coach-operations-ui.js', label: 'Coach operations UI' },
   { id: 'c76-coach-group-classes', path: 'group-class-ui.js', label: 'Group Class UI' },
   { id: 'c70-admin-live-modules', path: 'admin-live-ui.js', label: 'Admin live modules' },
@@ -25,13 +29,14 @@ const legacyInlineModules = [
   { id: 'sprint41-patch', path: 'legacy-sprint-4.1-ui.js', label: 'Sprint 4.1 UI' },
   { id: 'sprint42', path: 'legacy-sprint-4.2-ui.js', label: 'Sprint 4.2 UI' },
 ];
-for (const { id, path, label } of legacyInlineModules) {
+for (const { id, path, label, trailingNewline = false } of legacyInlineModules) {
   const include = `<script src="${path}"></script>`;
   const source = (await readFile(new URL(path, root), 'utf8')).replace(/\r\n/g, '\n');
   assert.equal(html.split(include).length, 2, `Expected one ${label} module at its legacy load position`);
   assert.equal(await readFile(new URL(`dist/${path}`, root), 'utf8'), await readFile(new URL(path, root), 'utf8'),
     `${label} module must be copied byte-for-byte into the web build`);
-  html = html.replace(include, `<script id="${id}">\n${source}</script>`);
+  const openingTag = id ? `<script id="${id}">` : '<script>';
+  html = html.replace(include, `${openingTag}\n${source}${trailingNewline ? '\n' : ''}</script>`);
 }
 const serverClientIncludes = '<script src="booking-server-client-core.js"></script>\n<script src="booking-server-client.js"></script>\n<script src="group-class-server-client.js"></script>\n<script src="chat-server-client.js"></script>\n';
 assert.ok(html.endsWith(serverClientIncludes), 'Expected reviewed server-owned booking client includes');
